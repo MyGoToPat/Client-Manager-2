@@ -19,6 +19,8 @@ import {
   Building,
   FolderOpen
 } from 'lucide-react';
+import { ExportDropdown } from '@/components/export-dropdown';
+import { exportGroups, type ExportFormat } from '@/lib/export-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -267,10 +269,16 @@ export default function Groups() {
             </Select>
           </div>
 
-          <Button onClick={() => setCreateModalOpen(true)} data-testid="button-create-group">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Group
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown 
+              onExport={(format: ExportFormat) => exportGroups(filteredGroups, format)}
+              disabled={filteredGroups.length === 0}
+            />
+            <Button onClick={() => setCreateModalOpen(true)} data-testid="button-create-group">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Group
+            </Button>
+          </div>
         </div>
 
         {loading ? (

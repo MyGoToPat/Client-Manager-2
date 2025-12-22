@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Zap, Search, BarChart2, MoreVertical, Pencil, Copy, Trash2, Users, User, FolderOpen } from 'lucide-react';
+import { ExportDropdown } from '@/components/export-dropdown';
+import { exportDirectives, type ExportFormat } from '@/lib/export-utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Header } from '../components/header';
 import { Card, CardContent } from '@/components/ui/card';
@@ -265,10 +267,16 @@ export default function Directives() {
             </Tabs>
           </div>
 
-          <Button onClick={handleCreate} data-testid="button-new-directive">
-            <Plus className="w-4 h-4 mr-2" />
-            New Directive
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown 
+              onExport={(format: ExportFormat) => exportDirectives(filteredDirectives, format)}
+              disabled={filteredDirectives.length === 0}
+            />
+            <Button onClick={handleCreate} data-testid="button-new-directive">
+              <Plus className="w-4 h-4 mr-2" />
+              New Directive
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (

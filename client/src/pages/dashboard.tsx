@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, MessageSquare, Calendar, Clock } from 'lucide-react';
+import { ExportDropdown } from '@/components/export-dropdown';
+import { exportClients, type ExportFormat } from '@/lib/export-utils';
 import { Header } from '../components/header';
 import { ClientDrawer } from '../components/client-drawer';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -68,13 +70,20 @@ export default function Dashboard() {
       />
       
       <main className="flex-1 p-6 space-y-6 overflow-auto">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-greeting">
-            {getGreeting()}, {mentorName}!
-          </h1>
-          <p className="text-muted-foreground">
-            Here's what needs your attention today.
-          </p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold" data-testid="text-greeting">
+              {getGreeting()}, {mentorName}!
+            </h1>
+            <p className="text-muted-foreground">
+              Here's what needs your attention today.
+            </p>
+          </div>
+          <ExportDropdown 
+            onExport={(format: ExportFormat) => exportClients(clients, format)}
+            disabled={clients.length === 0}
+            label="Export Clients"
+          />
         </div>
 
         {isLoading ? (
