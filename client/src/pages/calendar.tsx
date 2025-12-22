@@ -74,10 +74,44 @@ function AvailabilityModal({ open, onOpenChange, availability, onSave }: Availab
     }
   };
 
+  const addTimeSlot = (day: number) => {
+    const newSlot: Availability = {
+      id: `avail-new-${Date.now()}-${Math.random()}`,
+      mentorId: 'mentor-1',
+      dayOfWeek: day as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+      startTime: '12:00',
+      endTime: '17:00',
+      isActive: true,
+    };
+    setEditedAvailability([...editedAvailability, newSlot]);
+  };
+
+  const removeTimeSlot = (slotId: string) => {
+    setEditedAvailability(editedAvailability.filter(a => a.id !== slotId));
+  };
+
+  const updateTimeSlot = (slotId: string, field: 'startTime' | 'endTime', value: string) => {
+    setEditedAvailability(editedAvailability.map(a => 
+      a.id === slotId ? { ...a, [field]: value } : a
+    ));
+  };
+
   const handleSave = () => {
     onSave(editedAvailability);
     onOpenChange(false);
   };
+
+  const timeOptions = useMemo(() => {
+    const options = [];
+    for (let h = 6; h <= 22; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        const label = format(new Date().setHours(h, m), 'h:mm a');
+        options.push({ value: time, label });
+      }
+    }
+    return options;
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -85,7 +119,7 @@ function AvailabilityModal({ open, onOpenChange, availability, onSave }: Availab
         <DialogHeader>
           <DialogTitle>Set Availability</DialogTitle>
           <DialogDescription>
-            Configure your weekly availability for client bookings.
+            Configure your weekly availability for client bookings. Add multiple time slots per day.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4 max-h-[60vh] overflow-auto">
@@ -94,28 +128,77 @@ function AvailabilityModal({ open, onOpenChange, availability, onSave }: Availab
             const isEnabled = daySlots.length > 0;
 
             return (
-              <div key={dayName} className="flex items-start gap-4 p-3 rounded-md bg-muted/50">
-                <div className="flex items-center gap-3 min-w-[120px]">
+              <div key={dayName} className="p-3 rounded-md bg-muted/50">
+                <div className="flex items-center gap-3 mb-2">
                   <Checkbox
                     checked={isEnabled}
                     onCheckedChange={(checked) => toggleDay(index, checked as boolean)}
                     data-testid={`checkbox-day-${index}`}
                   />
-                  <span className="font-medium">{dayName}</span>
-                </div>
-                <div className="flex-1">
-                  {isEnabled ? (
-                    <div className="flex items-center gap-2 text-sm flex-wrap">
-                      {daySlots.map((slot) => (
-                        <Badge key={slot.id} variant="secondary">
-                          {slot.startTime} - {slot.endTime}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Not available</span>
+                  <span className="font-medium flex-1">{dayName}</span>
+                  {isEnabled && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => addTimeSlot(index)}
+                      data-testid={`button-add-slot-${index}`}
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add Slot
+                    </Button>
                   )}
                 </div>
+                {isEnabled ? (
+                  <div className="space-y-2 pl-8">
+                    {daySlots.map((slot) => (
+                      <div key={slot.id} className="flex items-center gap-2">
+                        <Select 
+                          value={slot.startTime} 
+                          onValueChange={(v) => updateTimeSlot(slot.id, 'startTime', v)}
+                        >
+                          <SelectTrigger className="w-[120px]" data-testid={`select-start-${slot.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeOptions.map(opt => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-muted-foreground">to</span>
+                        <Select 
+                          value={slot.endTime} 
+                          onValueChange={(v) => updateTimeSlot(slot.id, 'endTime', v)}
+                        >
+                          <SelectTrigger className="w-[120px]" data-testid={`select-end-${slot.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeOptions.map(opt => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {daySlots.length > 1 && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeTimeSlot(slot.id)}
+                            data-testid={`button-remove-slot-${slot.id}`}
+                          >
+                            <Ban className="w-4 h-4 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground pl-8">Not available</span>
+                )}
               </div>
             );
           })}

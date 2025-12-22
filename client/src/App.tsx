@@ -26,6 +26,7 @@ import Groups from './pages/groups';
 import GroupDetail from './pages/group-detail';
 import ProgramTemplates from './pages/program-templates';
 import ProgramTemplateBuilder from './pages/program-template-builder';
+import BookingPage from './pages/booking';
 
 interface AskPatContextType {
   openAskPat: () => void;
@@ -236,6 +237,7 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       </Route>
+      <Route path="/book/:mentorSlug" component={BookingPage} />
       <Route component={NotFound} />
     </Switch>
   );

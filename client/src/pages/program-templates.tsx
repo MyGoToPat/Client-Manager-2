@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Plus, BookOpen, Users, Clock, BarChart2, MoreVertical, Edit, Copy, Trash2, PlayCircle } from 'lucide-react';
 import { Header } from '../components/header';
@@ -12,9 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 import { useAskPat } from '../App';
 import { mockProgramTemplates } from '../mocks/program-templates.mock';
-import type { ProgramTemplate } from '../types';
+import { clientsService } from '../services/clients.service';
+import { groupsService } from '../services/groups.service';
+import { CreateGroupFromTemplateModal } from '../components/program-templates/create-group-from-template-modal';
+import type { ProgramTemplate, Client, ClientGroup } from '../types';
 
 interface ProgramTemplateCardProps {
   template: ProgramTemplate;
@@ -107,8 +111,25 @@ function ProgramTemplateCard({ template, onEdit, onCreateGroup, onDuplicate, onD
 export default function ProgramTemplates() {
   const [, setLocation] = useLocation();
   const { openAskPat } = useAskPat();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [templates] = useState<ProgramTemplate[]>(mockProgramTemplates);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<ProgramTemplate | null>(null);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
+
+  useEffect(() => {
+    loadClients();
+  }, []);
+
+  const loadClients = async () => {
+    try {
+      const data = await clientsService.getClients('mentor-1');
+      setClients(data);
+    } catch (error) {
+      console.error('Failed to load clients:', error);
+    }
+  };
 
   const filteredTemplates = templates.filter(t => 
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -120,7 +141,28 @@ export default function ProgramTemplates() {
   };
 
   const handleCreateGroup = (template: ProgramTemplate) => {
-    setLocation(`/groups?fromTemplate=${template.id}`);
+    setSelectedTemplate(template);
+    setCreateGroupOpen(true);
+  };
+
+  const handleCreateGroupFromTemplate = async (groupData: Partial<ClientGroup>) => {
+    try {
+      await groupsService.create(groupData as Omit<ClientGroup, 'id' | 'createdAt' | 'updatedAt'>);
+      toast({
+        title: 'Cohort created',
+        description: `${groupData.name} has been created successfully.`,
+      });
+      setCreateGroupOpen(false);
+      setSelectedTemplate(null);
+      setLocation('/groups');
+    } catch (error) {
+      console.error('Failed to create group:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create cohort. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDuplicate = (templateId: string) => {
@@ -190,6 +232,19 @@ export default function ProgramTemplates() {
           </div>
         )}
       </main>
+
+      {selectedTemplate && (
+        <CreateGroupFromTemplateModal
+          open={createGroupOpen}
+          onClose={() => {
+            setCreateGroupOpen(false);
+            setSelectedTemplate(null);
+          }}
+          template={selectedTemplate}
+          clients={clients}
+          onCreateGroup={handleCreateGroupFromTemplate}
+        />
+      )}
     </div>
   );
 }

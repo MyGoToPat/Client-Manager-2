@@ -1,0 +1,1974 @@
+# HiPat - Phase 3.5: Complete Missing Features
+
+## CRITICAL: Build Summary Requirement
+
+**At the end of this build, provide a DETAILED SUMMARY of everything you built, including:**
+
+1. **Files Created** - List every new file with its path and purpose
+2. **Files Modified** - List every file you changed and what was changed
+3. **Components Built** - List every new React component
+4. **Routes Added** - List every new route/page
+5. **Types Added** - List every new TypeScript interface/type
+6. **Mock Data Added** - List any new mock data
+7. **Features Implemented** - Plain English description of each feature
+8. **Known Issues** - Any bugs, incomplete features, or things that need attention
+9. **Screenshots** - Take screenshots of each major new screen/feature
+
+Save as `BUILD_SUMMARY_PHASE_3_5.md` in the project root.
+
+---
+
+## Overview
+
+Phase 3 built the foundation. Phase 3.5 completes the missing integrations and workflows.
+
+**Features to Build:**
+1. Create Group FROM Program Template
+2. Group-Specific Directives (inside group detail page)
+3. Group Detail Page with Tabs (Overview, Members, Message Board, Directives, Progress)
+4. Client Booking Flow (shareable link)
+5. Enhanced Availability with Time Slot Editing
+
+---
+
+## TASK 1: Create Group FROM Program Template
+
+### The Flow
+
+1. User goes to `/program-templates`
+2. Clicks "Create Group" button on a template card
+3. Modal opens with template info pre-filled
+4. User sets: Cohort Name, Start Date, Max Capacity, Selects Members
+5. On submit: Creates a new Group with `type: 'program_cohort'` and copies all template modules/directives
+
+### Update ProgramTemplateCard
+
+```tsx
+// In program-templates.tsx, update the card actions
+
+<Card>
+  <CardHeader>
+    <CardTitle>{template.name}</CardTitle>
+    <CardDescription>{template.durationWeeks} weeks · {template.modules.length} modules</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <p className="text-sm text-muted-foreground">{template.description}</p>
+    <div className="flex gap-2 mt-4">
+      <Badge>{template.timesUsed} times used</Badge>
+      <Badge variant="outline">{template.avgCompletionRate}% completion</Badge>
+    </div>
+  </CardContent>
+  <CardFooter className="flex gap-2">
+    <Button variant="outline" onClick={() => navigate(`/program-templates/${template.id}`)}>
+      Edit
+    </Button>
+    <Button onClick={() => openCreateGroupModal(template)}>
+      <Users className="w-4 h-4 mr-2" />
+      Create Group
+    </Button>
+  </CardFooter>
+</Card>
+```
+
+### Create Group From Template Modal
+
+```tsx
+// components/program-templates/create-group-from-template-modal.tsx
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Info } from "lucide-react";
+import { format } from "date-fns";
+import { useState } from "react";
+import { ProgramTemplate, Client, ClientGroup } from "@/types";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  template: ProgramTemplate;
+  clients: Client[];
+  onCreateGroup: (group: Partial<ClientGroup>) => void;
+}
+
+export const CreateGroupFromTemplateModal = ({ open, onClose, template, clients, onCreateGroup }: Props) => {
+  const [name, setName] = useState(`${template.name} - ${format(new Date(), 'MMMM yyyy')} Cohort`);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [maxCapacity, setMaxCapacity] = useState<string>('');
+  const [selectedClients, setSelectedClients] = useState<string[]>([]);
+  const [allowNewMembers, setAllowNewMembers] = useState(true);
+
+  const handleSubmit = () => {
+    const newGroup: Partial<ClientGroup> = {
+      name,
+      description: template.description,
+      type: 'program_cohort',
+      program: {
+        templateId: template.id,
+        name: template.name,
+        durationWeeks: template.durationWeeks,
+        startDate: startDate,
+        currentWeek: 1,
+      },
+      clientIds: selectedClients,
+      maxCapacity: maxCapacity ? parseInt(maxCapacity) : undefined,
+      isActive: true,
+      isArchived: false,
+      allowNewMembers,
+      // These will be calculated
+      memberCount: selectedClients.length,
+      avgProgress: 0,
+      avgCompliance: 0,
+    };
+    
+    onCreateGroup(newGroup);
+    onClose();
+  };
+
+  const toggleClient = (clientId: string) => {
+    setSelectedClients(prev => 
+      prev.includes(clientId) 
+        ? prev.filter(id => id !== clientId)
+        : [...prev, clientId]
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create Group from "{template.name}"</DialogTitle>
+        </DialogHeader>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            This will create a new cohort with all {template.modules.length} modules and {template.directives.length} automated directives from the template. Directives will trigger relative to each member's program progress.
+          </AlertDescription>
+        </Alert>
+
+        <div className="space-y-4 py-4">
+          {/* Cohort Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Cohort Name *</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., 12-Week Shred - January 2025 Cohort"
+            />
+          </div>
+
+          {/* Start Date */}
+          <div className="space-y-2">
+            <Label>Start Date *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => date && setStartDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Max Capacity */}
+          <div className="space-y-2">
+            <Label htmlFor="capacity">Max Capacity (optional)</Label>
+            <Input
+              id="capacity"
+              type="number"
+              value={maxCapacity}
+              onChange={(e) => setMaxCapacity(e.target.value)}
+              placeholder="e.g., 25"
+            />
+          </div>
+
+          {/* Add Members */}
+          <div className="space-y-2">
+            <Label>Add Members</Label>
+            <div className="border rounded-lg max-h-48 overflow-y-auto">
+              {clients.map(client => (
+                <div 
+                  key={client.id}
+                  className="flex items-center space-x-3 p-3 hover:bg-muted/50 cursor-pointer"
+                  onClick={() => toggleClient(client.id)}
+                >
+                  <Checkbox 
+                    checked={selectedClients.includes(client.id)}
+                    onCheckedChange={() => toggleClient(client.id)}
+                  />
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                      {client.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{client.name}</p>
+                      <p className="text-xs text-muted-foreground">{client.email}</p>
+                    </div>
+                  </div>
+                  <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                    {client.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {selectedClients.length} member{selectedClients.length !== 1 ? 's' : ''} selected
+            </p>
+          </div>
+
+          {/* Settings */}
+          <div className="space-y-2">
+            <Label>Settings</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="allowNew"
+                checked={allowNewMembers}
+                onCheckedChange={(checked) => setAllowNewMembers(checked as boolean)}
+              />
+              <Label htmlFor="allowNew" className="font-normal">
+                Allow new members to join after start
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={!name || !startDate}>
+            Create Cohort
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+```
+
+### Update Groups Service
+
+```typescript
+// services/groups.service.ts - Add this method
+
+export const createGroupFromTemplate = async (
+  template: ProgramTemplate,
+  groupData: Partial<ClientGroup>
+): Promise<ClientGroup> => {
+  // Create the group
+  const newGroup: ClientGroup = {
+    id: `group-${Date.now()}`,
+    mentorId: 'mentor-1', // From auth context in real app
+    name: groupData.name || template.name,
+    description: groupData.description || template.description,
+    type: 'program_cohort',
+    color: 'blue',
+    icon: '🏋️',
+    program: groupData.program,
+    clientIds: groupData.clientIds || [],
+    maxCapacity: groupData.maxCapacity,
+    isActive: true,
+    isArchived: false,
+    allowNewMembers: groupData.allowNewMembers ?? true,
+    memberCount: groupData.clientIds?.length || 0,
+    avgProgress: 0,
+    avgCompliance: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    // Copy modules from template
+    modules: template.modules.map(m => ({ ...m, id: `mod-${Date.now()}-${m.id}` })),
+    // Copy directives from template (they'll be program-relative)
+    directives: template.directives.map(d => ({ ...d, id: `dir-${Date.now()}-${d.id}` })),
+  };
+  
+  // In real app, POST to API
+  // For now, add to mock data
+  mockGroups.push(newGroup);
+  
+  return newGroup;
+};
+```
+
+### Update ClientGroup Type
+
+```typescript
+// types/index.ts - Update ClientGroup to include modules and directives
+
+export interface ClientGroup {
+  id: string;
+  mentorId: string;
+  
+  // Basic Info
+  name: string;
+  description?: string;
+  type: 'program_cohort' | 'custom' | 'promotion' | 'organization';
+  color?: string;
+  icon?: string;
+  
+  // Program Info (if type === 'program_cohort')
+  program?: {
+    templateId?: string;
+    name: string;
+    durationWeeks: number;
+    startDate: Date;
+    currentWeek: number;
+  };
+  
+  // Content (copied from template)
+  modules?: ProgramModule[];
+  directives?: TemplateDirective[];
+  
+  // Members
+  clientIds: string[];
+  maxCapacity?: number;
+  
+  // Settings
+  isActive: boolean;
+  isArchived: boolean;
+  allowNewMembers: boolean;
+  
+  // Stats
+  memberCount: number;
+  avgProgress: number;
+  avgCompliance: number;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+---
+
+## TASK 2: Group Detail Page with Tabs
+
+### New Page: Group Detail
+
+```tsx
+// pages/group-detail.tsx
+
+import { useParams, useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, Settings, Users, MessageSquare, Zap, BarChart3, Calendar } from "lucide-react";
+import { ClientGroup } from "@/types";
+import { mockGroups } from "@/mocks/groups.mock";
+
+// Tab Components (create these separately)
+import { GroupOverviewTab } from "@/components/groups/group-overview-tab";
+import { GroupMembersTab } from "@/components/groups/group-members-tab";
+import { GroupMessageBoardTab } from "@/components/groups/group-message-board-tab";
+import { GroupDirectivesTab } from "@/components/groups/group-directives-tab";
+import { GroupProgressTab } from "@/components/groups/group-progress-tab";
+
+const GroupDetail = () => {
+  const { id } = useParams();
+  const [, navigate] = useLocation();
+  const [group, setGroup] = useState<ClientGroup | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => {
+    // Fetch group by ID
+    const foundGroup = mockGroups.find(g => g.id === id);
+    setGroup(foundGroup || null);
+  }, [id]);
+
+  if (!group) {
+    return <div>Group not found</div>;
+  }
+
+  const isProgramCohort = group.type === 'program_cohort';
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/groups')}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{group.icon || '👥'}</span>
+            <h1 className="text-2xl font-bold">{group.name}</h1>
+            <Badge variant={group.type === 'program_cohort' ? 'default' : 'secondary'}>
+              {group.type === 'program_cohort' ? 'Program Cohort' : 
+               group.type === 'custom' ? 'Custom' :
+               group.type === 'promotion' ? 'Promotion' : 'Organization'}
+            </Badge>
+          </div>
+          {isProgramCohort && group.program && (
+            <p className="text-muted-foreground">
+              Started {new Date(group.program.startDate).toLocaleDateString()} · 
+              Week {group.program.currentWeek} of {group.program.durationWeeks}
+            </p>
+          )}
+        </div>
+        <Button variant="outline">
+          <Settings className="h-4 w-4 mr-2" />
+          Settings
+        </Button>
+      </div>
+
+      {/* Program Progress Bar (for cohorts) */}
+      {isProgramCohort && group.program && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between text-sm mb-2">
+              <span>Program Progress</span>
+              <span>Week {group.program.currentWeek} of {group.program.durationWeeks}</span>
+            </div>
+            <Progress 
+              value={(group.program.currentWeek / group.program.durationWeeks) * 100} 
+              className="h-2"
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="members" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Members ({group.memberCount})
+          </TabsTrigger>
+          <TabsTrigger value="board" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Message Board
+          </TabsTrigger>
+          <TabsTrigger value="directives" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Directives
+          </TabsTrigger>
+          <TabsTrigger value="progress" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Progress
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <GroupOverviewTab group={group} />
+        </TabsContent>
+
+        <TabsContent value="members">
+          <GroupMembersTab group={group} />
+        </TabsContent>
+
+        <TabsContent value="board">
+          <GroupMessageBoardTab group={group} />
+        </TabsContent>
+
+        <TabsContent value="directives">
+          <GroupDirectivesTab group={group} />
+        </TabsContent>
+
+        <TabsContent value="progress">
+          <GroupProgressTab group={group} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default GroupDetail;
+```
+
+### Add Route
+
+```tsx
+// App.tsx - Add route
+<Route path="/groups/:id" element={<GroupDetail />} />
+```
+
+---
+
+## TASK 3: Group Directives Tab
+
+This is the key missing feature - directives INSIDE a group.
+
+```tsx
+// components/groups/group-directives-tab.tsx
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Zap, Clock, Calendar } from "lucide-react";
+import { ClientGroup, TemplateDirective } from "@/types";
+import { CreateGroupDirectiveModal } from "./create-group-directive-modal";
+
+interface Props {
+  group: ClientGroup;
+}
+
+export const GroupDirectivesTab = ({ group }: Props) => {
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const isProgramCohort = group.type === 'program_cohort';
+
+  // Separate program-timed vs event-based directives
+  const programTimedDirectives = group.directives?.filter(d => d.week) || [];
+  const eventBasedDirectives = group.directives?.filter(d => !d.week) || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-semibold">Group Directives</h2>
+          <p className="text-sm text-muted-foreground">
+            Automations that only apply to members of this group
+          </p>
+        </div>
+        <Button onClick={() => setShowCreateModal(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Directive
+        </Button>
+      </div>
+
+      {/* Program-Timed Directives (for cohorts) */}
+      {isProgramCohort && programTimedDirectives.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Program-Timed Directives
+            </CardTitle>
+            <CardDescription>
+              These trigger at specific points in the program, relative to each member's start date
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {programTimedDirectives
+              .sort((a, b) => (a.week || 0) - (b.week || 0))
+              .map(directive => (
+                <DirectiveCard 
+                  key={directive.id} 
+                  directive={directive} 
+                  isProgramTimed 
+                  currentWeek={group.program?.currentWeek}
+                />
+              ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Event-Based Directives */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Event-Based Directives
+          </CardTitle>
+          <CardDescription>
+            These trigger when specific events happen
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {eventBasedDirectives.length > 0 ? (
+            eventBasedDirectives.map(directive => (
+              <DirectiveCard key={directive.id} directive={directive} />
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No event-based directives yet. Create one to automate Pat's responses.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Info Box */}
+      {isProgramCohort && (
+        <Card className="bg-muted/50">
+          <CardContent className="pt-4">
+            <div className="flex gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium">How program-timed directives work</p>
+                <p className="text-muted-foreground">
+                  If a directive is set for "Week 4, Day 1", each member receives it on THEIR Day 22 
+                  of the program. If Sarah started Dec 1 and David started Dec 3, Sarah gets it Dec 22 
+                  and David gets it Dec 24.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Create Modal */}
+      <CreateGroupDirectiveModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        group={group}
+        onSave={(directive) => {
+          // Add directive to group
+          console.log('Save directive:', directive);
+          setShowCreateModal(false);
+        }}
+      />
+    </div>
+  );
+};
+
+// Individual Directive Card
+const DirectiveCard = ({ 
+  directive, 
+  isProgramTimed = false,
+  currentWeek 
+}: { 
+  directive: TemplateDirective; 
+  isProgramTimed?: boolean;
+  currentWeek?: number;
+}) => {
+  const [isActive, setIsActive] = useState(true);
+  
+  const isUpcoming = isProgramTimed && currentWeek && directive.week && directive.week > currentWeek;
+  const isPast = isProgramTimed && currentWeek && directive.week && directive.week < currentWeek;
+  const isCurrent = isProgramTimed && currentWeek && directive.week === currentWeek;
+
+  return (
+    <div className={`flex items-center justify-between p-4 border rounded-lg ${
+      isPast ? 'opacity-50' : ''
+    } ${isCurrent ? 'border-primary' : ''}`}>
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+          isProgramTimed ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'
+        }`}>
+          {isProgramTimed ? (
+            <span className="text-sm font-bold">W{directive.week}</span>
+          ) : (
+            <Zap className="h-4 w-4" />
+          )}
+        </div>
+        <div>
+          <p className="font-medium">{directive.name}</p>
+          <p className="text-sm text-muted-foreground">{directive.description}</p>
+          {isProgramTimed && directive.day && (
+            <p className="text-xs text-muted-foreground">
+              Week {directive.week}, Day {directive.day}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        {isCurrent && <Badge variant="default">This Week</Badge>}
+        {isPast && <Badge variant="secondary">Completed</Badge>}
+        {isUpcoming && <Badge variant="outline">Upcoming</Badge>}
+        <Switch checked={isActive} onCheckedChange={setIsActive} />
+      </div>
+    </div>
+  );
+};
+```
+
+### Create Group Directive Modal
+
+```tsx
+// components/groups/create-group-directive-modal.tsx
+
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ClientGroup, TemplateDirective } from "@/types";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  group: ClientGroup;
+  onSave: (directive: TemplateDirective) => void;
+}
+
+export const CreateGroupDirectiveModal = ({ open, onClose, group, onSave }: Props) => {
+  const isProgramCohort = group.type === 'program_cohort';
+  
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [triggerType, setTriggerType] = useState<'program' | 'event' | 'schedule'>('event');
+  const [week, setWeek] = useState<number>(1);
+  const [day, setDay] = useState<number>(1);
+  const [eventType, setEventType] = useState('workout_completed');
+  const [directiveType, setDirectiveType] = useState('encouragement');
+  const [tone, setTone] = useState('encouraging');
+
+  const handleSubmit = () => {
+    const directive: TemplateDirective = {
+      id: `dir-${Date.now()}`,
+      name,
+      description,
+      week: triggerType === 'program' ? week : undefined,
+      day: triggerType === 'program' ? day : undefined,
+      directiveType,
+      action: { actionType: directiveType },
+      delivery: { tone, format: 'detailed' },
+    };
+    onSave(directive);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create Group Directive</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label>Directive Name *</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., Week 4 Motivation Boost"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What should Pat do?"
+            />
+          </div>
+
+          {/* Trigger Type */}
+          <div className="space-y-2">
+            <Label>When should this trigger?</Label>
+            <RadioGroup value={triggerType} onValueChange={(v) => setTriggerType(v as any)}>
+              {isProgramCohort && (
+                <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                  <RadioGroupItem value="program" id="program" />
+                  <Label htmlFor="program" className="flex-1 cursor-pointer">
+                    <div className="font-medium">At a specific point in the program</div>
+                    <div className="text-sm text-muted-foreground">
+                      Trigger on Week X, Day Y relative to member's start
+                    </div>
+                  </Label>
+                </div>
+              )}
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <RadioGroupItem value="event" id="event" />
+                <Label htmlFor="event" className="flex-1 cursor-pointer">
+                  <div className="font-medium">When something happens</div>
+                  <div className="text-sm text-muted-foreground">
+                    Trigger on events like workout completed, meal logged, etc.
+                  </div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <RadioGroupItem value="schedule" id="schedule" />
+                <Label htmlFor="schedule" className="flex-1 cursor-pointer">
+                  <div className="font-medium">On a schedule</div>
+                  <div className="text-sm text-muted-foreground">
+                    Trigger daily, weekly, or monthly
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Program-timed options */}
+          {triggerType === 'program' && isProgramCohort && (
+            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+              <div className="space-y-2">
+                <Label>Week</Label>
+                <Select value={week.toString()} onValueChange={(v) => setWeek(parseInt(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: group.program?.durationWeeks || 12 }).map((_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        Week {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Day</Label>
+                <Select value={day.toString()} onValueChange={(v) => setDay(parseInt(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7].map(d => (
+                      <SelectItem key={d} value={d.toString()}>
+                        Day {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {/* Event-based options */}
+          {triggerType === 'event' && (
+            <div className="space-y-2">
+              <Label>Event Type</Label>
+              <Select value={eventType} onValueChange={setEventType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="workout_completed">Workout Completed</SelectItem>
+                  <SelectItem value="workout_missed">Workout Missed</SelectItem>
+                  <SelectItem value="meal_logged">Meal Logged</SelectItem>
+                  <SelectItem value="checkin_completed">Check-in Completed</SelectItem>
+                  <SelectItem value="streak_milestone">Streak Milestone</SelectItem>
+                  <SelectItem value="module_completed">Module Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Directive Type */}
+          <div className="space-y-2">
+            <Label>What should Pat do?</Label>
+            <Select value={directiveType} onValueChange={setDirectiveType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="encouragement">Send Encouragement</SelectItem>
+                <SelectItem value="reminder">Send Reminder</SelectItem>
+                <SelectItem value="analysis">Analyze & Summarize</SelectItem>
+                <SelectItem value="checkin">Ask Check-in Questions</SelectItem>
+                <SelectItem value="alert">Alert Mentor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Tone */}
+          <div className="space-y-2">
+            <Label>Tone</Label>
+            <Select value={tone} onValueChange={setTone}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="encouraging">Encouraging</SelectItem>
+                <SelectItem value="celebratory">Celebratory</SelectItem>
+                <SelectItem value="neutral">Neutral</SelectItem>
+                <SelectItem value="direct">Direct</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={!name}>
+            Create Directive
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+```
+
+---
+
+## TASK 4: Other Group Tabs
+
+### Group Overview Tab
+
+```tsx
+// components/groups/group-overview-tab.tsx
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Users, Target, TrendingUp, Calendar, MessageSquare, Zap, Plus } from "lucide-react";
+import { ClientGroup } from "@/types";
+
+interface Props {
+  group: ClientGroup;
+}
+
+export const GroupOverviewTab = ({ group }: Props) => {
+  return (
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Members</span>
+            </div>
+            <p className="text-2xl font-bold mt-1">{group.memberCount}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Avg Compliance</span>
+            </div>
+            <p className="text-2xl font-bold mt-1">{group.avgCompliance}%</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Avg Progress</span>
+            </div>
+            <p className="text-2xl font-bold mt-1">{group.avgProgress}%</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Active Directives</span>
+            </div>
+            <p className="text-2xl font-bold mt-1">{group.directives?.length || 0}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-2">
+          <Button variant="outline">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Post Announcement
+          </Button>
+          <Button variant="outline">
+            <Zap className="h-4 w-4 mr-2" />
+            Create Directive
+          </Button>
+          <Button variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Members
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <ActivityItem 
+              text="Sarah Johnson completed Week 3 Day 1 workout"
+              time="2h ago"
+            />
+            <ActivityItem 
+              text="Michael Chen logged 3,200 calories"
+              time="3h ago"
+            />
+            <ActivityItem 
+              text="You posted 'Week 3 Focus: Progressive Overload'"
+              time="1d ago"
+            />
+            <ActivityItem 
+              text="David Thompson joined the group"
+              time="2d ago"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+const ActivityItem = ({ text, time }: { text: string; time: string }) => (
+  <div className="flex justify-between items-center text-sm">
+    <span>• {text}</span>
+    <span className="text-muted-foreground">{time}</span>
+  </div>
+);
+```
+
+### Group Members Tab
+
+```tsx
+// components/groups/group-members-tab.tsx
+
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Search, Plus, MoreVertical, Mail, UserMinus } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ClientGroup, Client } from "@/types";
+import { mockClients } from "@/mocks/clients.mock";
+
+interface Props {
+  group: ClientGroup;
+}
+
+export const GroupMembersTab = ({ group }: Props) => {
+  const [search, setSearch] = useState('');
+  
+  // Get client details for group members
+  const members = group.clientIds
+    .map(id => mockClients.find(c => c.id === id))
+    .filter(Boolean) as Client[];
+
+  const filteredMembers = members.filter(m => 
+    m.name.toLowerCase().includes(search.toLowerCase()) ||
+    m.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search members..." 
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Members
+        </Button>
+      </div>
+
+      {/* Members List */}
+      <Card>
+        <CardContent className="p-0">
+          {filteredMembers.map((member, index) => (
+            <div 
+              key={member.id}
+              className={`flex items-center justify-between p-4 ${
+                index !== filteredMembers.length - 1 ? 'border-b' : ''
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarFallback>
+                    {member.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{member.name}</p>
+                  <p className="text-sm text-muted-foreground">{member.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
+                  {member.status}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {member.progress}% progress
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Message
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive">
+                      <UserMinus className="h-4 w-4 mr-2" />
+                      Remove from Group
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+```
+
+### Group Message Board Tab
+
+```tsx
+// components/groups/group-message-board-tab.tsx
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Plus, Pin, MoreVertical, Heart, MessageCircle, ThumbsUp } from "lucide-react";
+import { ClientGroup } from "@/types";
+
+interface Props {
+  group: ClientGroup;
+}
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  isPinned: boolean;
+  createdAt: Date;
+  reactions: { type: string; count: number }[];
+  commentCount: number;
+}
+
+export const GroupMessageBoardTab = ({ group }: Props) => {
+  const [posts] = useState<Post[]>([
+    {
+      id: '1',
+      title: 'Welcome to the program!',
+      content: "Hey team! Welcome to the program. Here's what you need to know:\n• Check in daily with Pat\n• Log all meals and workouts\n• Week 1 focus: Building habits",
+      isPinned: true,
+      createdAt: new Date('2024-12-01'),
+      reactions: [{ type: '💪', count: 12 }, { type: '🔥', count: 8 }],
+      commentCount: 5,
+    },
+    {
+      id: '2',
+      title: 'Week 3 Focus: Progressive Overload',
+      content: "This week we're focusing on progressive overload. That means adding 2.5-5lbs to your main lifts or adding 1 rep if you can't increase weight.",
+      isPinned: false,
+      createdAt: new Date('2024-12-15'),
+      reactions: [{ type: '💪', count: 9 }, { type: '❤️', count: 6 }],
+      commentCount: 3,
+    },
+  ]);
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Message Board</h2>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          New Post
+        </Button>
+      </div>
+
+      {/* Pinned Posts */}
+      {posts.filter(p => p.isPinned).length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Pin className="h-4 w-4" />
+            Pinned
+          </div>
+          {posts.filter(p => p.isPinned).map(post => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
+
+      {/* Recent Posts */}
+      <div className="space-y-3">
+        <div className="text-sm text-muted-foreground">Recent Posts</div>
+        {posts.filter(p => !p.isPinned).map(post => (
+          <PostCard key={post.id} post={post} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const PostCard = ({ post }: { post: Post }) => (
+  <Card>
+    <CardHeader className="pb-2">
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>CA</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium text-sm">Coach Alex</p>
+            <p className="text-xs text-muted-foreground">
+              {post.createdAt.toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {post.isPinned && (
+            <Badge variant="secondary">
+              <Pin className="h-3 w-3 mr-1" />
+              Pinned
+            </Badge>
+          )}
+          <Button variant="ghost" size="icon">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <CardTitle className="text-base mt-2">{post.title}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-sm whitespace-pre-line">{post.content}</p>
+      <div className="flex items-center gap-4 mt-4 pt-4 border-t">
+        <div className="flex items-center gap-1">
+          {post.reactions.map((r, i) => (
+            <span key={i} className="text-sm">{r.type} {r.count}</span>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <MessageCircle className="h-4 w-4" />
+          {post.commentCount} comments
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+```
+
+### Group Progress Tab
+
+```tsx
+// components/groups/group-progress-tab.tsx
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ClientGroup } from "@/types";
+
+interface Props {
+  group: ClientGroup;
+}
+
+export const GroupProgressTab = ({ group }: Props) => {
+  const isProgramCohort = group.type === 'program_cohort';
+
+  return (
+    <div className="space-y-6">
+      {/* Program Timeline (for cohorts) */}
+      {isProgramCohort && group.program && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Program Timeline</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              {Array.from({ length: group.program.durationWeeks }).map((_, i) => {
+                const weekNum = i + 1;
+                const isPast = weekNum < group.program!.currentWeek;
+                const isCurrent = weekNum === group.program!.currentWeek;
+                return (
+                  <div
+                    key={i}
+                    className={`flex-1 h-2 rounded ${
+                      isPast ? 'bg-primary' : 
+                      isCurrent ? 'bg-primary/50' : 
+                      'bg-muted'
+                    }`}
+                    title={`Week ${weekNum}`}
+                  />
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+              <span>Week 1</span>
+              <span>Week {group.program.currentWeek} (Current)</span>
+              <span>Week {group.program.durationWeeks}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Group Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Compliance Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>90-100%</span>
+                <span>4 members</span>
+              </div>
+              <Progress value={40} className="h-2" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>70-89%</span>
+                <span>8 members</span>
+              </div>
+              <Progress value={80} className="h-2" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>50-69%</span>
+                <span>5 members</span>
+              </div>
+              <Progress value={50} className="h-2" />
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Below 50%</span>
+                <span>3 members</span>
+              </div>
+              <Progress value={30} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top Performers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span>1. Sarah Johnson</span>
+                <span className="font-medium">98%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>2. Lisa Park</span>
+                <span className="font-medium">95%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>3. Michael Chen</span>
+                <span className="font-medium">92%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
+## TASK 5: Enhanced Calendar Availability
+
+### Update Availability Modal with Time Slot Editing
+
+```tsx
+// components/calendar/availability-modal.tsx - Enhanced version
+
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2 } from "lucide-react";
+import { Availability } from "@/types";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  availability: Availability[];
+  onSave: (availability: Availability[]) => void;
+}
+
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const TIMES = Array.from({ length: 24 * 2 }).map((_, i) => {
+  const hour = Math.floor(i / 2);
+  const min = i % 2 === 0 ? '00' : '30';
+  return `${hour.toString().padStart(2, '0')}:${min}`;
+});
+
+export const AvailabilityModal = ({ open, onClose, availability, onSave }: Props) => {
+  const [localAvailability, setLocalAvailability] = useState<Availability[]>(availability);
+
+  const getSlotsByDay = (dayIndex: number) => 
+    localAvailability.filter(a => a.dayOfWeek === dayIndex);
+
+  const addSlot = (dayIndex: number) => {
+    const newSlot: Availability = {
+      id: `avail-${Date.now()}`,
+      mentorId: 'mentor-1',
+      dayOfWeek: dayIndex as Availability['dayOfWeek'],
+      startTime: '09:00',
+      endTime: '12:00',
+      isActive: true,
+    };
+    setLocalAvailability([...localAvailability, newSlot]);
+  };
+
+  const removeSlot = (slotId: string) => {
+    setLocalAvailability(localAvailability.filter(a => a.id !== slotId));
+  };
+
+  const updateSlot = (slotId: string, field: 'startTime' | 'endTime', value: string) => {
+    setLocalAvailability(localAvailability.map(a => 
+      a.id === slotId ? { ...a, [field]: value } : a
+    ));
+  };
+
+  const toggleDay = (dayIndex: number, enabled: boolean) => {
+    if (enabled) {
+      // Add default slot
+      addSlot(dayIndex);
+    } else {
+      // Remove all slots for this day
+      setLocalAvailability(localAvailability.filter(a => a.dayOfWeek !== dayIndex));
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Set Your Availability</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {DAYS.map((day, dayIndex) => {
+            const slots = getSlotsByDay(dayIndex);
+            const isEnabled = slots.length > 0;
+
+            return (
+              <div key={day} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Switch 
+                      checked={isEnabled}
+                      onCheckedChange={(checked) => toggleDay(dayIndex, checked)}
+                    />
+                    <Label className="font-medium">{day}</Label>
+                  </div>
+                  {isEnabled && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => addSlot(dayIndex)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add time block
+                    </Button>
+                  )}
+                </div>
+
+                {isEnabled && (
+                  <div className="space-y-2 ml-11">
+                    {slots.map(slot => (
+                      <div key={slot.id} className="flex items-center gap-2">
+                        <Select 
+                          value={slot.startTime}
+                          onValueChange={(v) => updateSlot(slot.id, 'startTime', v)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIMES.map(t => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-muted-foreground">to</span>
+                        <Select 
+                          value={slot.endTime}
+                          onValueChange={(v) => updateSlot(slot.id, 'endTime', v)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIMES.map(t => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => removeSlot(slot.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!isEnabled && (
+                  <p className="text-sm text-muted-foreground ml-11">Not available</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => { onSave(localAvailability); onClose(); }}>
+            Save Availability
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+```
+
+---
+
+## TASK 6: Client Booking Flow (Public Page)
+
+### New Public Booking Page
+
+```tsx
+// pages/book.tsx - Public booking page (no auth required)
+
+import { useState, useEffect } from "react";
+import { useParams } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Video, MapPin, Check } from "lucide-react";
+import { format, addDays, isSameDay } from "date-fns";
+import { Availability, BookingSettings } from "@/types";
+import { mockAvailability, mockBookingSettings } from "@/mocks/calendar.mock";
+
+const BookingPage = () => {
+  const { mentorSlug } = useParams();
+  const [step, setStep] = useState<'select' | 'details' | 'confirmed'>('select');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [meetingType, setMeetingType] = useState<'in_person' | 'zoom'>('zoom');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Mock mentor data
+  const mentor = {
+    name: 'Coach Alex',
+    title: 'Strength Training Specialist',
+    bio: 'Helping clients transform their lives through sustainable fitness and nutrition.',
+    sessionTypes: [
+      { id: '1', name: '1:1 Training Session', duration: 60, price: 75 },
+      { id: '2', name: 'Nutrition Consultation', duration: 45, price: 50 },
+    ],
+  };
+
+  const [selectedSessionType, setSelectedSessionType] = useState(mentor.sessionTypes[0]);
+
+  // Get available times for selected date
+  const getAvailableTimes = (date: Date) => {
+    const dayOfWeek = date.getDay();
+    const slots = mockAvailability.filter(a => a.dayOfWeek === dayOfWeek && a.isActive);
+    
+    const times: string[] = [];
+    slots.forEach(slot => {
+      let [startHour, startMin] = slot.startTime.split(':').map(Number);
+      const [endHour, endMin] = slot.endTime.split(':').map(Number);
+      
+      while (startHour < endHour || (startHour === endHour && startMin < endMin)) {
+        times.push(`${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')}`);
+        startMin += 30;
+        if (startMin >= 60) {
+          startMin = 0;
+          startHour++;
+        }
+      }
+    });
+    
+    return times;
+  };
+
+  const availableTimes = selectedDate ? getAvailableTimes(selectedDate) : [];
+
+  const handleConfirmBooking = () => {
+    // In real app, POST to API
+    console.log('Booking:', {
+      mentorSlug,
+      sessionType: selectedSessionType,
+      date: selectedDate,
+      time: selectedTime,
+      meetingType,
+      name,
+      email,
+      notes,
+    });
+    setStep('confirmed');
+  };
+
+  // Check if a date has availability
+  const hasAvailability = (date: Date) => {
+    const dayOfWeek = date.getDay();
+    return mockAvailability.some(a => a.dayOfWeek === dayOfWeek && a.isActive);
+  };
+
+  if (step === 'confirmed') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+              <Check className="h-8 w-8 text-green-500" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Booking Confirmed!</h2>
+            <p className="text-muted-foreground mb-4">
+              Your session with {mentor.name} is scheduled for:
+            </p>
+            <div className="bg-muted rounded-lg p-4 mb-4">
+              <p className="font-medium">{selectedSessionType.name}</p>
+              <p>{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
+              <p>{selectedTime}</p>
+              <Badge className="mt-2">
+                {meetingType === 'zoom' ? 'Zoom Call' : 'In-Person'}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              A confirmation email has been sent to {email}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Mentor Header */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="text-xl">CA</AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold">{mentor.name}</h1>
+                <p className="text-muted-foreground">{mentor.title}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm">{mentor.bio}</p>
+          </CardContent>
+        </Card>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Left: Session Type & Calendar */}
+          <div className="space-y-6">
+            {/* Session Type */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Select Session Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup 
+                  value={selectedSessionType.id}
+                  onValueChange={(v) => setSelectedSessionType(mentor.sessionTypes.find(s => s.id === v)!)}
+                >
+                  {mentor.sessionTypes.map(type => (
+                    <div 
+                      key={type.id}
+                      className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer ${
+                        selectedSessionType.id === type.id ? 'border-primary' : ''
+                      }`}
+                    >
+                      <RadioGroupItem value={type.id} id={type.id} />
+                      <Label htmlFor={type.id} className="flex-1 cursor-pointer">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{type.name}</span>
+                          <span>${type.price}</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {type.duration} minutes
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
+            {/* Calendar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Select Date</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => 
+                    date < new Date() || 
+                    date > addDays(new Date(), mockBookingSettings.maximumAdvanceBooking) ||
+                    !hasAvailability(date)
+                  }
+                  className="rounded-md border"
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right: Time & Details */}
+          <div className="space-y-6">
+            {step === 'select' && (
+              <>
+                {/* Available Times */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {selectedDate 
+                        ? `Available times on ${format(selectedDate, 'EEEE, MMM d')}`
+                        : 'Select a date first'
+                      }
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedDate ? (
+                      availableTimes.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {availableTimes.map(time => (
+                            <Button
+                              key={time}
+                              variant={selectedTime === time ? 'default' : 'outline'}
+                              onClick={() => setSelectedTime(time)}
+                              className="w-full"
+                            >
+                              {time}
+                            </Button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">
+                          No available times on this date
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-muted-foreground text-center py-4">
+                        Please select a date to see available times
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Meeting Type */}
+                {selectedTime && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Meeting Type</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <RadioGroup value={meetingType} onValueChange={(v) => setMeetingType(v as any)}>
+                        <div className="flex items-center space-x-3 p-3 border rounded-lg">
+                          <RadioGroupItem value="zoom" id="zoom" />
+                          <Label htmlFor="zoom" className="flex items-center gap-2 cursor-pointer">
+                            <Video className="h-4 w-4" />
+                            Video Call (Zoom)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 p-3 border rounded-lg mt-2">
+                          <RadioGroupItem value="in_person" id="in_person" />
+                          <Label htmlFor="in_person" className="flex items-center gap-2 cursor-pointer">
+                            <MapPin className="h-4 w-4" />
+                            In-Person
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {selectedTime && (
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={() => setStep('details')}
+                  >
+                    Continue
+                  </Button>
+                )}
+              </>
+            )}
+
+            {step === 'details' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Your Details</CardTitle>
+                  <CardDescription>
+                    {selectedSessionType.name} on {selectedDate && format(selectedDate, 'EEEE, MMM d')} at {selectedTime}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Name *</Label>
+                    <Input 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email *</Label>
+                    <Input 
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Notes (optional)</Label>
+                    <Textarea 
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Anything you'd like the coach to know?"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setStep('select')}
+                    >
+                      Back
+                    </Button>
+                    <Button 
+                      className="flex-1"
+                      onClick={handleConfirmBooking}
+                      disabled={!name || !email}
+                    >
+                      Confirm Booking
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BookingPage;
+```
+
+### Add Route (Public - No Auth)
+
+```tsx
+// App.tsx
+// Add this BEFORE the authenticated routes
+<Route path="/book/:mentorSlug" element={<BookingPage />} />
+```
+
+### Add Booking Link to Settings
+
+In the mentor's settings, show their public booking link:
+
+```tsx
+// In settings page, add:
+<Card>
+  <CardHeader>
+    <CardTitle>Public Booking Link</CardTitle>
+    <CardDescription>Share this link with clients to let them book sessions</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div className="flex gap-2">
+      <Input 
+        value={`${window.location.origin}/book/coach-alex`}
+        readOnly
+      />
+      <Button variant="outline" onClick={() => {
+        navigator.clipboard.writeText(`${window.location.origin}/book/coach-alex`);
+      }}>
+        Copy
+      </Button>
+    </div>
+  </CardContent>
+</Card>
+```
+
+---
+
+## Files to Create
+
+```
+NEW:
+├── pages/group-detail.tsx
+├── pages/book.tsx
+├── components/program-templates/create-group-from-template-modal.tsx
+├── components/groups/group-overview-tab.tsx
+├── components/groups/group-members-tab.tsx
+├── components/groups/group-message-board-tab.tsx
+├── components/groups/group-directives-tab.tsx
+├── components/groups/group-progress-tab.tsx
+├── components/groups/create-group-directive-modal.tsx
+├── components/groups/index.ts
+
+MODIFY:
+├── pages/program-templates.tsx (add Create Group button)
+├── pages/groups.tsx (link to group detail)
+├── components/calendar/availability-modal.tsx (time slot editing)
+├── types/index.ts (update ClientGroup)
+├── services/groups.service.ts (createGroupFromTemplate)
+├── App.tsx (add routes)
+```
+
+---
+
+## Build Order
+
+1. **Types** - Update ClientGroup with modules/directives
+2. **Create Group from Template Modal** - Full modal component
+3. **Update Program Templates Page** - Add Create Group button
+4. **Group Detail Page** - With tab structure
+5. **Group Tab Components** - Overview, Members, Message Board, Directives, Progress
+6. **Create Group Directive Modal** - Program-timed and event-based
+7. **Enhanced Availability Modal** - Time slot editing
+8. **Public Booking Page** - Client-facing booking flow
+9. **Add Routes** - Wire everything up
+10. **Update Groups Page** - Link to detail page
+
+---
+
+## REMINDER: Build Summary
+
+**When complete, create `BUILD_SUMMARY_PHASE_3_5.md` with:**
+1. Files Created
+2. Files Modified  
+3. Components Built
+4. Routes Added
+5. Types Added
+6. Mock Data Added
+7. Features Implemented
+8. Known Issues
+9. Screenshots
+
+Save in project root.

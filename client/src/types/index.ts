@@ -214,6 +214,8 @@ export interface ClientGroup {
     activityLevel?: string[];
     subscriptionTier?: string[];
   };
+  modules?: ProgramModule[];
+  directives?: TemplateDirective[];
   createdAt: Date;
   updatedAt: Date;
 }
