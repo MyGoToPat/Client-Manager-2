@@ -177,14 +177,38 @@ export interface MentorDirective {
   updatedAt: Date;
 }
 
+export type GroupType = 
+  | 'program_cohort'  // Running through a structured program
+  | 'custom'          // General grouping (e.g., "Morning Warriors")
+  | 'promotion'       // Limited-time promotional group
+  | 'organization';   // Gym/studio based group
+
+export interface ProgramInfo {
+  templateId?: string;
+  name: string;
+  durationWeeks: number;
+  startDate: Date;
+  currentWeek: number;
+  endDate?: Date;
+}
+
 export interface ClientGroup {
   id: string;
   mentorId: string;
   name: string;
   description?: string;
+  type: GroupType;
   color?: string;
   icon?: string;
+  program?: ProgramInfo;
   clientIds: string[];
+  maxCapacity?: number;
+  isActive: boolean;
+  isArchived: boolean;
+  allowNewMembers: boolean;
+  memberCount: number;
+  avgProgress: number;
+  avgCompliance: number;
   autoAssignRules?: {
     goalType?: string[];
     activityLevel?: string[];
@@ -192,6 +216,37 @@ export interface ClientGroup {
   };
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface GroupPostAttachment {
+  type: 'image' | 'video' | 'file' | 'link';
+  url: string;
+  name?: string;
+}
+
+export interface GroupPost {
+  id: string;
+  groupId: string;
+  mentorId: string;
+  title?: string;
+  content: string;
+  attachments?: GroupPostAttachment[];
+  isPinned: boolean;
+  notifyMembers: boolean;
+  viewCount: number;
+  reactions: Record<string, string[]>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupComment {
+  id: string;
+  postId: string;
+  userId: string;
+  userName: string;
+  userType: 'mentor' | 'client';
+  content: string;
+  createdAt: Date;
 }
 
 export interface Organization {
