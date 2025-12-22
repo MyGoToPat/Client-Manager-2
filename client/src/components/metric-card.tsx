@@ -1,0 +1,57 @@
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  trend?: number;
+  trendLabel?: string;
+  icon?: React.ReactNode;
+  className?: string;
+}
+
+export function MetricCard({ label, value, trend, trendLabel, icon, className }: MetricCardProps) {
+  const getTrendIcon = () => {
+    if (!trend) return <Minus className="w-3 h-3" />;
+    if (trend > 0) return <TrendingUp className="w-3 h-3" />;
+    return <TrendingDown className="w-3 h-3" />;
+  };
+
+  const getTrendColor = () => {
+    if (!trend) return 'text-muted-foreground';
+    if (trend > 0) return 'text-chart-4';
+    return 'text-destructive';
+  };
+
+  return (
+    <Card className={cn('hover-elevate transition-shadow', className)}>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+              {label}
+            </span>
+            <span className="text-4xl font-bold font-mono text-foreground">
+              {value}
+            </span>
+            {(trend !== undefined || trendLabel) && (
+              <div className={cn('flex items-center gap-1 text-xs', getTrendColor())}>
+                {getTrendIcon()}
+                <span>
+                  {trend !== undefined && `${trend > 0 ? '+' : ''}${trend}%`}
+                  {trendLabel && ` ${trendLabel}`}
+                </span>
+              </div>
+            )}
+          </div>
+          {icon && (
+            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-muted text-muted-foreground">
+              {icon}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

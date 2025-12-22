@@ -1,0 +1,93 @@
+import type { PTDirective } from '../types';
+
+export const mockDirectives: PTDirective[] = [
+  {
+    id: 'directive-1',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Post-Workout Protein Reminder',
+    triggerConditions: { event: 'workout_completed', context: 'high_intensity_session' },
+    messageTemplate: 'Great workout! Remember to consume protein within 30 minutes to maximize recovery.',
+    category: 'nutrition',
+    priority: 'high',
+    isActive: true,
+    triggeredCount: 12,
+    effectivenessScore: 0.85,
+    lastTriggered: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    createdAt: new Date('2024-10-01')
+  },
+  {
+    id: 'directive-2',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Sleep Optimization Nudge',
+    triggerConditions: { event: 'poor_sleep_quality', context: 'late_bedtime' },
+    messageTemplate: 'Noticed your sleep quality dipped. Try winding down 30 minutes earlier tonight.',
+    category: 'recovery',
+    priority: 'medium',
+    isActive: true,
+    triggeredCount: 8,
+    effectivenessScore: 0.72,
+    lastTriggered: new Date(Date.now() - 48 * 60 * 60 * 1000),
+    createdAt: new Date('2024-10-15')
+  },
+  {
+    id: 'directive-3',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Consistency Celebration',
+    triggerConditions: { event: 'workout_streak_milestone', context: 'weekly_goal_achieved' },
+    messageTemplate: "You're on fire! {streak_count} day streak! Keep this momentum going!",
+    category: 'motivation',
+    priority: 'medium',
+    isActive: true,
+    triggeredCount: 5,
+    effectivenessScore: 0.94,
+    lastTriggered: new Date(),
+    createdAt: new Date('2024-11-01')
+  },
+  {
+    id: 'directive-4',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Form Check Reminder',
+    triggerConditions: { event: 'compound_movement', context: 'heavy_lifting_day' },
+    messageTemplate: 'Heavy lifts today! Remember: quality over quantity. Focus on form.',
+    category: 'workout',
+    priority: 'high',
+    isActive: false,
+    triggeredCount: 15,
+    effectivenessScore: 0.78,
+    lastTriggered: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    createdAt: new Date('2024-09-01')
+  },
+  {
+    id: 'directive-5',
+    mentorId: 'mentor-1',
+    clientId: 'client-2',
+    name: 'Hydration Check-in',
+    triggerConditions: { event: 'afternoon_check', context: 'low_water_intake' },
+    messageTemplate: "Quick hydration check! You're at {current}ml of your {goal}ml goal. Time for a water break!",
+    category: 'general',
+    priority: 'low',
+    isActive: true,
+    triggeredCount: 22,
+    effectivenessScore: 0.68,
+    lastTriggered: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    createdAt: new Date('2024-08-15')
+  },
+  {
+    id: 'directive-6',
+    mentorId: 'mentor-1',
+    name: 'Weekly Goal Review',
+    triggerConditions: { event: 'sunday_evening', context: 'week_end' },
+    messageTemplate: "Week in review! You completed {workouts} workouts and hit {nutrition_days} nutrition goals. Let's aim higher next week!",
+    category: 'motivation',
+    priority: 'medium',
+    isActive: true,
+    triggeredCount: 8,
+    effectivenessScore: 0.81,
+    lastTriggered: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    createdAt: new Date('2024-09-20')
+  }
+];
