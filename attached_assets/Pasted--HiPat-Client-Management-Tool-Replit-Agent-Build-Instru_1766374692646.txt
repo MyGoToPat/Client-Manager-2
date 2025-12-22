@@ -1,0 +1,868 @@
+# HiPat Client Management Tool - Replit Agent Build Instructions
+## Backend-Agnostic Version
+
+## Project Overview
+Build a web-based Client Management Tool for personal trainers/mentors to manage clients who use the HiPat AI iOS fitness app. The unique value is "Pat" - an AI assistant that acts as a 24/7 bridge between mentors and clients.
+
+**IMPORTANT: Build the entire frontend with a mock data service layer. No specific backend required. The data layer will be swapped later by the dev team.**
+
+## Tech Stack
+- **Frontend:** React + TypeScript + Vite
+- **Styling:** Tailwind CSS + shadcn/ui components
+- **State Management:** Zustand (lightweight, simple)
+- **Data Layer:** Abstract service layer with mock implementation
+- **Auth:** Mock auth context (swappable)
+- **Charts:** Recharts
+
+## Architecture: Service Layer Pattern
+
+```typescript
+// All data access goes through services - easily swappable later
+src/
+├── services/
+│   ├── index.ts           // Export all services
+│   ├── auth.service.ts    // Login, signup, logout, getCurrentUser
+│   ├── clients.service.ts // CRUD for clients
+│   ├── mentors.service.ts // Mentor profile operations
+│   ├── directives.service.ts
+│   ├── organizations.service.ts
+│   ├── bookings.service.ts
+│   └── referrals.service.ts
+├── mocks/
+│   ├── clients.mock.ts    // Mock client data
+│   ├── mentors.mock.ts
+│   └── ...
+└── types/
+    ├── client.types.ts
+    ├── mentor.types.ts
+    └── ...
+```
+
+## Type Definitions (Create First)
+
+```typescript
+// src/types/index.ts
+
+export interface User {
+  id: string;
+  email: string;
+  role: 'mentor' | 'manager' | 'admin';
+  createdAt: Date;
+}
+
+export interface MentorProfile {
+  id: string;
+  userId: string;
+  displayName: string;
+  specializations: string[];
+  certifications: string[];
+  bio: string;
+  hourlyRate: number;
+  availability: Record<string, any>;
+  referralCode: string;
+  avatarUrl: string;
+  createdAt: Date;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatarUrl?: string;
+  status: 'active' | 'inactive' | 'pending' | 'trial' | 'suspended';
+  role: 'client' | 'premium' | 'enterprise';
+  progress: number; // 0-100
+  lastLogin: string;
+  joinedAt: Date;
+  goals?: string[];
+  metrics?: ClientMetrics;
+}
+
+export interface ClientMetrics {
+  tdee: number;
+  bmr: number;
+  proteinGoal: number;
+  carbsGoal: number;
+  fatGoal: number;
+  hydrationGoal: number;
+  bodyFatPercent?: number;
+  weight?: number;
+}
+
+export interface ClientMentorRelationship {
+  id: string;
+  clientId: string;
+  mentorId: string;
+  orgId?: string; // null = personal client
+  domains: ('workout' | 'nutrition' | 'mindset' | 'all')[];
+  status: 'pending' | 'active' | 'paused' | 'ended';
+  createdAt: Date;
+}
+
+export interface DomainAssignment {
+  id: string;
+  relationshipId: string;
+  domain: 'workout' | 'nutrition' | 'mindset';
+  handlerType: 'mentor' | 'pat';
+  handlerId?: string; // mentor id or null if Pat
+}
+
+export interface ClientPermission {
+  id: string;
+  clientId: string;
+  mentorId: string;
+  dataCategory: 'workout' | 'nutrition' | 'sleep' | 'chat' | 'progress_photos' | 'body_metrics';
+  accessLevel: 'none' | 'view' | 'view_edit' | 'full';
+}
+
+export interface PTDirective {
+  id: string;
+  mentorId: string;
+  clientId?: string; // null = applies to all clients
+  name: string;
+  triggerConditions: Record<string, any>;
+  messageTemplate: string;
+  category: 'nutrition' | 'workout' | 'recovery' | 'motivation' | 'general';
+  priority: 'low' | 'medium' | 'high';
+  isActive: boolean;
+  triggeredCount: number;
+  effectivenessScore?: number;
+  lastTriggered?: Date;
+  createdAt: Date;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  type: 'gym' | 'studio' | 'independent';
+  brandingConfig: Record<string, any>;
+  createdAt: Date;
+}
+
+export interface OrgMembership {
+  id: string;
+  orgId: string;
+  userId: string;
+  role: 'owner' | 'manager' | 'mentor';
+  permissions: Record<string, any>;
+}
+
+export interface Booking {
+  id: string;
+  mentorId: string;
+  clientId: string;
+  scheduledAt: Date;
+  durationMinutes: number;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  calendarEventId?: string;
+  notes?: string;
+}
+
+export interface ReferralLink {
+  id: string;
+  mentorId: string;
+  code: string;
+  orgId?: string;
+  clickCount: number;
+  conversions: number;
+  createdAt: Date;
+}
+
+export interface MentorNote {
+  id: string;
+  mentorId: string;
+  clientId: string;
+  content: string;
+  visibility: 'private' | 'shared_client' | 'shared_team';
+  createdAt: Date;
+}
+
+export interface AIInsight {
+  id: string;
+  type: 'pattern' | 'suggestion' | 'alert' | 'achievement';
+  title: string;
+  description: string;
+  confidence: number;
+  category: string;
+  priority: 'low' | 'medium' | 'high';
+  timestamp: Date;
+  actionable?: boolean;
+  suggestedAction?: string;
+}
+
+export interface ProgressData {
+  date: string;
+  workouts: number;
+  nutrition: number;
+  sleep: number;
+}
+```
+
+## Service Layer (Abstract Interface)
+
+```typescript
+// src/services/auth.service.ts
+import { User, MentorProfile } from '../types';
+
+export interface AuthService {
+  login(email: string, password: string): Promise<User>;
+  signup(email: string, password: string, role: string): Promise<User>;
+  logout(): Promise<void>;
+  getCurrentUser(): Promise<User | null>;
+  getMentorProfile(userId: string): Promise<MentorProfile | null>;
+  updateMentorProfile(profile: Partial<MentorProfile>): Promise<MentorProfile>;
+}
+
+// Mock implementation
+export const authService: AuthService = {
+  async login(email, password) {
+    // Simulate API delay
+    await new Promise(r => setTimeout(r, 500));
+    return {
+      id: 'mentor-1',
+      email,
+      role: 'mentor',
+      createdAt: new Date()
+    };
+  },
+  async signup(email, password, role) {
+    await new Promise(r => setTimeout(r, 500));
+    return {
+      id: 'mentor-' + Date.now(),
+      email,
+      role: role as any,
+      createdAt: new Date()
+    };
+  },
+  async logout() {
+    await new Promise(r => setTimeout(r, 200));
+  },
+  async getCurrentUser() {
+    // Check localStorage or return null
+    const stored = localStorage.getItem('hipat_user');
+    return stored ? JSON.parse(stored) : null;
+  },
+  async getMentorProfile(userId) {
+    await new Promise(r => setTimeout(r, 300));
+    return mockMentorProfile;
+  },
+  async updateMentorProfile(profile) {
+    await new Promise(r => setTimeout(r, 400));
+    return { ...mockMentorProfile, ...profile };
+  }
+};
+```
+
+```typescript
+// src/services/clients.service.ts
+import { Client, ClientMentorRelationship, ClientPermission, AIInsight, ProgressData } from '../types';
+import { mockClients, mockProgressData, mockInsights } from '../mocks/clients.mock';
+
+export interface ClientsService {
+  getClients(mentorId: string): Promise<Client[]>;
+  getClient(clientId: string): Promise<Client | null>;
+  getClientProgress(clientId: string, days: number): Promise<ProgressData[]>;
+  getClientInsights(clientId: string): Promise<AIInsight[]>;
+  getClientPermissions(clientId: string, mentorId: string): Promise<ClientPermission[]>;
+  updateClientPermission(permission: Partial<ClientPermission>): Promise<ClientPermission>;
+  inviteClient(email: string, mentorId: string): Promise<{ inviteLink: string }>;
+  updateClientStatus(clientId: string, status: Client['status']): Promise<Client>;
+}
+
+export const clientsService: ClientsService = {
+  async getClients(mentorId) {
+    await new Promise(r => setTimeout(r, 400));
+    return mockClients;
+  },
+  async getClient(clientId) {
+    await new Promise(r => setTimeout(r, 300));
+    return mockClients.find(c => c.id === clientId) || null;
+  },
+  async getClientProgress(clientId, days) {
+    await new Promise(r => setTimeout(r, 300));
+    return mockProgressData;
+  },
+  async getClientInsights(clientId) {
+    await new Promise(r => setTimeout(r, 500));
+    return mockInsights;
+  },
+  async getClientPermissions(clientId, mentorId) {
+    await new Promise(r => setTimeout(r, 200));
+    return mockPermissions;
+  },
+  async updateClientPermission(permission) {
+    await new Promise(r => setTimeout(r, 300));
+    return permission as ClientPermission;
+  },
+  async inviteClient(email, mentorId) {
+    await new Promise(r => setTimeout(r, 400));
+    return { inviteLink: `https://hipat.app/invite/${Date.now()}` };
+  },
+  async updateClientStatus(clientId, status) {
+    await new Promise(r => setTimeout(r, 300));
+    const client = mockClients.find(c => c.id === clientId);
+    return { ...client!, status };
+  }
+};
+```
+
+## Mock Data
+
+```typescript
+// src/mocks/clients.mock.ts
+import { Client, AIInsight, ProgressData, ClientPermission } from '../types';
+
+export const mockClients: Client[] = [
+  {
+    id: 'client-1',
+    name: 'Sarah Johnson',
+    email: 'sarah.johnson@email.com',
+    phone: '+1 (555) 123-4567',
+    status: 'active',
+    role: 'premium',
+    progress: 85,
+    lastLogin: '2h ago',
+    joinedAt: new Date('2024-01-14'),
+    goals: ['Lose 10 lbs', 'Build muscle', 'Improve sleep'],
+    metrics: {
+      tdee: 2100,
+      bmr: 1650,
+      proteinGoal: 140,
+      carbsGoal: 200,
+      fatGoal: 65,
+      hydrationGoal: 3000,
+      bodyFatPercent: 24,
+      weight: 145
+    }
+  },
+  {
+    id: 'client-2',
+    name: 'Michael Chen',
+    email: 'michael.chen@email.com',
+    status: 'active',
+    role: 'client',
+    progress: 72,
+    lastLogin: 'Yesterday',
+    joinedAt: new Date('2024-02-20'),
+    goals: ['Gain muscle mass', 'Increase strength'],
+    metrics: {
+      tdee: 2800,
+      bmr: 1950,
+      proteinGoal: 180,
+      carbsGoal: 300,
+      fatGoal: 80,
+      hydrationGoal: 4000,
+      weight: 175
+    }
+  },
+  {
+    id: 'client-3',
+    name: 'Emily Rodriguez',
+    email: 'emily.rodriguez@email.com',
+    status: 'inactive',
+    role: 'client',
+    progress: 23,
+    lastLogin: '7d ago',
+    joinedAt: new Date('2024-03-01'),
+    goals: ['Get back on track', 'Establish routine'],
+  },
+  {
+    id: 'client-4',
+    name: 'David Thompson',
+    email: 'david.thompson@email.com',
+    status: 'trial',
+    role: 'client',
+    progress: 90,
+    lastLogin: 'Just now',
+    joinedAt: new Date('2024-12-15'),
+    goals: ['Train for marathon', 'Optimize nutrition'],
+    metrics: {
+      tdee: 3200,
+      bmr: 2100,
+      proteinGoal: 160,
+      carbsGoal: 400,
+      fatGoal: 70,
+      hydrationGoal: 4500,
+      weight: 165
+    }
+  },
+  {
+    id: 'client-5',
+    name: 'Lisa Park',
+    email: 'lisa.park@email.com',
+    status: 'active',
+    role: 'enterprise',
+    progress: 95,
+    lastLogin: '4h ago',
+    joinedAt: new Date('2023-11-01'),
+    goals: ['Maintain fitness', 'Work-life balance'],
+    metrics: {
+      tdee: 1900,
+      bmr: 1450,
+      proteinGoal: 120,
+      carbsGoal: 180,
+      fatGoal: 55,
+      hydrationGoal: 2500,
+      bodyFatPercent: 20,
+      weight: 130
+    }
+  },
+  {
+    id: 'client-6',
+    name: 'James Wilson',
+    email: 'james.wilson@email.com',
+    status: 'suspended',
+    role: 'client',
+    progress: 15,
+    lastLogin: '5d ago',
+    joinedAt: new Date('2024-01-20'),
+  }
+];
+
+export const mockProgressData: ProgressData[] = [
+  { date: 'Week 1', workouts: 80, nutrition: 75, sleep: 70 },
+  { date: 'Week 2', workouts: 85, nutrition: 80, sleep: 75 },
+  { date: 'Week 3', workouts: 75, nutrition: 85, sleep: 80 },
+  { date: 'Week 4', workouts: 90, nutrition: 88, sleep: 85 },
+];
+
+export const mockInsights: AIInsight[] = [
+  {
+    id: 'insight-1',
+    type: 'pattern',
+    title: 'Consistency Breakthrough',
+    description: 'Client has maintained a 12-day workout streak, their longest this year. This represents a 40% improvement in consistency compared to last month.',
+    confidence: 95,
+    category: 'Fitness',
+    priority: 'high',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    actionable: true,
+    suggestedAction: 'Celebrate the milestone and set next target at 21 days'
+  },
+  {
+    id: 'insight-2',
+    type: 'alert',
+    title: 'Protein Intake Declining',
+    description: 'Protein intake has dropped 15% over the past week, averaging 145g vs target of 180g. This could impact recovery and muscle protein synthesis.',
+    confidence: 88,
+    category: 'Nutrition',
+    priority: 'medium',
+    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    actionable: true,
+    suggestedAction: 'Add post-workout protein shake recommendation'
+  },
+  {
+    id: 'insight-3',
+    type: 'pattern',
+    title: 'Sleep-Performance Correlation',
+    description: 'Strong correlation detected: workouts following 7.5+ hours of sleep show 23% higher volume and 18% better RPE scores.',
+    confidence: 92,
+    category: 'Sleep',
+    priority: 'medium',
+    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+  },
+  {
+    id: 'insight-4',
+    type: 'suggestion',
+    title: 'Optimize Tuesday Workouts',
+    description: 'Tuesday workouts consistently underperform (avg RPE 8.2 vs 7.1 other days). Consider adjusting Monday recovery or Tuesday workout intensity.',
+    confidence: 85,
+    category: 'Fitness',
+    priority: 'low',
+    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
+  },
+  {
+    id: 'insight-5',
+    type: 'achievement',
+    title: 'Goal Achievement Forecast',
+    description: 'Based on current trajectory, client is 87% likely to achieve their 6-month strength goals. Maintaining current consistency is key.',
+    confidence: 79,
+    category: 'Overall',
+    priority: 'high',
+    timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
+  }
+];
+
+export const mockPermissions: ClientPermission[] = [
+  { id: 'perm-1', clientId: 'client-1', mentorId: 'mentor-1', dataCategory: 'workout', accessLevel: 'full' },
+  { id: 'perm-2', clientId: 'client-1', mentorId: 'mentor-1', dataCategory: 'nutrition', accessLevel: 'view' },
+  { id: 'perm-3', clientId: 'client-1', mentorId: 'mentor-1', dataCategory: 'sleep', accessLevel: 'view' },
+  { id: 'perm-4', clientId: 'client-1', mentorId: 'mentor-1', dataCategory: 'chat', accessLevel: 'view_edit' },
+  { id: 'perm-5', clientId: 'client-1', mentorId: 'mentor-1', dataCategory: 'progress_photos', accessLevel: 'view' },
+  { id: 'perm-6', clientId: 'client-1', mentorId: 'mentor-1', dataCategory: 'body_metrics', accessLevel: 'none' },
+];
+
+export const mockMentorProfile = {
+  id: 'mentor-profile-1',
+  userId: 'mentor-1',
+  displayName: 'Coach Alex',
+  specializations: ['Strength Training', 'Nutrition', 'Weight Loss'],
+  certifications: ['NASM-CPT', 'Precision Nutrition L1'],
+  bio: 'Helping clients transform their lives through sustainable fitness and nutrition.',
+  hourlyRate: 75,
+  availability: { monday: ['9:00', '17:00'], tuesday: ['9:00', '17:00'] },
+  referralCode: 'coach-alex-123',
+  avatarUrl: '',
+  createdAt: new Date('2023-06-01')
+};
+```
+
+```typescript
+// src/mocks/directives.mock.ts
+import { PTDirective } from '../types';
+
+export const mockDirectives: PTDirective[] = [
+  {
+    id: 'directive-1',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Post-Workout Protein Reminder',
+    triggerConditions: { event: 'workout_completed', context: 'high_intensity_session' },
+    messageTemplate: 'Great workout! Remember to consume protein within 30 minutes to maximize recovery.',
+    category: 'nutrition',
+    priority: 'high',
+    isActive: true,
+    triggeredCount: 12,
+    effectivenessScore: 0.85,
+    lastTriggered: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    createdAt: new Date('2024-10-01')
+  },
+  {
+    id: 'directive-2',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Sleep Optimization Nudge',
+    triggerConditions: { event: 'poor_sleep_quality', context: 'late_bedtime' },
+    messageTemplate: 'Noticed your sleep quality dipped. Try winding down 30 minutes earlier tonight.',
+    category: 'recovery',
+    priority: 'medium',
+    isActive: true,
+    triggeredCount: 8,
+    effectivenessScore: 0.72,
+    lastTriggered: new Date(Date.now() - 48 * 60 * 60 * 1000),
+    createdAt: new Date('2024-10-15')
+  },
+  {
+    id: 'directive-3',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Consistency Celebration',
+    triggerConditions: { event: 'workout_streak_milestone', context: 'weekly_goal_achieved' },
+    messageTemplate: 'You\'re on fire! {streak_count} day streak! Keep this momentum going! 🔥',
+    category: 'motivation',
+    priority: 'medium',
+    isActive: true,
+    triggeredCount: 5,
+    effectivenessScore: 0.94,
+    lastTriggered: new Date(),
+    createdAt: new Date('2024-11-01')
+  },
+  {
+    id: 'directive-4',
+    mentorId: 'mentor-1',
+    clientId: 'client-1',
+    name: 'Form Check Reminder',
+    triggerConditions: { event: 'compound_movement', context: 'heavy_lifting_day' },
+    messageTemplate: 'Heavy lifts today! Remember: quality over quantity. Focus on form.',
+    category: 'workout',
+    priority: 'high',
+    isActive: false,
+    triggeredCount: 15,
+    effectivenessScore: 0.78,
+    lastTriggered: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    createdAt: new Date('2024-09-01')
+  }
+];
+```
+
+## Zustand Store (State Management)
+
+```typescript
+// src/store/useStore.ts
+import { create } from 'zustand';
+import { User, MentorProfile, Client } from '../types';
+
+interface AppState {
+  // Auth
+  user: User | null;
+  mentorProfile: MentorProfile | null;
+  isAuthenticated: boolean;
+  setUser: (user: User | null) => void;
+  setMentorProfile: (profile: MentorProfile | null) => void;
+  
+  // Clients
+  clients: Client[];
+  selectedClientId: string | null;
+  setClients: (clients: Client[]) => void;
+  setSelectedClientId: (id: string | null) => void;
+  
+  // UI
+  sidebarOpen: boolean;
+  clientDrawerOpen: boolean;
+  darkMode: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  setClientDrawerOpen: (open: boolean) => void;
+  toggleDarkMode: () => void;
+}
+
+export const useStore = create<AppState>((set) => ({
+  // Auth
+  user: null,
+  mentorProfile: null,
+  isAuthenticated: false,
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setMentorProfile: (mentorProfile) => set({ mentorProfile }),
+  
+  // Clients
+  clients: [],
+  selectedClientId: null,
+  setClients: (clients) => set({ clients }),
+  setSelectedClientId: (selectedClientId) => set({ selectedClientId, clientDrawerOpen: !!selectedClientId }),
+  
+  // UI
+  sidebarOpen: true,
+  clientDrawerOpen: false,
+  darkMode: false,
+  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  setClientDrawerOpen: (clientDrawerOpen) => set({ clientDrawerOpen }),
+  toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
+}));
+```
+
+## Core Features to Build (Priority Order)
+
+### 1. Project Setup
+- Vite + React + TypeScript
+- Tailwind CSS configured
+- shadcn/ui installed (Button, Card, Dialog, Drawer, Tabs, Input, Select, Badge, Avatar, DropdownMenu, Command)
+- Zustand for state
+- React Router for navigation
+- Recharts for charts
+
+### 2. Layout & Navigation
+- Sidebar with: Dashboard, Clients, Directives, Calendar, Analytics, Settings
+- Header with: Search (Cmd+K), Notifications bell, User menu
+- Dark mode toggle
+- Mobile responsive (sidebar collapses to hamburger)
+
+### 3. Auth Pages (Mock Auth)
+- Login page with email/password form
+- Signup page with role selection
+- Store user in localStorage
+- Protected route wrapper
+
+### 4. Mentor Dashboard
+- Summary cards: Total Clients, Active, Trial, At Risk
+- Client list with: avatar initials, name, email, status badge, role badge, last login, progress bar, actions menu
+- Search and filter by status
+- "Invite Client" button opens modal with generated link
+- Click client row opens Client Drawer
+
+### 5. Client Drawer (Slide-over panel)
+**Header:** Avatar, Name, Status badge, Edit button, Close button
+
+**Tabs:**
+- **Overview:** Contact info, goals list, join date, current metrics cards
+- **Progress:** Recharts line/bar chart showing workouts/nutrition/sleep over 4 weeks, weekly breakdown donut charts
+- **AI Summary:** Pat's insights cards with priority badges, confidence %, timestamps, "Implement" / "Later" buttons on suggestions
+- **PT Directives:** List of directives for this client, toggle active/inactive, edit button, "New Directive" button
+- **Workout Plans:** Cards showing plan name, difficulty, duration, completion %, assigned days, Pause/View buttons
+- **Permissions:** Toggle switches for each data category (workout, nutrition, sleep, chat, photos, metrics) with access level dropdown
+
+### 6. PT Directives Page
+- Full list of all directives across all clients
+- Filter by category, status, client
+- Create new directive form: name, trigger conditions (dropdown + JSON editor), message template (with variable hints), category, priority
+- Edit/Delete existing
+- Effectiveness score display
+
+### 7. Organization Structure (For Gym Managers)
+- Create organization form
+- Team list showing all mentors
+- Each mentor shows their client count
+- Manager can view any mentor's clients
+- Reassign client modal (select new mentor from dropdown)
+- Toggle between "My Personal Clients" and "Gym Clients" views
+
+### 8. Calendar Page
+- Week view calendar grid
+- Display bookings as blocks
+- Click to view booking details
+- "Add Availability" modal
+- Future: Connect external calendar button (placeholder)
+
+### 9. Referral System
+- Display referral code and full link
+- Copy button
+- Stats: clicks, conversions
+- QR code generation (optional)
+
+### 10. Analytics Dashboard
+- Top row: Total Clients, Active %, Avg Progress, Sessions This Week
+- Trend chart: Client activity over time
+- Top Performers leaderboard
+- Alerts panel: Clients missing workouts, Low engagement, Goal achievements
+- Quick Actions: Send Weekly Report, Review At-Risk, Export Data
+
+### 11. Ask Pat Modal (Cmd+K or button)
+- Input field: "Ask Pat anything..."
+- Example prompts: "How is Sarah doing?", "Who needs attention?", "Create a check-in for all clients"
+- Response area with formatted answer
+- Action buttons based on response
+
+## Page Routes
+
+```
+/                     → Landing page (public marketing)
+/login               → Login
+/signup              → Signup
+/ref/:code           → Referral landing (show mentor profile + signup CTA)
+/dashboard           → Main dashboard with client list
+/dashboard/client/:id → (or drawer) Client detail
+/dashboard/directives → All directives
+/dashboard/calendar  → Calendar view
+/dashboard/analytics → Analytics
+/dashboard/settings  → Profile, preferences, integrations
+/org/:id             → Organization dashboard
+/org/:id/team        → Team management
+```
+
+## Component Structure
+
+```
+src/
+├── components/
+│   ├── layout/
+│   │   ├── Sidebar.tsx
+│   │   ├── Header.tsx
+│   │   ├── ProtectedRoute.tsx
+│   │   └── Layout.tsx
+│   ├── dashboard/
+│   │   ├── SummaryCards.tsx
+│   │   ├── ClientList.tsx
+│   │   ├── ClientCard.tsx
+│   │   ├── ClientFilters.tsx
+│   │   └── InviteClientModal.tsx
+│   ├── client/
+│   │   ├── ClientDrawer.tsx
+│   │   ├── tabs/
+│   │   │   ├── OverviewTab.tsx
+│   │   │   ├── ProgressTab.tsx
+│   │   │   ├── AISummaryTab.tsx
+│   │   │   ├── DirectivesTab.tsx
+│   │   │   ├── WorkoutPlansTab.tsx
+│   │   │   └── PermissionsTab.tsx
+│   │   └── ClientHeader.tsx
+│   ├── directives/
+│   │   ├── DirectivesList.tsx
+│   │   ├── DirectiveCard.tsx
+│   │   ├── DirectiveForm.tsx
+│   │   └── TriggerBuilder.tsx
+│   ├── organization/
+│   │   ├── OrgDashboard.tsx
+│   │   ├── TeamList.tsx
+│   │   ├── MentorCard.tsx
+│   │   └── ReassignClientModal.tsx
+│   ├── calendar/
+│   │   ├── CalendarView.tsx
+│   │   ├── BookingBlock.tsx
+│   │   └── AvailabilityModal.tsx
+│   ├── analytics/
+│   │   ├── AnalyticsDashboard.tsx
+│   │   ├── TrendChart.tsx
+│   │   ├── Leaderboard.tsx
+│   │   └── AlertsPanel.tsx
+│   ├── pat/
+│   │   ├── AskPatModal.tsx
+│   │   └── PatResponse.tsx
+│   └── ui/ (shadcn components)
+├── pages/
+│   ├── Landing.tsx
+│   ├── Login.tsx
+│   ├── Signup.tsx
+│   ├── ReferralLanding.tsx
+│   ├── Dashboard.tsx
+│   ├── Directives.tsx
+│   ├── Calendar.tsx
+│   ├── Analytics.tsx
+│   ├── Settings.tsx
+│   └── Organization.tsx
+├── services/
+│   ├── auth.service.ts
+│   ├── clients.service.ts
+│   ├── directives.service.ts
+│   ├── organizations.service.ts
+│   ├── bookings.service.ts
+│   └── referrals.service.ts
+├── mocks/
+│   ├── clients.mock.ts
+│   ├── directives.mock.ts
+│   └── organizations.mock.ts
+├── store/
+│   └── useStore.ts
+├── types/
+│   └── index.ts
+├── hooks/
+│   ├── useClients.ts
+│   ├── useDirectives.ts
+│   └── useAuth.ts
+├── lib/
+│   └── utils.ts
+└── App.tsx
+```
+
+## UI Requirements
+
+1. **Professional, clean design** - Use shadcn/ui defaults, don't over-customize
+2. **Color coding consistency:**
+   - `green-500` = active, good, on-track
+   - `yellow-500` = attention, trial, pending
+   - `red-500` = at-risk, suspended, urgent
+   - `blue-500` = informational, Pat-related
+3. **Status badges:** Use shadcn Badge with variant based on status
+4. **Progress bars:** Use colored progress bars (green > 70%, yellow 40-70%, red < 40%)
+5. **Dark mode:** Implement with Tailwind dark: classes
+6. **Loading states:** Use skeleton loaders from shadcn
+7. **Empty states:** Helpful messages with action buttons
+8. **Mobile:** Responsive grid, drawer becomes full-screen modal on mobile
+
+## Build Order
+
+1. `npm create vite@latest hipat-client-management -- --template react-ts`
+2. Install: `tailwindcss`, `@shadcn/ui`, `zustand`, `react-router-dom`, `recharts`, `lucide-react`
+3. Set up Tailwind and shadcn
+4. Create types and mock data files
+5. Create service layer files
+6. Create Zustand store
+7. Build Layout (Sidebar, Header)
+8. Build auth pages and ProtectedRoute
+9. Build Dashboard with ClientList
+10. Build ClientDrawer with all tabs
+11. Build Directives page
+12. Build Organization pages
+13. Build Calendar page
+14. Build Analytics page
+15. Build Settings page
+16. Add Ask Pat modal
+17. Polish and responsive fixes
+
+## Notes for Backend Integration Later
+
+When your dev team is ready to connect a real backend:
+
+1. **Replace service implementations** - Keep the interface, swap the mock implementations for real API calls
+2. **Auth service** - Replace localStorage with real JWT/session handling
+3. **Add environment variables** for API URLs
+4. **The types stay the same** - Backend should match these TypeScript interfaces
+5. **Add error handling** - The mock services don't throw errors, real ones will
+
+Database schema reference (for any SQL database):
+- See the type definitions above - each interface maps to a table
+- Primary keys are UUIDs
+- Foreign keys reference `id` fields
+- JSONB/JSON fields for flexible data (triggerConditions, availability, etc.)
+
+---
+
+**START BUILDING. Focus on getting the UI working with mock data. Make it look professional. All data comes from the service layer - never hardcode data in components.**
