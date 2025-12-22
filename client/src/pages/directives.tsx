@@ -97,7 +97,7 @@ export default function Directives() {
       const [directivesData, clientsData, groupsData] = await Promise.all([
         directivesService.getDirectives('mentor-1'),
         clientsService.getClients('mentor-1'),
-        groupsService.getGroups('mentor-1'),
+        groupsService.getAll(),
       ]);
       setDirectives(directivesData);
       setClients(clientsData);

@@ -12,4 +12,3 @@ export type { DirectivesService } from './directives.service';
 export type { BookingsService } from './bookings.service';
 export type { ReferralsService } from './referrals.service';
 export type { OrganizationsService } from './organizations.service';
-export type { GroupsService } from './groups.service';
