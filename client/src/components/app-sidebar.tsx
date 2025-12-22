@@ -33,6 +33,7 @@ const menuItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Clients', url: '/clients', icon: Users },
   { title: 'Mentor Directives', url: '/directives', icon: Zap },
+  { title: 'Groups', url: '/groups', icon: UsersRound },
   { title: 'Calendar', url: '/calendar', icon: Calendar },
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },

@@ -23,6 +23,8 @@ import Landing from './pages/landing';
 import OrganizationDashboard from './pages/organization';
 import OrganizationTeam from './pages/organization-team';
 import ReferralLanding from './pages/referral-landing';
+import Groups from './pages/groups';
+import GroupDetail from './pages/group-detail';
 
 interface AskPatContextType {
   openAskPat: () => void;
@@ -203,6 +205,20 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <OrganizationTeam />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/groups">
+        <ProtectedRoute>
+          <AppLayout>
+            <Groups />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/groups/:id">
+        <ProtectedRoute>
+          <AppLayout>
+            <GroupDetail />
           </AppLayout>
         </ProtectedRoute>
       </Route>

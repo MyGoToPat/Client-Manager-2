@@ -70,7 +70,7 @@ export const groupsService = {
     await new Promise(resolve => setTimeout(resolve, 200));
     const group = groups.find(g => g.id === id);
     if (!group) return undefined;
-    const uniqueIds = [...new Set([...group.clientIds, ...clientIds])];
+    const uniqueIds = Array.from(new Set([...group.clientIds, ...clientIds]));
     return groupsService.update(id, { clientIds: uniqueIds });
   },
 
