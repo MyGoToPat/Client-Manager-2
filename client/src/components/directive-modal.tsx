@@ -220,6 +220,12 @@ export function DirectiveModal({
   useEffect(() => {
     if (directive) {
       const triggerType = directive.trigger.event ? 'event' : directive.trigger.schedule ? 'schedule' : 'condition';
+      
+      const existingQuestions = directive.action.questions || [];
+      const defaultQuestions = existingQuestions.filter(q => CHECK_IN_QUESTIONS.includes(q));
+      const customQs = existingQuestions.filter(q => !CHECK_IN_QUESTIONS.includes(q));
+      setCustomQuestions(customQs);
+      
       form.reset({
         name: directive.name,
         description: directive.description || '',
@@ -244,7 +250,7 @@ export function DirectiveModal({
         highlightImprovements: directive.action.highlightImprovements ?? true,
         highlightConcerns: directive.action.highlightConcerns ?? true,
         reminderType: directive.action.reminderType || 'water',
-        selectedQuestions: directive.action.questions || [],
+        selectedQuestions: defaultQuestions,
         customMessage: directive.action.customMessage || directive.customMessage || '',
         sendToClient: directive.recipients.sendToClient,
         sendToMentor: directive.recipients.sendToMentor,
