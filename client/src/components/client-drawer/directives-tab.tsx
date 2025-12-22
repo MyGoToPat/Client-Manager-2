@@ -5,15 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import type { PTDirective } from '../../types';
+import type { MentorDirective } from '../../types';
 import { cn } from '@/lib/utils';
 
 interface ClientDirectivesTabProps {
-  directives: PTDirective[];
+  directives: MentorDirective[];
   onToggle: (directiveId: string) => void;
 }
 
-const categoryColors: Record<PTDirective['category'], string> = {
+const categoryColors: Record<MentorDirective['category'], string> = {
   nutrition: 'bg-chart-2/10 text-chart-2 border-chart-2/20',
   workout: 'bg-chart-1/10 text-chart-1 border-chart-1/20',
   recovery: 'bg-chart-4/10 text-chart-4 border-chart-4/20',
@@ -21,7 +21,7 @@ const categoryColors: Record<PTDirective['category'], string> = {
   general: 'bg-muted text-muted-foreground border-muted',
 };
 
-const priorityColors: Record<PTDirective['priority'], string> = {
+const priorityColors: Record<MentorDirective['priority'], string> = {
   high: 'bg-destructive/10 text-destructive border-destructive/20',
   medium: 'bg-chart-3/10 text-chart-3 border-chart-3/20',
   low: 'bg-muted text-muted-foreground border-muted',
@@ -31,7 +31,7 @@ export function ClientDirectivesTab({ directives, onToggle }: ClientDirectivesTa
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">PT Directives</h3>
+        <h3 className="font-medium">Mentor Directives</h3>
         <Button size="sm" data-testid="button-new-directive">
           <Plus className="w-4 h-4 mr-1" />
           New Directive

@@ -1,0 +1,535 @@
+# HiPat - Mentor Directives Full CRUD Implementation
+
+## Overview
+Two changes needed:
+1. **Rename all "PT" to "Mentor"** throughout the entire app
+2. **Build full CRUD for Mentor Directives** - Create, Edit, Delete with robust assignment options
+
+---
+
+## PART 1: Global Rename PT → Mentor
+
+### Files to Update
+Search and replace across the entire codebase:
+
+| Find | Replace With |
+|------|--------------|
+| `PT Directives` | `Mentor Directives` |
+| `PT Directive` | `Mentor Directive` |
+| `pt_directives` | `mentor_directives` |
+| `ptDirectives` | `mentorDirectives` |
+| `PTDirective` | `MentorDirective` |
+| `pt-directives` | `mentor-directives` |
+
+### Specific Files to Check:
+- `client/src/components/app-sidebar.tsx` - Navigation label
+- `client/src/pages/directives.tsx` - Page title, all references
+- `client/src/types/index.ts` - Type name `PTDirective` → `MentorDirective`
+- `client/src/services/directives.service.ts` - All references
+- `client/src/mocks/directives.mock.ts` - All references
+- `client/src/components/client-drawer/directives-tab.tsx` - Tab content
+- Any route paths if they include "pt"
+
+---
+
+## PART 2: Mentor Directives Full CRUD
+
+### Current State
+- ✅ List directives with filters
+- ✅ Toggle active/inactive
+- ❌ Create new directive
+- ❌ Edit existing directive
+- ❌ Delete directive
+
+### What to Build
+
+#### 2.1 New Directive Modal/Dialog
+
+**Trigger:** Click "+ New Directive" button (already exists in UI)
+
+**Form Fields:**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Create New Directive                                          [X]  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Directive Name *                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ Post-Workout Protein Reminder                                │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ─────────────────────────────────────────────────────────────────  │
+│  ASSIGNMENT                                                         │
+│  ─────────────────────────────────────────────────────────────────  │
+│                                                                     │
+│  Apply this directive to: *                                         │
+│  ○ All my clients                                                   │
+│  ○ A specific group                                                 │
+│  ○ A specific client                                                │
+│                                                                     │
+│  [If "A specific group" selected:]                                  │
+│  Select Group *                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ Weight Loss Clients                                     ▼   │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  [If "A specific client" selected:]                                 │
+│  Select Client *                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ Sarah Johnson                                           ▼   │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ─────────────────────────────────────────────────────────────────  │
+│  TRIGGER                                                            │
+│  ─────────────────────────────────────────────────────────────────  │
+│                                                                     │
+│  When should Pat send this message? *                               │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ Client completes a workout                              ▼   │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  [Additional conditions appear based on trigger selection]          │
+│                                                                     │
+│  [If "workout_completed" selected:]                                 │
+│  ☐ Only for high-intensity workouts                                 │
+│  ☐ Only for strength training                                       │
+│  ☐ Only if workout duration > ___ minutes                           │
+│                                                                     │
+│  [If "time_based" selected:]                                        │
+│  Time: [ 14:00 ]  Days: ☑ Mon ☑ Tue ☑ Wed ☑ Thu ☑ Fri ☐ Sat ☐ Sun  │
+│                                                                     │
+│  ─────────────────────────────────────────────────────────────────  │
+│  MESSAGE                                                            │
+│  ─────────────────────────────────────────────────────────────────  │
+│                                                                     │
+│  What should Pat say? *                                             │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ Great workout! Remember to consume protein within 30        │   │
+│  │ minutes to maximize recovery. Aim for 30-40g protein.       │   │
+│  │                                                              │   │
+│  │                                                              │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  Available variables: (click to insert)                             │
+│  [{name}] [{streak_count}] [{current}] [{goal}] [{workout_name}]   │
+│                                                                     │
+│  Preview:                                                           │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ "Great workout! Remember to consume protein within 30       │   │
+│  │ minutes to maximize recovery. Aim for 30-40g protein."      │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ─────────────────────────────────────────────────────────────────  │
+│  SETTINGS                                                           │
+│  ─────────────────────────────────────────────────────────────────  │
+│                                                                     │
+│  Category *                          Priority *                     │
+│  ┌───────────────────────┐          ┌───────────────────────┐      │
+│  │ Nutrition         ▼  │          │ High              ▼  │      │
+│  └───────────────────────┘          └───────────────────────┘      │
+│                                                                     │
+│  ☑ Active immediately after creation                                │
+│                                                                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                                    [Cancel]    [Create Directive]   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### 2.2 Trigger Event Options
+
+Create a dropdown with these trigger options:
+
+```typescript
+export const TRIGGER_EVENTS = [
+  { value: 'workout_completed', label: 'Client completes a workout' },
+  { value: 'workout_missed', label: 'Client misses a scheduled workout' },
+  { value: 'meal_logged', label: 'Client logs a meal' },
+  { value: 'low_protein_day', label: 'Daily protein is below target' },
+  { value: 'high_calorie_day', label: 'Daily calories exceed target' },
+  { value: 'poor_sleep', label: 'Sleep quality is poor' },
+  { value: 'hydration_low', label: 'Hydration is below 50% of goal' },
+  { value: 'streak_milestone', label: 'Client hits a workout streak milestone' },
+  { value: 'weight_logged', label: 'Client logs their weight' },
+  { value: 'inactive_days', label: 'Client has been inactive for X days' },
+  { value: 'check_in_due', label: 'Scheduled check-in time' },
+  { value: 'time_based', label: 'At a specific time/day' },
+  { value: 'goal_achieved', label: 'Client achieves a goal' },
+] as const;
+```
+
+#### 2.3 Conditional Fields Based on Trigger
+
+```typescript
+// Show additional options based on selected trigger
+const TRIGGER_CONDITIONS: Record<string, ConditionField[]> = {
+  workout_completed: [
+    { type: 'checkbox', name: 'high_intensity', label: 'Only for high-intensity workouts' },
+    { type: 'checkbox', name: 'strength_only', label: 'Only for strength training' },
+    { type: 'number', name: 'min_duration', label: 'Minimum duration (minutes)', placeholder: '45' },
+  ],
+  workout_missed: [
+    { type: 'number', name: 'hours_overdue', label: 'Hours after scheduled time', placeholder: '4' },
+  ],
+  low_protein_day: [
+    { type: 'number', name: 'below_percent', label: 'Below % of target', placeholder: '80' },
+  ],
+  inactive_days: [
+    { type: 'number', name: 'days', label: 'Number of inactive days', placeholder: '3' },
+  ],
+  streak_milestone: [
+    { type: 'multiselect', name: 'milestones', label: 'Trigger at these streaks', 
+      options: ['7 days', '14 days', '21 days', '30 days', '60 days', '90 days'] },
+  ],
+  time_based: [
+    { type: 'time', name: 'time', label: 'Time to send' },
+    { type: 'days', name: 'days', label: 'Days of week' },
+  ],
+};
+```
+
+#### 2.4 Client Groups (New Feature)
+
+Add a simple grouping system:
+
+```typescript
+// Add to types/index.ts
+export interface ClientGroup {
+  id: string;
+  mentorId: string;
+  name: string;
+  description?: string;
+  clientIds: string[];
+  createdAt: Date;
+}
+
+// Add mock data
+export const mockClientGroups: ClientGroup[] = [
+  {
+    id: 'group-1',
+    mentorId: 'mentor-1',
+    name: 'Weight Loss Clients',
+    description: 'Clients focused on losing weight',
+    clientIds: ['client-1', 'client-3'],
+    createdAt: new Date('2024-06-01')
+  },
+  {
+    id: 'group-2',
+    mentorId: 'mentor-1',
+    name: 'Muscle Building',
+    description: 'Clients focused on gaining muscle',
+    clientIds: ['client-2', 'client-4'],
+    createdAt: new Date('2024-06-15')
+  },
+  {
+    id: 'group-3',
+    mentorId: 'mentor-1',
+    name: 'Morning Warriors',
+    description: 'Clients who train in the morning',
+    clientIds: ['client-1', 'client-4', 'client-5'],
+    createdAt: new Date('2024-07-01')
+  },
+];
+```
+
+#### 2.5 Updated Type Definition
+
+```typescript
+// Update in types/index.ts
+export interface MentorDirective {
+  id: string;
+  mentorId: string;
+  
+  // Assignment - ONE of these will be set
+  assignmentType: 'all' | 'group' | 'individual';
+  clientId?: string;      // Set if assignmentType === 'individual'
+  groupId?: string;       // Set if assignmentType === 'group'
+  
+  name: string;
+  
+  // Trigger
+  triggerEvent: string;   // e.g., 'workout_completed'
+  triggerConditions: Record<string, any>;  // Additional conditions
+  
+  // Message
+  messageTemplate: string;
+  
+  // Settings
+  category: 'nutrition' | 'workout' | 'recovery' | 'motivation' | 'general';
+  priority: 'low' | 'medium' | 'high';
+  isActive: boolean;
+  
+  // Stats
+  triggeredCount: number;
+  effectivenessScore?: number;
+  lastTriggered?: Date;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+#### 2.6 Edit Directive
+
+**Trigger:** Click on a directive card OR add an edit icon/button to each card
+
+- Opens same modal as "Create" but pre-populated with existing values
+- Title changes to "Edit Directive"
+- Button changes to "Save Changes"
+- Add "Delete" button in footer (left side, red/destructive style)
+
+#### 2.7 Delete Directive
+
+**From Edit Modal:**
+- Click "Delete" button
+- Confirmation dialog: "Are you sure you want to delete this directive? This action cannot be undone."
+- Options: [Cancel] [Delete]
+
+**Alternative - Quick Delete:**
+- Add three-dot menu (⋮) to each directive card
+- Menu options: Edit, Duplicate, Delete
+- Delete shows same confirmation
+
+#### 2.8 Directive Card Actions
+
+Update each directive card to include:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ ⚡ Post-Workout Protein Reminder                    [Toggle] ⋮ │
+│    ┌──────────┐ ┌─────────────┐ ┌──────────────┐              │
+│    │ Nutrition │ │ High Priority│ │ Sarah Johnson │              │
+│    └──────────┘ └─────────────┘ └──────────────┘              │
+│                                                                │
+│    "Great workout! Remember to consume protein..."             │
+│                                                                │
+│    📊 Triggered 12x   ████████░░ 85%   Last: 1 day ago        │
+└────────────────────────────────────────────────────────────────┘
+                                                              │
+                                                              ▼
+                                                    ┌─────────────┐
+                                                    │ ✏️ Edit      │
+                                                    │ 📋 Duplicate │
+                                                    │ ─────────── │
+                                                    │ 🗑️ Delete    │
+                                                    └─────────────┘
+```
+
+---
+
+## Implementation Files
+
+### New Files to Create:
+
+```
+client/src/components/directives/
+├── create-directive-modal.tsx    # The main form modal
+├── edit-directive-modal.tsx      # Edit version (or reuse create with mode prop)
+├── delete-directive-dialog.tsx   # Confirmation dialog
+├── directive-card-menu.tsx       # Three-dot dropdown menu
+├── trigger-condition-fields.tsx  # Dynamic condition fields based on trigger
+└── message-template-editor.tsx   # Textarea with variable insertion
+```
+
+### Files to Update:
+
+```
+client/src/types/index.ts                    # Add ClientGroup, update MentorDirective
+client/src/mocks/directives.mock.ts          # Update mock data structure
+client/src/mocks/groups.mock.ts              # NEW - client groups mock
+client/src/services/directives.service.ts    # Add create, update, delete methods
+client/src/services/groups.service.ts        # NEW - groups service
+client/src/pages/directives.tsx              # Wire up modals, update to "Mentor Directives"
+client/src/components/app-sidebar.tsx        # Rename "PT Directives" to "Mentor Directives"
+```
+
+---
+
+## Service Methods to Add
+
+```typescript
+// directives.service.ts
+
+export const directivesService = {
+  // Existing
+  async getDirectives(mentorId: string): Promise<MentorDirective[]> { ... },
+  async getDirectivesByClient(clientId: string): Promise<MentorDirective[]> { ... },
+  
+  // NEW - Create
+  async createDirective(directive: Omit<MentorDirective, 'id' | 'triggeredCount' | 'effectivenessScore' | 'lastTriggered' | 'createdAt' | 'updatedAt'>): Promise<MentorDirective> {
+    await new Promise(r => setTimeout(r, 400));
+    const newDirective: MentorDirective = {
+      ...directive,
+      id: 'directive-' + Date.now(),
+      triggeredCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockDirectives.push(newDirective);
+    return newDirective;
+  },
+  
+  // NEW - Update
+  async updateDirective(id: string, updates: Partial<MentorDirective>): Promise<MentorDirective> {
+    await new Promise(r => setTimeout(r, 400));
+    const index = mockDirectives.findIndex(d => d.id === id);
+    if (index === -1) throw new Error('Directive not found');
+    mockDirectives[index] = { 
+      ...mockDirectives[index], 
+      ...updates, 
+      updatedAt: new Date() 
+    };
+    return mockDirectives[index];
+  },
+  
+  // NEW - Delete
+  async deleteDirective(id: string): Promise<void> {
+    await new Promise(r => setTimeout(r, 300));
+    const index = mockDirectives.findIndex(d => d.id === id);
+    if (index === -1) throw new Error('Directive not found');
+    mockDirectives.splice(index, 1);
+  },
+  
+  // NEW - Toggle active
+  async toggleDirective(id: string): Promise<MentorDirective> {
+    await new Promise(r => setTimeout(r, 200));
+    const directive = mockDirectives.find(d => d.id === id);
+    if (!directive) throw new Error('Directive not found');
+    directive.isActive = !directive.isActive;
+    directive.updatedAt = new Date();
+    return directive;
+  },
+  
+  // NEW - Duplicate
+  async duplicateDirective(id: string): Promise<MentorDirective> {
+    await new Promise(r => setTimeout(r, 400));
+    const original = mockDirectives.find(d => d.id === id);
+    if (!original) throw new Error('Directive not found');
+    const duplicate: MentorDirective = {
+      ...original,
+      id: 'directive-' + Date.now(),
+      name: original.name + ' (Copy)',
+      triggeredCount: 0,
+      effectivenessScore: undefined,
+      lastTriggered: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockDirectives.push(duplicate);
+    return duplicate;
+  },
+};
+
+// groups.service.ts (NEW FILE)
+export const groupsService = {
+  async getGroups(mentorId: string): Promise<ClientGroup[]> {
+    await new Promise(r => setTimeout(r, 300));
+    return mockClientGroups.filter(g => g.mentorId === mentorId);
+  },
+  
+  async getGroup(id: string): Promise<ClientGroup | null> {
+    await new Promise(r => setTimeout(r, 200));
+    return mockClientGroups.find(g => g.id === id) || null;
+  },
+};
+```
+
+---
+
+## Form Validation Rules
+
+```typescript
+const directiveSchema = {
+  name: {
+    required: true,
+    minLength: 3,
+    maxLength: 100,
+  },
+  assignmentType: {
+    required: true,
+    oneOf: ['all', 'group', 'individual'],
+  },
+  clientId: {
+    requiredIf: (values) => values.assignmentType === 'individual',
+  },
+  groupId: {
+    requiredIf: (values) => values.assignmentType === 'group',
+  },
+  triggerEvent: {
+    required: true,
+  },
+  messageTemplate: {
+    required: true,
+    minLength: 10,
+    maxLength: 500,
+  },
+  category: {
+    required: true,
+  },
+  priority: {
+    required: true,
+  },
+};
+```
+
+---
+
+## UI/UX Requirements
+
+1. **Modal should be scrollable** if content exceeds viewport
+2. **Form sections should be collapsible** (Assignment, Trigger, Message, Settings)
+3. **Variable chips** should be clickable to insert at cursor position
+4. **Live preview** of message with sample data
+5. **Loading states** on submit button
+6. **Toast notifications** on success/error
+7. **Unsaved changes warning** if user tries to close modal with changes
+8. **Dark mode compatible** - all new components
+
+---
+
+## Assignment Badge Display
+
+Update directive cards to show assignment clearly:
+
+| Assignment Type | Badge Display |
+|-----------------|---------------|
+| All clients | `👥 All Clients` (blue badge) |
+| Group | `📁 Weight Loss Clients` (purple badge) |
+| Individual | `👤 Sarah Johnson` (gray badge) |
+
+---
+
+## Build Order
+
+1. **Global rename** PT → Mentor (quick find/replace)
+2. **Update types** with new MentorDirective and ClientGroup
+3. **Add mock data** for groups
+4. **Add service methods** for CRUD operations
+5. **Build CreateDirectiveModal** component
+6. **Build trigger condition fields** component
+7. **Build message template editor** with variable insertion
+8. **Build delete confirmation dialog**
+9. **Add card menu** (edit, duplicate, delete)
+10. **Wire up to directives page**
+11. **Test all flows**
+
+---
+
+## Test Scenarios
+
+After building, test these flows:
+
+1. ✅ Create directive for all clients
+2. ✅ Create directive for a specific group
+3. ✅ Create directive for a specific client
+4. ✅ Edit existing directive and change assignment
+5. ✅ Delete directive with confirmation
+6. ✅ Duplicate directive
+7. ✅ Toggle directive active/inactive
+8. ✅ Variable insertion in message template
+9. ✅ Form validation errors display correctly
+10. ✅ All text says "Mentor" not "PT"
+
+---
+
+**START BUILDING. The Create Directive modal is the highest priority - it's the core functionality that's missing.**

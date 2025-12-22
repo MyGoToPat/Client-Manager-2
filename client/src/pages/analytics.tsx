@@ -7,13 +7,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Users, Target, Zap } from 'lucide-react';
 import { clientsService, directivesService } from '../services';
-import type { Client, PTDirective } from '../types';
+import type { Client, MentorDirective } from '../types';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 export default function Analytics() {
   const [clients, setClients] = useState<Client[]>([]);
-  const [directives, setDirectives] = useState<PTDirective[]>([]);
+  const [directives, setDirectives] = useState<MentorDirective[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

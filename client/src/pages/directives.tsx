@@ -18,13 +18,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { directivesService, clientsService } from '../services';
-import type { PTDirective, Client } from '../types';
+import type { MentorDirective, Client, ClientGroup } from '../types';
 import { cn } from '@/lib/utils';
 
-type CategoryFilter = 'all' | PTDirective['category'];
+type CategoryFilter = 'all' | MentorDirective['category'];
 type StatusFilter = 'all' | 'active' | 'inactive';
 
-const categoryColors: Record<PTDirective['category'], string> = {
+const categoryColors: Record<MentorDirective['category'], string> = {
   nutrition: 'bg-chart-2/10 text-chart-2 border-chart-2/20',
   workout: 'bg-chart-1/10 text-chart-1 border-chart-1/20',
   recovery: 'bg-chart-4/10 text-chart-4 border-chart-4/20',
@@ -32,14 +32,14 @@ const categoryColors: Record<PTDirective['category'], string> = {
   general: 'bg-muted text-muted-foreground border-muted',
 };
 
-const priorityColors: Record<PTDirective['priority'], string> = {
+const priorityColors: Record<MentorDirective['priority'], string> = {
   high: 'bg-destructive/10 text-destructive border-destructive/20',
   medium: 'bg-chart-3/10 text-chart-3 border-chart-3/20',
   low: 'bg-muted text-muted-foreground border-muted',
 };
 
 export default function Directives() {
-  const [directives, setDirectives] = useState<PTDirective[]>([]);
+  const [directives, setDirectives] = useState<MentorDirective[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,7 +97,7 @@ export default function Directives() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header title="PT Directives" />
+      <Header title="Mentor Directives" />
       
       <main className="flex-1 p-6 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">

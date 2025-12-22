@@ -4,6 +4,7 @@ export { directivesService } from './directives.service';
 export { bookingsService } from './bookings.service';
 export { referralsService } from './referrals.service';
 export { organizationsService } from './organizations.service';
+export { groupsService } from './groups.service';
 
 export type { AuthService } from './auth.service';
 export type { ClientsService } from './clients.service';
@@ -11,3 +12,4 @@ export type { DirectivesService } from './directives.service';
 export type { BookingsService } from './bookings.service';
 export type { ReferralsService } from './referrals.service';
 export type { OrganizationsService } from './organizations.service';
+export type { GroupsService } from './groups.service';

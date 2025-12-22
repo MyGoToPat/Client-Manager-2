@@ -32,7 +32,7 @@ import { useStore } from '../store/useStore';
 const menuItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Clients', url: '/clients', icon: Users },
-  { title: 'PT Directives', url: '/directives', icon: Zap },
+  { title: 'Mentor Directives', url: '/directives', icon: Zap },
   { title: 'Calendar', url: '/calendar', icon: Calendar },
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },

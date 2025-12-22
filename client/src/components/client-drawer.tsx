@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStore } from '../store/useStore';
 import { clientsService, directivesService } from '../services';
-import type { Client, AIInsight, ProgressData, ClientPermission, PTDirective, WorkoutPlan } from '../types';
+import type { Client, AIInsight, ProgressData, ClientPermission, MentorDirective, WorkoutPlan } from '../types';
 import { ClientOverviewTab } from './client-drawer/overview-tab';
 import { ClientProgressTab } from './client-drawer/progress-tab';
 import { ClientInsightsTab } from './client-drawer/insights-tab';
@@ -53,7 +53,7 @@ export function ClientDrawer() {
   const [progress, setProgress] = useState<ProgressData[]>([]);
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [permissions, setPermissions] = useState<ClientPermission[]>([]);
-  const [directives, setDirectives] = useState<PTDirective[]>([]);
+  const [directives, setDirectives] = useState<MentorDirective[]>([]);
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');

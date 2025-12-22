@@ -73,12 +73,15 @@ export interface ClientPermission {
   accessLevel: 'none' | 'view' | 'view_edit' | 'full';
 }
 
-export interface PTDirective {
+export interface MentorDirective {
   id: string;
   mentorId: string;
+  assignmentType: 'all' | 'group' | 'individual';
   clientId?: string;
+  groupId?: string;
   name: string;
-  triggerConditions: Record<string, string>;
+  triggerEvent: string;
+  triggerConditions: Record<string, any>;
   messageTemplate: string;
   category: 'nutrition' | 'workout' | 'recovery' | 'motivation' | 'general';
   priority: 'low' | 'medium' | 'high';
@@ -86,6 +89,16 @@ export interface PTDirective {
   triggeredCount: number;
   effectivenessScore?: number;
   lastTriggered?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClientGroup {
+  id: string;
+  mentorId: string;
+  name: string;
+  description?: string;
+  clientIds: string[];
   createdAt: Date;
 }
 
