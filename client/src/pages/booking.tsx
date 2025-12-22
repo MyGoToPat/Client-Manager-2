@@ -206,7 +206,7 @@ export default function BookingPage() {
                             isToday(day) && 'ring-2 ring-primary',
                             isSameDay(day, selectedDate || new Date(0)) && 'bg-primary text-primary-foreground'
                           )}
-                          data-testid={`button-date-${format(day, 'yyyy-MM-dd')}`}
+                          data-testid={`button-select-date-${format(day, 'yyyy-MM-dd')}`}
                         >
                           <div className="text-xs text-muted-foreground">{format(day, 'EEE')}</div>
                           <div className="text-lg font-semibold">{format(day, 'd')}</div>
@@ -231,7 +231,7 @@ export default function BookingPage() {
                         {format(selectedDate, 'EEEE, MMMM d, yyyy')} - {mockSettings.defaultSessionLength} minute session
                       </CardDescription>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setStep('select-date')}>
+                    <Button variant="outline" size="sm" onClick={() => setStep('select-date')} data-testid="button-change-date">
                       Change Date
                     </Button>
                   </div>
@@ -243,7 +243,7 @@ export default function BookingPage() {
                         key={time}
                         variant={selectedTime === time ? 'default' : 'outline'}
                         onClick={() => handleSelectTime(time)}
-                        data-testid={`button-time-${time}`}
+                        data-testid={`button-select-time-${time}`}
                       >
                         {formatTimeSlot(time)}
                       </Button>
@@ -268,7 +268,7 @@ export default function BookingPage() {
                         {selectedDate && format(selectedDate, 'EEEE, MMMM d')} at {selectedTime && formatTimeSlot(selectedTime)}
                       </CardDescription>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setStep('select-time')}>
+                    <Button variant="outline" size="sm" onClick={() => setStep('select-time')} data-testid="button-change-time">
                       Change Time
                     </Button>
                   </div>

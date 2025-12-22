@@ -407,12 +407,20 @@ export interface QuizQuestion {
   correctAnswer?: string;
 }
 
+export interface ProgramOffset {
+  week: number;
+  day: number;
+}
+
 export interface TemplateDirective {
   id: string;
-  week: number;
-  day?: number;
   name: string;
   description: string;
+  triggerType?: 'program' | 'event' | 'schedule';
+  programOffset?: ProgramOffset;
+  week?: number;
+  day?: number;
+  eventType?: string;
   directiveType: string;
   action: DirectiveAction;
   delivery: {

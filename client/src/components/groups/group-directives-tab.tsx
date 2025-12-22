@@ -16,8 +16,16 @@ export function GroupDirectivesTab({ group, onUpdate }: Props) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const isProgramCohort = group.type === 'program_cohort';
 
-  const programTimedDirectives = group.directives?.filter(d => d.week) || [];
-  const eventBasedDirectives = group.directives?.filter(d => !d.week) || [];
+  const programTimedDirectives = group.directives?.filter(d => 
+    d.triggerType === 'program' || 
+    d.programOffset !== undefined || 
+    (d.week && !d.triggerType)
+  ) || [];
+  const eventBasedDirectives = group.directives?.filter(d => 
+    d.triggerType === 'event' || 
+    d.triggerType === 'schedule' || 
+    (!d.programOffset && !d.week && !d.triggerType)
+  ) || [];
 
   const handleSaveDirective = (directive: TemplateDirective) => {
     console.log('Save directive:', directive);

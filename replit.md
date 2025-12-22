@@ -50,7 +50,17 @@ client/src/
 │   ├── group-detail.tsx
 │   ├── calendar.tsx
 │   ├── analytics.tsx
-│   └── settings.tsx
+│   ├── settings.tsx
+│   ├── program-templates.tsx
+│   ├── booking.tsx      # Public booking page
+│   └── ...
+├── components/groups/   # Group tab components
+│   ├── group-overview-tab.tsx
+│   ├── group-members-tab.tsx
+│   ├── group-message-board-tab.tsx
+│   ├── group-directives-tab.tsx
+│   ├── group-progress-tab.tsx
+│   └── create-group-directive-modal.tsx
 └── App.tsx
 ```
 
@@ -66,7 +76,11 @@ client/src/
   - Promotions: Limited-time groups for special offers
   - Organizations: Gym/studio based groups
   - Features: Message board with posts/comments/reactions, group-specific directives, member management, progress tracking
-- **Calendar:** Week view with booking display
+- **Group Detail Tabs:** Overview, Members, Message Board, Directives, Progress tabs
+- **Program Templates:** Create program cohorts from templates with member selection
+- **Group Directives:** Program-timed (Week X Day Y relative to member start) and event-based triggers
+- **Calendar:** Week view with booking display, enhanced availability editing with multiple time slots per day
+- **Public Booking:** Client-facing booking page at /book/:mentorSlug (no auth required)
 - **Analytics:** Charts showing client and directive stats
 - **Settings:** Profile, notifications, referrals, security tabs
 - **Auth:** Mock login/signup with localStorage persistence (demo: info@hipat.app / admin123)

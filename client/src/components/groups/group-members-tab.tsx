@@ -105,11 +105,11 @@ export function GroupMembersTab({ group }: Props) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem data-testid={`button-message-${member.id}`}>
                         <Mail className="h-4 w-4 mr-2" />
                         Message
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem className="text-destructive" data-testid={`button-remove-member-${member.id}`}>
                         <UserMinus className="h-4 w-4 mr-2" />
                         Remove from Group
                       </DropdownMenuItem>
