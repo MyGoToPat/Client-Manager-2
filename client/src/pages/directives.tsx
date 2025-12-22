@@ -42,10 +42,33 @@ const categoryColors: Record<MentorDirective['category'], string> = {
   general: 'bg-muted text-muted-foreground border-muted',
 };
 
-const priorityColors: Record<MentorDirective['priority'], string> = {
+const urgencyColors: Record<MentorDirective['delivery']['urgency'], string> = {
   high: 'bg-destructive/10 text-destructive border-destructive/20',
   medium: 'bg-chart-3/10 text-chart-3 border-chart-3/20',
   low: 'bg-muted text-muted-foreground border-muted',
+};
+
+const directiveTypeLabels: Record<MentorDirective['directiveType'], string> = {
+  analysis: 'Analysis',
+  summary: 'Summary',
+  alert: 'Alert',
+  reminder: 'Reminder',
+  encouragement: 'Encouragement',
+  check_in: 'Check-in',
+  coaching_cue: 'Coaching Cue',
+};
+
+const getTriggerLabel = (directive: MentorDirective): string => {
+  if (directive.trigger.event) {
+    return directive.trigger.event.replace(/_/g, ' ');
+  }
+  if (directive.trigger.schedule) {
+    return `${directive.trigger.schedule.type} at ${directive.trigger.schedule.time || 'scheduled time'}`;
+  }
+  if (directive.trigger.condition) {
+    return `${directive.trigger.condition.metric} ${directive.trigger.condition.operator} ${directive.trigger.condition.value}`;
+  }
+  return 'Custom trigger';
 };
 
 export default function Directives() {
@@ -177,7 +200,7 @@ export default function Directives() {
   const filteredDirectives = useMemo(() => {
     return directives.filter((directive) => {
       const matchesSearch = directive.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        directive.messageTemplate.toLowerCase().includes(searchQuery.toLowerCase());
+        (directive.description || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === 'all' || directive.category === categoryFilter;
       const matchesStatus = statusFilter === 'all' || 
         (statusFilter === 'active' ? directive.isActive : !directive.isActive);
@@ -276,11 +299,14 @@ export default function Directives() {
                                 {directive.name}
                               </h3>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                                  {directiveTypeLabels[directive.directiveType]}
+                                </Badge>
                                 <Badge variant="outline" className={cn('capitalize', categoryColors[directive.category])}>
                                   {directive.category}
                                 </Badge>
-                                <Badge variant="outline" className={cn('capitalize', priorityColors[directive.priority])}>
-                                  {directive.priority} priority
+                                <Badge variant="outline" className={cn('capitalize', urgencyColors[directive.delivery.urgency])}>
+                                  {directive.delivery.urgency} priority
                                 </Badge>
                                 <Badge variant="outline" className={cn(assignment.colorClass)}>
                                   <AssignmentIcon className="w-3 h-3 mr-1" />
@@ -324,8 +350,14 @@ export default function Directives() {
                             </div>
                           </div>
 
-                          <p className="text-sm text-muted-foreground italic">
-                            "{directive.messageTemplate}"
+                          {directive.description && (
+                            <p className="text-sm text-muted-foreground">
+                              {directive.description}
+                            </p>
+                          )}
+                          
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium">Trigger:</span> {getTriggerLabel(directive)}
                           </p>
 
                           <div className="flex items-center gap-6 pt-2 flex-wrap">

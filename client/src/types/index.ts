@@ -73,19 +73,103 @@ export interface ClientPermission {
   accessLevel: 'none' | 'view' | 'view_edit' | 'full';
 }
 
+export type TriggerEvent = 
+  | 'workout_completed'
+  | 'workout_missed'
+  | 'meal_logged'
+  | 'day_end'
+  | 'week_end'
+  | 'streak_milestone'
+  | 'weight_logged'
+  | 'goal_achieved'
+  | 'check_in_time'
+  | 'rest_day'
+  | 'before_workout'
+  | 'app_opened'
+  | 'inactive_period';
+
+export type DataPoint =
+  | 'workout_summary'
+  | 'workout_volume'
+  | 'workout_duration'
+  | 'exercises_completed'
+  | 'intensity_rating'
+  | 'calories_burned'
+  | 'protein_intake'
+  | 'calorie_intake'
+  | 'water_intake'
+  | 'sleep_hours'
+  | 'sleep_quality'
+  | 'weight'
+  | 'body_measurements'
+  | 'streak_count'
+  | 'weekly_compliance'
+  | 'mood_rating'
+  | 'energy_level'
+  | 'progress_photos'
+  | 'personal_records';
+
+export interface DataPointConfig {
+  dataPoint: DataPoint;
+  comparison?: 'previous' | 'average' | 'goal' | 'best';
+  timeframe?: 'today' | 'this_week' | 'this_month' | 'last_7_days' | 'last_30_days';
+}
+
+export interface DirectiveTrigger {
+  event?: TriggerEvent;
+  eventConditions?: Record<string, any>;
+  schedule?: {
+    type: 'daily' | 'weekly' | 'monthly';
+    time?: string;
+    days?: ('mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun')[];
+    dayOfMonth?: number;
+  };
+  condition?: {
+    metric: string;
+    operator: 'above' | 'below' | 'equals' | 'missing_for';
+    value: number;
+    unit?: string;
+  };
+}
+
+export interface DirectiveAction {
+  actionType: 'analyze' | 'summarize' | 'compare' | 'alert' | 'remind' | 'encourage' | 'ask' | 'deliver_message';
+  analysisInstructions?: string;
+  compareWith?: 'last_session' | 'last_week' | 'baseline' | 'goal';
+  highlightImprovements?: boolean;
+  highlightConcerns?: boolean;
+  questions?: string[];
+  alertCondition?: string;
+  reminderType?: 'water' | 'meal' | 'photos' | 'workout' | 'sleep' | 'custom';
+  customMessage?: string;
+}
+
+export type DirectiveType = 'analysis' | 'summary' | 'alert' | 'reminder' | 'encouragement' | 'check_in' | 'coaching_cue';
+
 export interface MentorDirective {
   id: string;
   mentorId: string;
+  name: string;
+  description?: string;
   assignmentType: 'all' | 'group' | 'individual';
   clientId?: string;
   groupId?: string;
-  name: string;
-  triggerEvent: string;
-  triggerConditions: Record<string, any>;
-  messageTemplate: string;
-  category: 'nutrition' | 'workout' | 'recovery' | 'motivation' | 'general';
-  priority: 'low' | 'medium' | 'high';
+  directiveType: DirectiveType;
+  trigger: DirectiveTrigger;
+  dataPoints: DataPointConfig[];
+  action: DirectiveAction;
+  recipients: {
+    sendToClient: boolean;
+    sendToMentor: boolean;
+  };
+  delivery: {
+    tone: 'encouraging' | 'neutral' | 'direct' | 'celebratory';
+    urgency: 'low' | 'medium' | 'high';
+    format: 'brief' | 'detailed' | 'bullet_points';
+  };
+  customMessage?: string;
   isActive: boolean;
+  category: 'workout' | 'nutrition' | 'recovery' | 'motivation' | 'general';
   triggeredCount: number;
   effectivenessScore?: number;
   lastTriggered?: Date;
@@ -98,8 +182,16 @@ export interface ClientGroup {
   mentorId: string;
   name: string;
   description?: string;
+  color?: string;
+  icon?: string;
   clientIds: string[];
+  autoAssignRules?: {
+    goalType?: string[];
+    activityLevel?: string[];
+    subscriptionTier?: string[];
+  };
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Organization {
