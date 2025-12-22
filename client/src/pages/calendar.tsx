@@ -1,16 +1,37 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format, startOfWeek, addDays, isSameDay, isToday } from 'date-fns';
-import { ChevronLeft, ChevronRight, Clock, User, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, User, Plus, Settings2, CalendarCheck, Ban } from 'lucide-react';
 import { Header } from '../components/header';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { bookingsService } from '../services';
-import type { Booking } from '../types';
+import { mockAvailability, mockBookingSettings } from '../mocks/calendar.mock';
+import type { Booking, Availability, BookingSettings } from '../types';
 import { cn } from '@/lib/utils';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 8);
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const statusColors: Record<Booking['status'], string> = {
   scheduled: 'bg-chart-1 text-white',
@@ -19,11 +40,242 @@ const statusColors: Record<Booking['status'], string> = {
   no_show: 'bg-destructive text-white',
 };
 
+interface AvailabilityModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  availability: Availability[];
+  onSave: (availability: Availability[]) => void;
+}
+
+function AvailabilityModal({ open, onOpenChange, availability, onSave }: AvailabilityModalProps) {
+  const [editedAvailability, setEditedAvailability] = useState<Availability[]>(availability);
+
+  useEffect(() => {
+    setEditedAvailability(availability);
+  }, [availability, open]);
+
+  const getAvailabilityForDay = (day: number) => {
+    return editedAvailability.filter(a => a.dayOfWeek === day && a.isActive);
+  };
+
+  const toggleDay = (day: number, enabled: boolean) => {
+    if (enabled) {
+      const newSlot: Availability = {
+        id: `avail-new-${Date.now()}`,
+        mentorId: 'mentor-1',
+        dayOfWeek: day as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+        startTime: '09:00',
+        endTime: '17:00',
+        isActive: true,
+      };
+      setEditedAvailability([...editedAvailability, newSlot]);
+    } else {
+      setEditedAvailability(editedAvailability.filter(a => a.dayOfWeek !== day));
+    }
+  };
+
+  const handleSave = () => {
+    onSave(editedAvailability);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Set Availability</DialogTitle>
+          <DialogDescription>
+            Configure your weekly availability for client bookings.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4 max-h-[60vh] overflow-auto">
+          {DAYS_OF_WEEK.map((dayName, index) => {
+            const daySlots = getAvailabilityForDay(index);
+            const isEnabled = daySlots.length > 0;
+
+            return (
+              <div key={dayName} className="flex items-start gap-4 p-3 rounded-md bg-muted/50">
+                <div className="flex items-center gap-3 min-w-[120px]">
+                  <Checkbox
+                    checked={isEnabled}
+                    onCheckedChange={(checked) => toggleDay(index, checked as boolean)}
+                    data-testid={`checkbox-day-${index}`}
+                  />
+                  <span className="font-medium">{dayName}</span>
+                </div>
+                <div className="flex-1">
+                  {isEnabled ? (
+                    <div className="flex items-center gap-2 text-sm flex-wrap">
+                      {daySlots.map((slot) => (
+                        <Badge key={slot.id} variant="secondary">
+                          {slot.startTime} - {slot.endTime}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Not available</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} data-testid="button-save-availability">
+            Save Availability
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface BookingSettingsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  settings: BookingSettings;
+  onSave: (settings: BookingSettings) => void;
+}
+
+function BookingSettingsModal({ open, onOpenChange, settings, onSave }: BookingSettingsModalProps) {
+  const [editedSettings, setEditedSettings] = useState<BookingSettings>(settings);
+
+  useEffect(() => {
+    setEditedSettings(settings);
+  }, [settings, open]);
+
+  const handleSave = () => {
+    onSave(editedSettings);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Booking Settings</DialogTitle>
+          <DialogDescription>
+            Configure how clients can book sessions with you.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Default Session Length</Label>
+              <Select
+                value={editedSettings.defaultSessionLength.toString()}
+                onValueChange={(v) => setEditedSettings({ ...editedSettings, defaultSessionLength: parseInt(v) })}
+              >
+                <SelectTrigger data-testid="select-session-length">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="45">45 minutes</SelectItem>
+                  <SelectItem value="60">60 minutes</SelectItem>
+                  <SelectItem value="90">90 minutes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Buffer Between Sessions</Label>
+              <Select
+                value={editedSettings.bufferBetweenSessions.toString()}
+                onValueChange={(v) => setEditedSettings({ ...editedSettings, bufferBetweenSessions: parseInt(v) })}
+              >
+                <SelectTrigger data-testid="select-buffer">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">None</SelectItem>
+                  <SelectItem value="15">15 minutes</SelectItem>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Minimum Notice</Label>
+              <Select
+                value={editedSettings.minimumNotice.toString()}
+                onValueChange={(v) => setEditedSettings({ ...editedSettings, minimumNotice: parseInt(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 hour</SelectItem>
+                  <SelectItem value="24">24 hours</SelectItem>
+                  <SelectItem value="48">48 hours</SelectItem>
+                  <SelectItem value="72">72 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Max Advance Booking</Label>
+              <Select
+                value={editedSettings.maximumAdvanceBooking.toString()}
+                onValueChange={(v) => setEditedSettings({ ...editedSettings, maximumAdvanceBooking: parseInt(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">1 week</SelectItem>
+                  <SelectItem value="14">2 weeks</SelectItem>
+                  <SelectItem value="30">1 month</SelectItem>
+                  <SelectItem value="60">2 months</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="reminder-24h">Send 24h reminder</Label>
+              <Switch
+                id="reminder-24h"
+                checked={editedSettings.sendReminder24h}
+                onCheckedChange={(checked) => setEditedSettings({ ...editedSettings, sendReminder24h: checked })}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="reminder-1h">Send 1h reminder</Label>
+              <Switch
+                id="reminder-1h"
+                checked={editedSettings.sendReminder1h}
+                onCheckedChange={(checked) => setEditedSettings({ ...editedSettings, sendReminder1h: checked })}
+              />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} data-testid="button-save-settings">
+            Save Settings
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function CalendarPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [availability, setAvailability] = useState<Availability[]>(mockAvailability);
+  const [bookingSettings, setBookingSettings] = useState<BookingSettings>(mockBookingSettings);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
     loadBookings();
@@ -62,12 +314,16 @@ export default function CalendarPage() {
     return { top, height };
   };
 
+  const getDayAvailability = (dayOfWeek: number) => {
+    return availability.filter(a => a.dayOfWeek === dayOfWeek && a.isActive);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header title="Calendar" />
       
-      <main className="flex-1 p-6 space-y-6">
-        <div className="flex items-center justify-between gap-4">
+      <main className="flex-1 p-6 space-y-6 overflow-auto">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={goToPreviousWeek} data-testid="button-prev-week">
               <ChevronLeft className="w-4 h-4" />
@@ -83,10 +339,20 @@ export default function CalendarPage() {
             </h2>
           </div>
 
-          <Button data-testid="button-add-booking">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Booking
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowAvailabilityModal(true)} data-testid="button-availability">
+              <CalendarCheck className="w-4 h-4 mr-2" />
+              Availability
+            </Button>
+            <Button variant="outline" onClick={() => setShowSettingsModal(true)} data-testid="button-settings">
+              <Settings2 className="w-4 h-4 mr-2" />
+              Settings
+            </Button>
+            <Button data-testid="button-add-booking">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Booking
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -107,61 +373,84 @@ export default function CalendarPage() {
                   ))}
                 </div>
 
-                {weekDays.map((day, dayIndex) => (
-                  <div key={dayIndex} className={cn('border-r border-border last:border-r-0', isToday(day) && 'bg-primary/5')}>
-                    <div className={cn(
-                      'h-16 border-b border-border p-2 text-center',
-                      isToday(day) && 'bg-primary/10'
-                    )}>
-                      <div className="text-xs text-muted-foreground uppercase">
-                        {format(day, 'EEE')}
-                      </div>
+                {weekDays.map((day, dayIndex) => {
+                  const dayOfWeek = day.getDay();
+                  const dayAvailability = getDayAvailability(dayOfWeek === 0 ? 0 : dayOfWeek);
+                  const hasAvailability = dayAvailability.length > 0;
+
+                  return (
+                    <div key={dayIndex} className={cn('border-r border-border last:border-r-0', isToday(day) && 'bg-primary/5')}>
                       <div className={cn(
-                        'text-lg font-semibold',
-                        isToday(day) && 'text-primary'
+                        'h-16 border-b border-border p-2 text-center',
+                        isToday(day) && 'bg-primary/10'
                       )}>
-                        {format(day, 'd')}
+                        <div className="text-xs text-muted-foreground uppercase">
+                          {format(day, 'EEE')}
+                        </div>
+                        <div className={cn(
+                          'text-lg font-semibold',
+                          isToday(day) && 'text-primary'
+                        )}>
+                          {format(day, 'd')}
+                        </div>
+                        {!hasAvailability && (
+                          <Badge variant="secondary" className="text-[10px] px-1">
+                            <Ban className="w-2.5 h-2.5 mr-0.5" />
+                            Off
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="relative">
+                        {HOURS.map(hour => {
+                          const isAvailable = dayAvailability.some(a => {
+                            const startHour = parseInt(a.startTime.split(':')[0]);
+                            const endHour = parseInt(a.endTime.split(':')[0]);
+                            return hour >= startHour && hour < endHour;
+                          });
+
+                          return (
+                            <div 
+                              key={hour} 
+                              className={cn(
+                                "h-[60px] border-b border-border cursor-pointer",
+                                isAvailable ? "bg-chart-2/10 hover:bg-chart-2/20" : "bg-muted/30 hover:bg-muted/50"
+                              )}
+                            />
+                          );
+                        })}
+
+                        {getBookingsForDay(day).map(booking => {
+                          const { top, height } = getBookingPosition(booking);
+                          return (
+                            <div
+                              key={booking.id}
+                              className={cn(
+                                'absolute left-1 right-1 rounded-md px-2 py-1 cursor-pointer overflow-hidden',
+                                statusColors[booking.status]
+                              )}
+                              style={{
+                                top: `${top}px`,
+                                height: `${Math.max(height - 4, 24)}px`,
+                              }}
+                              onClick={() => setSelectedBooking(booking)}
+                              data-testid={`booking-${booking.id}`}
+                            >
+                              <div className="text-xs font-medium truncate">
+                                {booking.clientName}
+                              </div>
+                              {height >= 40 && (
+                                <div className="text-xs opacity-80 truncate">
+                                  {format(new Date(booking.scheduledAt), 'h:mm a')}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    <div className="relative">
-                      {HOURS.map(hour => (
-                        <div 
-                          key={hour} 
-                          className="h-[60px] border-b border-border hover:bg-muted/30 cursor-pointer"
-                        />
-                      ))}
-
-                      {getBookingsForDay(day).map(booking => {
-                        const { top, height } = getBookingPosition(booking);
-                        return (
-                          <div
-                            key={booking.id}
-                            className={cn(
-                              'absolute left-1 right-1 rounded-md px-2 py-1 cursor-pointer overflow-hidden',
-                              statusColors[booking.status]
-                            )}
-                            style={{
-                              top: `${top}px`,
-                              height: `${Math.max(height - 4, 24)}px`,
-                            }}
-                            onClick={() => setSelectedBooking(booking)}
-                            data-testid={`booking-${booking.id}`}
-                          >
-                            <div className="text-xs font-medium truncate">
-                              {booking.clientName}
-                            </div>
-                            {height >= 40 && (
-                              <div className="text-xs opacity-80 truncate">
-                                {format(new Date(booking.scheduledAt), 'h:mm a')}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -210,7 +499,11 @@ export default function CalendarPage() {
           </Card>
         )}
 
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4 text-sm flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-chart-2/30" />
+            <span className="text-muted-foreground">Available</span>
+          </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-chart-1" />
             <span className="text-muted-foreground">Scheduled</span>
@@ -225,10 +518,24 @@ export default function CalendarPage() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-muted" />
-            <span className="text-muted-foreground">Cancelled</span>
+            <span className="text-muted-foreground">Cancelled/Unavailable</span>
           </div>
         </div>
       </main>
+
+      <AvailabilityModal
+        open={showAvailabilityModal}
+        onOpenChange={setShowAvailabilityModal}
+        availability={availability}
+        onSave={setAvailability}
+      />
+
+      <BookingSettingsModal
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
+        settings={bookingSettings}
+        onSave={setBookingSettings}
+      />
     </div>
   );
 }

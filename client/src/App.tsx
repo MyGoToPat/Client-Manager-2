@@ -21,10 +21,11 @@ import Analytics from './pages/analytics';
 import Settings from './pages/settings';
 import Landing from './pages/landing';
 import OrganizationDashboard from './pages/organization';
-import OrganizationTeam from './pages/organization-team';
 import ReferralLanding from './pages/referral-landing';
 import Groups from './pages/groups';
 import GroupDetail from './pages/group-detail';
+import ProgramTemplates from './pages/program-templates';
+import ProgramTemplateBuilder from './pages/program-template-builder';
 
 interface AskPatContextType {
   openAskPat: () => void;
@@ -202,11 +203,10 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/org/:id/team">
-        <ProtectedRoute>
-          <AppLayout>
-            <OrganizationTeam />
-          </AppLayout>
-        </ProtectedRoute>
+        {({ params }) => {
+          window.location.replace(`/org/${params?.id || 'org-1'}?tab=team`);
+          return null;
+        }}
       </Route>
       <Route path="/groups">
         <ProtectedRoute>
@@ -219,6 +219,20 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <GroupDetail />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/program-templates">
+        <ProtectedRoute>
+          <AppLayout>
+            <ProgramTemplates />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/program-templates/:id">
+        <ProtectedRoute>
+          <AppLayout>
+            <ProgramTemplateBuilder />
           </AppLayout>
         </ProtectedRoute>
       </Route>

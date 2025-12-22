@@ -11,7 +11,8 @@ import {
   LogOut,
   Bot,
   Building,
-  UsersRound
+  UsersRound,
+  BookOpen
 } from 'lucide-react';
 import {
   Sidebar,
@@ -34,6 +35,7 @@ const menuItems = [
   { title: 'Clients', url: '/clients', icon: Users },
   { title: 'Mentor Directives', url: '/directives', icon: Zap },
   { title: 'Groups', url: '/groups', icon: UsersRound },
+  { title: 'Program Templates', url: '/program-templates', icon: BookOpen },
   { title: 'Calendar', url: '/calendar', icon: Calendar },
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },
@@ -41,7 +43,6 @@ const menuItems = [
 
 const orgMenuItems = [
   { title: 'Organization', url: '/org/org-1', icon: Building },
-  { title: 'Team', url: '/org/org-1/team', icon: UsersRound },
 ];
 
 export function AppSidebar() {

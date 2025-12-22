@@ -102,7 +102,7 @@ export default function Analytics() {
               />
               <MetricCard
                 label="Avg Effectiveness"
-                value={`${Math.round(avgEffectiveness * 100)}%`}
+                value={`${avgEffectiveness.toFixed(2)}%`}
                 trend={3}
                 icon={<TrendingUp className="w-5 h-5" />}
               />
@@ -240,7 +240,7 @@ export default function Analytics() {
                                 </div>
                               </div>
                               <span className="text-sm font-mono font-bold text-chart-4">
-                                {Math.round((directive.effectivenessScore || 0) * 100)}%
+                                {(directive.effectivenessScore || 0).toFixed(2)}%
                               </span>
                             </div>
                           ))}
