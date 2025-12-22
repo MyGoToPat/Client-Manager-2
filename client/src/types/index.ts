@@ -327,3 +327,154 @@ export interface WorkoutPlan {
   assignedDays: string[];
   status: 'active' | 'paused' | 'completed';
 }
+
+// Dashboard Types
+export interface ClientActivity {
+  id: string;
+  clientId: string;
+  clientName: string;
+  type: 'workout_completed' | 'message_sent' | 'meal_logged' | 'streak_milestone' | 'check_in' | 'joined_group';
+  description: string;
+  timestamp: Date;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BusinessStats {
+  mrr: number;
+  mrrChange: number;
+  newClients: number;
+  churnedClients: number;
+  avgCompliance: number;
+  complianceChange: number;
+  revenuePerClient: number;
+}
+
+export interface NeedsAttentionClient {
+  client: Client;
+  complianceDrop: number;
+  previousCompliance: number;
+  currentCompliance: number;
+  daysSinceActive: number;
+  reason: string;
+}
+
+// Program Template Types
+export interface ProgramTemplate {
+  id: string;
+  mentorId: string;
+  name: string;
+  description: string;
+  coverImage?: string;
+  durationWeeks: number;
+  modules: ProgramModule[];
+  directives: TemplateDirective[];
+  requireSequentialCompletion: boolean;
+  allowSelfEnroll: boolean;
+  price?: number;
+  timesUsed: number;
+  avgCompletionRate: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProgramModule {
+  id: string;
+  week: number;
+  day?: number;
+  title: string;
+  description?: string;
+  type: 'video' | 'pdf' | 'workout' | 'quiz' | 'checkin' | 'text';
+  content: {
+    url?: string;
+    videoUrl?: string;
+    pdfUrl?: string;
+    workoutId?: string;
+    textContent?: string;
+    questions?: QuizQuestion[];
+  };
+  requiresCompletion: boolean;
+  estimatedMinutes?: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  type: 'multiple_choice' | 'text' | 'scale';
+  options?: string[];
+  correctAnswer?: string;
+}
+
+export interface TemplateDirective {
+  id: string;
+  week: number;
+  day?: number;
+  name: string;
+  description: string;
+  directiveType: string;
+  action: DirectiveAction;
+  delivery: {
+    tone: string;
+    format: string;
+  };
+}
+
+// Calendar & Availability Types
+export interface Availability {
+  id: string;
+  mentorId: string;
+  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+}
+
+export interface BookingSettings {
+  mentorId: string;
+  defaultSessionLength: number;
+  bufferBetweenSessions: number;
+  minimumNotice: number;
+  maximumAdvanceBooking: number;
+  defaultMeetingType: 'in_person' | 'zoom' | 'google_meet';
+  zoomConnected: boolean;
+  googleMeetConnected: boolean;
+  autoGenerateMeetingLink: boolean;
+  sendReminder24h: boolean;
+  sendReminder1h: boolean;
+}
+
+export interface BlockedTime {
+  id: string;
+  mentorId: string;
+  date: Date;
+  startTime?: string;
+  endTime?: string;
+  allDay: boolean;
+  reason?: string;
+}
+
+// Analytics Types
+export interface AnalyticsData {
+  mrr: number;
+  mrrChange: number;
+  revenueByMonth: { month: string; revenue: number }[];
+  revenueBySource: { source: string; amount: number; percentage: number }[];
+  totalClients: number;
+  activeClients: number;
+  newClientsThisMonth: number;
+  churnedClientsThisMonth: number;
+  churnRate: number;
+  retentionRate: number;
+  avgClientLifespan: number;
+  revenuePerClient: number;
+  ltv: number;
+  avgCompliance: number;
+  complianceChange: number;
+  sessionsCompleted: number;
+  directivesTriggered: number;
+  avgDirectiveEffectiveness: number;
+  complianceByGroup: { groupName: string; compliance: number }[];
+  retentionCohort: { month: string; retained: number }[];
+  topClientsByLtv: { client: Client; ltv: number }[];
+  atRiskClients: { client: Client; compliance: number }[];
+}
