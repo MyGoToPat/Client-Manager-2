@@ -1,0 +1,157 @@
+import { Link } from 'wouter';
+import { Bot, Users, Zap, Clock, ChevronRight, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+
+const features = [
+  {
+    icon: Users,
+    title: 'Multi-Mentor Support',
+    description: 'Assign different mentors to handle workout, nutrition, and mindset domains for each client.',
+  },
+  {
+    icon: Bot,
+    title: '24/7 Pat AI Assistant',
+    description: 'Pat bridges the gap between sessions, providing personalized support when you\'re not available.',
+  },
+  {
+    icon: Zap,
+    title: 'Smart Directives',
+    description: 'Create automated triggers that send personalized messages based on client behavior.',
+  },
+  {
+    icon: Clock,
+    title: 'Real-time Progress',
+    description: 'Track workouts, nutrition, and sleep with AI-powered insights and recommendations.',
+  },
+];
+
+const steps = [
+  { step: 1, title: 'Invite Clients', description: 'Send a simple link to onboard clients to the HiPat app.' },
+  { step: 2, title: 'Set Up Directives', description: 'Create personalized triggers that automate your coaching.' },
+  { step: 3, title: 'Let Pat Work', description: 'Pat provides 24/7 support while you focus on what matters.' },
+];
+
+export default function Landing() {
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground">
+              <Bot className="w-5 h-5" />
+            </div>
+            <span className="text-xl font-bold">HiPat</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/login">
+              <Button variant="ghost" data-testid="button-login">Log in</Button>
+            </Link>
+            <Link href="/signup">
+              <Button data-testid="button-signup">Get Started</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section className="py-20 px-4">
+          <div className="container mx-auto text-center max-w-3xl">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+              Manage Your Fitness Clients with AI
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              HiPat gives your clients a 24/7 AI assistant that extends your expertise. 
+              Pat handles check-ins, tracks progress, and keeps clients engaged between sessions.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <Link href="/signup">
+                <Button size="lg" className="gap-2" data-testid="button-hero-cta">
+                  Start Free Trial
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" data-testid="button-watch-demo">
+                Watch Demo
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto">
+            <h2 className="text-2xl font-bold text-center mb-12">What Makes HiPat Different</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {features.map((feature) => (
+                <Card key={feature.title} className="border-0 bg-background">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
+                      <feature.icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-semibold mb-2">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <h2 className="text-2xl font-bold text-center mb-12">How It Works</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {steps.map((item) => (
+                <div key={item.step} className="text-center">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-xl mx-auto mb-4">
+                    {item.step}
+                  </div>
+                  <h3 className="font-semibold mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-bold mb-4">Ready to Transform Your Coaching?</h2>
+            <p className="text-muted-foreground mb-8">
+              Join thousands of fitness professionals using HiPat to scale their impact.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-chart-4" />
+                <span>Free 14-day trial</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-chart-4" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-4 h-4 text-chart-4" />
+                <span>Cancel anytime</span>
+              </div>
+            </div>
+            <Link href="/signup">
+              <Button size="lg" data-testid="button-final-cta">
+                Start Your Free Trial
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-border py-8 px-4">
+        <div className="container mx-auto flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Bot className="w-4 h-4" />
+            <span>HiPat</span>
+          </div>
+          <p>Built for fitness professionals who want to scale their impact.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}

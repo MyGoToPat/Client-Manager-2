@@ -12,6 +12,7 @@ export const mockClients: Client[] = [
     lastLogin: '2h ago',
     joinedAt: new Date('2024-01-14'),
     goals: ['Lose 10 lbs', 'Build muscle', 'Improve sleep'],
+    orgId: undefined,
     metrics: {
       tdee: 2100,
       bmr: 1650,
@@ -33,6 +34,7 @@ export const mockClients: Client[] = [
     lastLogin: 'Yesterday',
     joinedAt: new Date('2024-02-20'),
     goals: ['Gain muscle mass', 'Increase strength'],
+    orgId: 'org-1',
     metrics: {
       tdee: 2800,
       bmr: 1950,
@@ -53,6 +55,7 @@ export const mockClients: Client[] = [
     lastLogin: '7d ago',
     joinedAt: new Date('2024-03-01'),
     goals: ['Get back on track', 'Establish routine'],
+    orgId: 'org-1',
   },
   {
     id: 'client-4',
@@ -64,6 +67,7 @@ export const mockClients: Client[] = [
     lastLogin: 'Just now',
     joinedAt: new Date('2024-12-15'),
     goals: ['Train for marathon', 'Optimize nutrition'],
+    orgId: undefined,
     metrics: {
       tdee: 3200,
       bmr: 2100,
@@ -84,6 +88,7 @@ export const mockClients: Client[] = [
     lastLogin: '4h ago',
     joinedAt: new Date('2023-11-01'),
     goals: ['Maintain fitness', 'Work-life balance'],
+    orgId: 'org-1',
     metrics: {
       tdee: 1900,
       bmr: 1450,
@@ -104,6 +109,7 @@ export const mockClients: Client[] = [
     progress: 15,
     lastLogin: '5d ago',
     joinedAt: new Date('2024-01-20'),
+    orgId: 'org-1',
   }
 ];
 

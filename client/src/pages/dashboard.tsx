@@ -8,12 +8,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useStore } from '../store/useStore';
 import { clientsService } from '../services';
+import { useAskPat } from '../App';
 import type { Client } from '../types';
 
 type StatusFilter = 'all' | Client['status'];
 
 export default function Dashboard() {
   const { clients, setClients, setSelectedClientId } = useStore();
+  const { openAskPat } = useAskPat();
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -70,6 +72,7 @@ export default function Dashboard() {
         showInvite 
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
+        onAskPat={openAskPat}
       />
       
       <main className="flex-1 p-6 space-y-6">

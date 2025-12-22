@@ -3,6 +3,7 @@ import { Calendar, Target, Activity, Droplets, Flame } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { DomainAssignmentCard } from '../domain-assignment';
 import type { Client } from '../../types';
 
 interface ClientOverviewTabProps {
@@ -16,6 +17,8 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
         <Calendar className="w-4 h-4" />
         <span>Joined {format(new Date(client.joinedAt), 'MMMM d, yyyy')}</span>
       </div>
+
+      <DomainAssignmentCard clientId={client.id} />
 
       {client.goals && client.goals.length > 0 && (
         <div className="space-y-3">

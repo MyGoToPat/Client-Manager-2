@@ -13,8 +13,8 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { setUser, setMentorProfile } = useStore();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('info@hipat.app');
+  const [password, setPassword] = useState('admin123');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,7 +121,7 @@ export default function Login() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Demo: Enter any email and password to login
+          Demo credentials: info@hipat.app / admin123
         </p>
       </div>
     </div>

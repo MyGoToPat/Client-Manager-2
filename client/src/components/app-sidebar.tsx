@@ -9,7 +9,9 @@ import {
   Moon,
   Sun,
   LogOut,
-  Bot
+  Bot,
+  Building,
+  UsersRound
 } from 'lucide-react';
 import {
   Sidebar,
@@ -34,6 +36,11 @@ const menuItems = [
   { title: 'Calendar', url: '/calendar', icon: Calendar },
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },
+];
+
+const orgMenuItems = [
+  { title: 'Organization', url: '/org/org-1', icon: Building },
+  { title: 'Team', url: '/org/org-1/team', icon: UsersRound },
 ];
 
 export function AppSidebar() {
@@ -77,6 +84,34 @@ export function AppSidebar() {
                       className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
                     >
                       <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase().replace(' ', '-')}`}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground px-2">
+            Organization
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {orgMenuItems.map((item) => {
+                const isActive = location === item.url || 
+                  (item.url !== '/' && location.startsWith(item.url));
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      data-active={isActive}
+                      className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                    >
+                      <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase()}`}>
                         <item.icon className="w-4 h-4" />
                         <span>{item.title}</span>
                       </Link>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, createContext, useContext } from 'react';
 import { Switch, Route, useLocation } from 'wouter';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from './components/app-sidebar';
 import { ThemeProvider } from './components/theme-provider';
+import { AskPatModal } from './components/ask-pat-modal';
 import { useStore } from './store/useStore';
 import { authService } from './services';
 import NotFound from '@/pages/not-found';
@@ -18,6 +19,20 @@ import Directives from './pages/directives';
 import CalendarPage from './pages/calendar';
 import Analytics from './pages/analytics';
 import Settings from './pages/settings';
+import Landing from './pages/landing';
+import OrganizationDashboard from './pages/organization';
+import OrganizationTeam from './pages/organization-team';
+import ReferralLanding from './pages/referral-landing';
+
+interface AskPatContextType {
+  openAskPat: () => void;
+}
+
+const AskPatContext = createContext<AskPatContextType>({ openAskPat: () => {} });
+
+export function useAskPat() {
+  return useContext(AskPatContext);
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, setUser, setMentorProfile } = useStore();
@@ -80,12 +95,62 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AskPatProvider({ children }: { children: React.ReactNode }) {
+  const [askPatOpen, setAskPatOpen] = useState(false);
+  const { isAuthenticated } = useStore();
+
+  const openAskPat = useCallback(() => {
+    if (isAuthenticated) {
+      setAskPatOpen(true);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openAskPat();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [openAskPat]);
+
+  return (
+    <AskPatContext.Provider value={{ openAskPat }}>
+      {children}
+      {isAuthenticated && (
+        <AskPatModal open={askPatOpen} onOpenChange={setAskPatOpen} />
+      )}
+    </AskPatContext.Provider>
+  );
+}
+
+function AuthenticatedHome() {
+  const { isAuthenticated } = useStore();
+  
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
+  
+  return (
+    <ProtectedRoute>
+      <AppLayout>
+        <Dashboard />
+      </AppLayout>
+    </ProtectedRoute>
+  );
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
-      <Route path="/">
+      <Route path="/ref/:code" component={ReferralLanding} />
+      <Route path="/" component={AuthenticatedHome} />
+      <Route path="/dashboard">
         <ProtectedRoute>
           <AppLayout>
             <Dashboard />
@@ -127,6 +192,20 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       </Route>
+      <Route path="/org/:id">
+        <ProtectedRoute>
+          <AppLayout>
+            <OrganizationDashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/org/:id/team">
+        <ProtectedRoute>
+          <AppLayout>
+            <OrganizationTeam />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -137,8 +216,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
-          <Toaster />
-          <Router />
+          <AskPatProvider>
+            <Toaster />
+            <Router />
+          </AskPatProvider>
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>

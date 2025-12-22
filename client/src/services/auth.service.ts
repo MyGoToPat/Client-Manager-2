@@ -10,9 +10,19 @@ export interface AuthService {
   updateMentorProfile(profile: Partial<MentorProfile>): Promise<MentorProfile>;
 }
 
+const DEMO_CREDENTIALS = {
+  email: 'info@hipat.app',
+  password: 'admin123'
+};
+
 export const authService: AuthService = {
-  async login(email: string, _password: string): Promise<User> {
+  async login(email: string, password: string): Promise<User> {
     await new Promise(r => setTimeout(r, 500));
+    
+    if (email !== DEMO_CREDENTIALS.email || password !== DEMO_CREDENTIALS.password) {
+      throw new Error('Invalid credentials');
+    }
+    
     const user: User = {
       id: 'mentor-1',
       email,

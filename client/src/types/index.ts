@@ -32,6 +32,7 @@ export interface Client {
   joinedAt: Date;
   goals?: string[];
   metrics?: ClientMetrics;
+  orgId?: string;
 }
 
 export interface ClientMetrics {
@@ -57,10 +58,11 @@ export interface ClientMentorRelationship {
 
 export interface DomainAssignment {
   id: string;
-  relationshipId: string;
+  clientId: string;
   domain: 'workout' | 'nutrition' | 'mindset';
   handlerType: 'mentor' | 'pat';
   handlerId?: string;
+  handlerName?: string;
 }
 
 export interface ClientPermission {
@@ -91,6 +93,7 @@ export interface Organization {
   id: string;
   name: string;
   type: 'gym' | 'studio' | 'independent';
+  logoUrl?: string;
   brandingConfig: Record<string, unknown>;
   createdAt: Date;
 }
@@ -99,6 +102,7 @@ export interface OrgMembership {
   id: string;
   orgId: string;
   userId: string;
+  mentorId: string;
   role: 'owner' | 'manager' | 'mentor';
   permissions: Record<string, unknown>;
 }

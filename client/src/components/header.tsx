@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Plus } from 'lucide-react';
+import { Search, Bell, Plus, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -19,9 +19,10 @@ interface HeaderProps {
   showInvite?: boolean;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onAskPat?: () => void;
 }
 
-export function Header({ title, showInvite = false, searchValue, onSearchChange }: HeaderProps) {
+export function Header({ title, showInvite = false, searchValue, onSearchChange, onAskPat }: HeaderProps) {
   const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
@@ -37,7 +38,7 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange 
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search clients... (Cmd+K)"
+              placeholder="Search clients..."
               className="pl-10 w-full"
               value={searchValue}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -48,6 +49,16 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange 
       </div>
 
       <div className="flex items-center gap-2">
+        {onAskPat && (
+          <Button variant="outline" onClick={onAskPat} data-testid="button-ask-pat">
+            <Bot className="w-4 h-4 mr-2" />
+            Ask Pat
+            <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">Cmd</span>K
+            </kbd>
+          </Button>
+        )}
+
         {showInvite && (
           <Button onClick={() => setInviteOpen(true)} data-testid="button-invite-client">
             <Plus className="w-4 h-4 mr-2" />

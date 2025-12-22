@@ -1,0 +1,364 @@
+# HiPat Client Management Tool - Phase 2: Missing Features
+
+## Context
+You built the foundation of the HiPat Client Management Tool. The basic dashboard, client drawer, directives, calendar, and settings are working. Now we need to add the **differentiating features** that make HiPat unique in the market.
+
+## CRITICAL MISSING FEATURES TO BUILD NOW
+
+---
+
+### 1. Multi-Mentor System with Domain Separation
+
+**This is the #1 differentiator.** A client can have MULTIPLE mentors, each handling different domains.
+
+**Database/Types needed:**
+```typescript
+// Add to types/index.ts
+export interface ClientMentorRelationship {
+  id: string;
+  clientId: string;
+  mentorId: string;
+  orgId?: string; // null = personal client
+  domains: ('workout' | 'nutrition' | 'mindset' | 'all')[];
+  status: 'pending' | 'active' | 'paused' | 'ended';
+  createdAt: Date;
+}
+
+export interface DomainAssignment {
+  id: string;
+  clientId: string;
+  domain: 'workout' | 'nutrition' | 'mindset';
+  handlerType: 'mentor' | 'pat'; // Pat = AI handles it
+  handlerId?: string; // mentor id or null if Pat handles
+}
+```
+
+**UI needed in Client Drawer:**
+- New "Mentors & Domains" section in Overview tab OR separate tab
+- Show: "Workout: Coach Alex" | "Nutrition: Handled by Pat" | "Mindset: Dr. Sarah"
+- Dropdown to change handler for each domain
+- "Add Mentor" button to invite another mentor to this client
+
+**Mock data:**
+```typescript
+export const mockDomainAssignments: DomainAssignment[] = [
+  { id: '1', clientId: 'client-1', domain: 'workout', handlerType: 'mentor', handlerId: 'mentor-1' },
+  { id: '2', clientId: 'client-1', domain: 'nutrition', handlerType: 'pat', handlerId: undefined },
+  { id: '3', clientId: 'client-1', domain: 'mindset', handlerType: 'pat', handlerId: undefined },
+];
+```
+
+---
+
+### 2. Organization/Gym Structure
+
+**Routes needed:**
+- `/org/:id` - Organization dashboard
+- `/org/:id/team` - Team management
+
+**Types needed:**
+```typescript
+export interface Organization {
+  id: string;
+  name: string;
+  type: 'gym' | 'studio' | 'independent';
+  logoUrl?: string;
+  createdAt: Date;
+}
+
+export interface OrgMembership {
+  id: string;
+  orgId: string;
+  userId: string;
+  mentorId: string;
+  role: 'owner' | 'manager' | 'mentor';
+}
+```
+
+**UI needed:**
+1. **Organization Dashboard** (`/org/:id`):
+   - Header with org name and logo
+   - Stats: Total Mentors, Total Clients, Active Sessions
+   - List of all clients across all mentors
+   - Filter by mentor dropdown
+
+2. **Team Management** (`/org/:id/team`):
+   - List of mentors with: avatar, name, role badge, client count, last active
+   - "Invite Mentor" button
+   - Click mentor to see their clients
+   - "Reassign Client" modal - select client, select new mentor, confirm
+
+3. **Sidebar update:**
+   - Add "Organization" section if user is manager/owner
+   - Show org name with dropdown to switch between personal view and org view
+
+4. **Client list toggle:**
+   - Add tabs or toggle: "My Personal Clients" | "Gym Clients" | "All"
+   - Personal clients have `orgId: null`
+   - Gym clients have `orgId: 'org-1'`
+
+**Mock data:**
+```typescript
+export const mockOrganizations: Organization[] = [
+  { id: 'org-1', name: 'FitLife Gym', type: 'gym', createdAt: new Date('2023-01-01') },
+];
+
+export const mockOrgMemberships: OrgMembership[] = [
+  { id: 'mem-1', orgId: 'org-1', userId: 'user-1', mentorId: 'mentor-1', role: 'owner' },
+  { id: 'mem-2', orgId: 'org-1', userId: 'user-2', mentorId: 'mentor-2', role: 'mentor' },
+];
+```
+
+---
+
+### 3. Ask Pat Modal (Command Bar)
+
+**This is the AI interface.** Mentors type natural language, Pat responds.
+
+**Trigger:** 
+- `Cmd+K` (Mac) or `Ctrl+K` (Windows) anywhere in app
+- Or click "Ask Pat" button in header
+
+**UI:**
+```
+┌─────────────────────────────────────────────────────┐
+│ 🤖 Ask Pat anything...                              │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ How is Sarah doing this week?                   │ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ Suggested:                                          │
+│ • "Summarize all client progress"                   │
+│ • "Who needs attention?"                            │
+│ • "Create check-in message for Sarah"               │
+│ • "Show clients who missed workouts"                │
+└─────────────────────────────────────────────────────┘
+```
+
+**After query, show response:**
+```
+┌─────────────────────────────────────────────────────┐
+│ 🤖 Pat's Response                                   │
+│                                                     │
+│ Sarah has been doing great this week:               │
+│ • 5/5 workouts completed ✅                         │
+│ • Protein avg: 142g (target: 140g) ✅               │
+│ • Sleep avg: 7.2 hours ⚠️ (slightly below 8h goal) │
+│                                                     │
+│ Recommendation: Send encouragement about workout    │
+│ streak and gentle reminder about sleep.             │
+│                                                     │
+│ [Send to Sarah] [Copy] [Close]                      │
+└─────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+- Create `AskPatModal.tsx` component
+- Use shadcn Command component as base
+- Add to App.tsx with keyboard listener
+- Mock responses based on query keywords (no real AI needed yet)
+
+**Mock response logic:**
+```typescript
+function getMockPatResponse(query: string): string {
+  const q = query.toLowerCase();
+  if (q.includes('sarah')) {
+    return "Sarah has been doing great this week:\n• 5/5 workouts completed ✅\n• Protein avg: 142g (target: 140g) ✅\n• Sleep avg: 7.2 hours ⚠️";
+  }
+  if (q.includes('attention') || q.includes('need')) {
+    return "3 clients need attention:\n• Emily Rodriguez - inactive 7 days\n• James Wilson - suspended account\n• David Thompson - trial ending soon";
+  }
+  if (q.includes('missed') || q.includes('workout')) {
+    return "2 clients missed workouts this week:\n• Emily Rodriguez - 0/3 completed\n• James Wilson - 1/4 completed";
+  }
+  return "I can help you with client summaries, progress reports, and creating messages. Try asking about a specific client or 'who needs attention?'";
+}
+```
+
+---
+
+### 4. Referral System
+
+**Routes needed:**
+- `/ref/:code` - Public referral landing page
+
+**Types needed:**
+```typescript
+export interface ReferralLink {
+  id: string;
+  mentorId: string;
+  code: string;
+  orgId?: string;
+  clickCount: number;
+  conversions: number;
+  createdAt: Date;
+}
+```
+
+**UI needed:**
+
+1. **Settings > Referrals tab** (update existing):
+   - Show referral code prominently: `hipat.app/ref/coach-alex-123`
+   - "Copy Link" button
+   - Stats: Clicks, Signups, Conversion Rate
+   - QR code (optional - use a library like `qrcode.react`)
+
+2. **Referral Landing Page** (`/ref/:code`):
+   - Public page (no auth required)
+   - Shows mentor profile: avatar, name, specializations, bio
+   - CTA button: "Get Started with [Mentor Name]"
+   - If user logged in: "Add [Mentor] as your mentor" button
+   - If user not logged in: Redirect to signup with referral code stored
+
+**Mock data:**
+```typescript
+export const mockReferralLinks: ReferralLink[] = [
+  { 
+    id: 'ref-1', 
+    mentorId: 'mentor-1', 
+    code: 'coach-alex-123',
+    clickCount: 47,
+    conversions: 12,
+    createdAt: new Date('2024-06-01')
+  },
+];
+```
+
+**Service methods:**
+```typescript
+// referrals.service.ts
+export const referralsService = {
+  async getReferralByCode(code: string): Promise<ReferralLink | null> {
+    return mockReferralLinks.find(r => r.code === code) || null;
+  },
+  async trackClick(code: string): Promise<void> {
+    const link = mockReferralLinks.find(r => r.code === code);
+    if (link) link.clickCount++;
+  },
+  async getMentorReferral(mentorId: string): Promise<ReferralLink | null> {
+    return mockReferralLinks.find(r => r.mentorId === mentorId) || null;
+  }
+};
+```
+
+---
+
+### 5. Invite Client Modal
+
+**Trigger:** "Invite Client" button on Dashboard
+
+**UI:**
+```
+┌─────────────────────────────────────────────────────┐
+│ Invite New Client                              [X]  │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│ Client Email                                        │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ client@example.com                              │ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ Or share this link:                                 │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ hipat.app/invite/abc123xyz         [Copy] 📋   │ │
+│ └─────────────────────────────────────────────────┘ │
+│                                                     │
+│ Assign to:                                          │
+│ ○ My Personal Clients                               │
+│ ○ FitLife Gym (organization)                        │
+│                                                     │
+│ Initial Domains:                                    │
+│ ☑ Workout  ☑ Nutrition  ☐ Mindset                  │
+│                                                     │
+│              [Cancel]  [Send Invite]                │
+└─────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+- Create `InviteClientModal.tsx`
+- Generate unique invite link
+- Show org selection if user belongs to org
+- Domain checkboxes for initial assignment
+
+---
+
+### 6. Public Landing Page
+
+**Route:** `/` (when not logged in)
+
+**Sections:**
+1. Hero: "Manage Your Fitness Clients with AI" + CTA buttons
+2. Features: Multi-mentor support, 24/7 Pat assistant, Real-time progress
+3. How it works: 3 steps with icons
+4. Testimonials (placeholder)
+5. CTA: "Start Free Trial"
+
+**Implementation:**
+- Create `pages/landing.tsx`
+- Update App.tsx router: if not authenticated and path is `/`, show Landing
+- Use nice gradients, animations (framer-motion optional)
+
+---
+
+### 7. Manager Summary Request
+
+**In Organization Dashboard:**
+- Add "Ask Pat for Summary" button
+- Opens Ask Pat modal pre-filled with: "Give me a summary of all clients for [Manager Name]"
+- Pat responds with aggregate stats across all mentors' clients
+
+---
+
+## Files to Create/Update
+
+### New Files:
+```
+client/src/components/ask-pat-modal.tsx
+client/src/components/invite-client-modal.tsx
+client/src/components/domain-assignment.tsx
+client/src/pages/landing.tsx
+client/src/pages/organization.tsx
+client/src/pages/organization-team.tsx
+client/src/pages/referral-landing.tsx
+client/src/services/organizations.service.ts
+client/src/services/referrals.service.ts
+client/src/mocks/organizations.mock.ts
+client/src/mocks/referrals.mock.ts
+```
+
+### Update Files:
+```
+client/src/types/index.ts - Add new types
+client/src/App.tsx - Add new routes, keyboard listener for Cmd+K
+client/src/components/app-sidebar.tsx - Add org section, client toggle
+client/src/components/header.tsx - Add "Ask Pat" button
+client/src/components/client-drawer/overview-tab.tsx - Add domain assignments section
+client/src/pages/settings.tsx - Update referrals tab with full UI
+client/src/pages/dashboard.tsx - Add "Invite Client" button, client source toggle
+```
+
+---
+
+## Build Order
+
+1. **Types & Mock Data** - Add all new types and mock data files
+2. **Ask Pat Modal** - High impact, used everywhere
+3. **Invite Client Modal** - Quick win on dashboard
+4. **Domain Assignment UI** - Add to client drawer
+5. **Referral System** - Landing page + settings update
+6. **Organization Structure** - New pages and sidebar update
+7. **Landing Page** - Public marketing page
+
+---
+
+## UI Requirements (Same as Before)
+
+- Use existing shadcn components
+- Follow established color scheme (green=good, yellow=attention, red=urgent, blue=Pat)
+- Dark mode must work on all new components
+- Mobile responsive
+- Loading states with skeletons
+
+---
+
+**START BUILDING. These features are what differentiate HiPat from Trainerize and TrueCoach. The multi-mentor system and Ask Pat modal are the highest priority.**
