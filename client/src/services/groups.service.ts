@@ -8,12 +8,13 @@ let comments = [...mockGroupComments];
 export const groupsService = {
   getAll: async (): Promise<ClientGroup[]> => {
     await new Promise(resolve => setTimeout(resolve, 200));
-    return groups.filter(g => !g.isArchived);
+    return groups.filter(g => !g.isArchived).map(g => ({ ...g }));
   },
 
   getById: async (id: string): Promise<ClientGroup | undefined> => {
     await new Promise(resolve => setTimeout(resolve, 100));
-    return groups.find(g => g.id === id);
+    const group = groups.find(g => g.id === id);
+    return group ? { ...group } : undefined;
   },
 
   getByType: async (type: GroupType): Promise<ClientGroup[]> => {
@@ -55,6 +56,8 @@ export const groupsService = {
     const index = groups.findIndex(g => g.id === id);
     if (index === -1) return false;
     groups.splice(index, 1);
+    posts = posts.filter(p => p.groupId !== id);
+    comments = comments.filter(c => !posts.some(p => p.id === c.postId && p.groupId === id));
     return true;
   },
 
@@ -63,7 +66,7 @@ export const groupsService = {
     const index = groups.findIndex(g => g.id === id);
     if (index === -1) return undefined;
     groups[index] = { ...groups[index], isArchived: true, isActive: false, updatedAt: new Date() };
-    return groups[index];
+    return { ...groups[index] };
   },
 
   addMembers: async (id: string, clientIds: string[]): Promise<ClientGroup | undefined> => {
@@ -88,7 +91,24 @@ export const groupsService = {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    }).map(p => ({ ...p, reactions: { ...p.reactions } }));
+  },
+
+  getPostsWithComments: async (groupId: string): Promise<{ posts: GroupPost[]; comments: Record<string, GroupComment[]> }> => {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const groupPosts = posts.filter(p => p.groupId === groupId).sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }).map(p => ({ ...p, reactions: { ...p.reactions } }));
+    
+    const postIds = groupPosts.map(p => p.id);
+    const groupComments: Record<string, GroupComment[]> = {};
+    for (const postId of postIds) {
+      groupComments[postId] = comments.filter(c => c.postId === postId).map(c => ({ ...c }));
+    }
+    
+    return { posts: groupPosts, comments: groupComments };
   },
 
   createPost: async (post: Omit<GroupPost, 'id' | 'createdAt' | 'updatedAt' | 'viewCount' | 'reactions'>): Promise<GroupPost> => {

@@ -240,14 +240,8 @@ function MessageBoardTab({ group }: { group: ClientGroup }) {
   const loadPosts = async () => {
     setLoading(true);
     try {
-      const data = await groupsService.getPosts(group.id);
-      setPosts(data);
-      
-      const commentsData: Record<string, GroupComment[]> = {};
-      for (const post of data) {
-        const postComments = await groupsService.getComments(post.id);
-        commentsData[post.id] = postComments;
-      }
+      const { posts: postsData, comments: commentsData } = await groupsService.getPostsWithComments(group.id);
+      setPosts(postsData);
       setComments(commentsData);
     } catch (error) {
       console.error('Failed to load posts:', error);

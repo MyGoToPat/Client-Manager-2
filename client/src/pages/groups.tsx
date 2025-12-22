@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { 
   Plus, 
   Search, 
@@ -78,14 +78,8 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
-            <div 
-              className="w-10 h-10 rounded-md flex items-center justify-center"
-              style={{ backgroundColor: group.color ? `${group.color}20` : 'var(--muted)' }}
-            >
-              <IconComponent 
-                className="w-5 h-5" 
-                style={{ color: group.color || 'var(--muted-foreground)' }}
-              />
+            <div className="w-10 h-10 rounded-md flex items-center justify-center bg-muted">
+              <IconComponent className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
               <h3 className="font-medium text-foreground">{group.name}</h3>

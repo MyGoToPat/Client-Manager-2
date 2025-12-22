@@ -24,11 +24,13 @@ client/src/
 │   ├── clients.service.ts
 │   ├── directives.service.ts
 │   ├── bookings.service.ts
-│   └── referrals.service.ts
+│   ├── referrals.service.ts
+│   └── groups.service.ts
 ├── mocks/              # Mock data
 │   ├── clients.mock.ts
 │   ├── directives.mock.ts
-│   └── mentors.mock.ts
+│   ├── mentors.mock.ts
+│   └── groups.mock.ts
 ├── types/              # TypeScript interfaces
 │   └── index.ts
 ├── store/              # Zustand state
@@ -44,6 +46,8 @@ client/src/
 │   ├── login.tsx
 │   ├── signup.tsx
 │   ├── directives.tsx
+│   ├── groups.tsx
+│   ├── group-detail.tsx
 │   ├── calendar.tsx
 │   ├── analytics.tsx
 │   └── settings.tsx
@@ -56,10 +60,16 @@ client/src/
 - **Dashboard:** Summary metrics, client list with filtering, search
 - **Client Drawer:** 6-tab slide-over panel (Overview, Progress, AI Summary, Directives, Workouts, Permissions)
 - **PT Directives:** Full management page with filters
+- **Groups:** Comprehensive group management system with 4 group types:
+  - Program Cohorts: Structured programs with start dates, duration, and week tracking
+  - Custom Groups: General grouping (e.g., morning clients, advanced level)
+  - Promotions: Limited-time groups for special offers
+  - Organizations: Gym/studio based groups
+  - Features: Message board with posts/comments/reactions, group-specific directives, member management, progress tracking
 - **Calendar:** Week view with booking display
 - **Analytics:** Charts showing client and directive stats
 - **Settings:** Profile, notifications, referrals, security tabs
-- **Auth:** Mock login/signup with localStorage persistence
+- **Auth:** Mock login/signup with localStorage persistence (demo: info@hipat.app / admin123)
 - **Dark Mode:** Theme toggle with localStorage persistence
 
 ### Authentication
