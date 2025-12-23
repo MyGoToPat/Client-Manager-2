@@ -93,7 +93,6 @@ Password: admin123
 | Technology | Purpose |
 |------------|---------|
 | Recharts | Data visualization |
-| Framer Motion | Animations |
 
 ### Backend (Placeholder)
 
@@ -403,6 +402,200 @@ interface ProgramOffset {
   week: number;  // 1-based week number
   day: number;   // 1-7 (Mon-Sun)
 }
+```
+
+### Additional Core Types
+
+#### ClientMentorRelationship
+```typescript
+interface ClientMentorRelationship {
+  id: string;
+  clientId: string;
+  mentorId: string;
+  orgId?: string;
+  domains: ('workout' | 'nutrition' | 'mindset' | 'all')[];
+  status: 'pending' | 'active' | 'paused' | 'ended';
+  createdAt: Date;
+}
+```
+
+#### ClientPermission
+```typescript
+interface ClientPermission {
+  id: string;
+  clientId: string;
+  mentorId: string;
+  dataCategory: 'workout' | 'nutrition' | 'sleep' | 'chat' | 'progress_photos' | 'body_metrics';
+  accessLevel: 'none' | 'view' | 'view_edit' | 'full';
+}
+```
+
+#### Booking
+```typescript
+interface Booking {
+  id: string;
+  mentorId: string;
+  clientId: string;
+  clientName?: string;
+  scheduledAt: Date;
+  durationMinutes: number;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  calendarEventId?: string;
+  notes?: string;
+}
+```
+
+#### GroupPost
+```typescript
+interface GroupPost {
+  id: string;
+  groupId: string;
+  mentorId: string;
+  title?: string;
+  content: string;
+  attachments?: GroupPostAttachment[];
+  isPinned: boolean;
+  notifyMembers: boolean;
+  viewCount: number;
+  reactions: Record<string, string[]>;  // reaction -> userIds
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+#### GroupComment
+```typescript
+interface GroupComment {
+  id: string;
+  postId: string;
+  userId: string;
+  userName: string;
+  userType: 'mentor' | 'client';
+  content: string;
+  createdAt: Date;
+}
+```
+
+#### Organization
+```typescript
+interface Organization {
+  id: string;
+  name: string;
+  type: 'gym' | 'studio' | 'independent';
+  logoUrl?: string;
+  brandingConfig: Record<string, unknown>;
+  createdAt: Date;
+}
+```
+
+#### AIInsight
+```typescript
+interface AIInsight {
+  id: string;
+  type: 'pattern' | 'suggestion' | 'alert' | 'achievement';
+  title: string;
+  description: string;
+  confidence: number;
+  category: string;
+  priority: 'low' | 'medium' | 'high';
+  timestamp: Date;
+  actionable?: boolean;
+  suggestedAction?: string;
+}
+```
+
+#### ReferralLink
+```typescript
+interface ReferralLink {
+  id: string;
+  mentorId: string;
+  code: string;
+  orgId?: string;
+  clickCount: number;
+  conversions: number;
+  createdAt: Date;
+}
+```
+
+#### Availability (Calendar)
+```typescript
+interface Availability {
+  id: string;
+  mentorId: string;
+  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+}
+```
+
+#### BookingSettings
+```typescript
+interface BookingSettings {
+  mentorId: string;
+  defaultSessionLength: number;
+  bufferBetweenSessions: number;
+  minimumNotice: number;
+  maximumAdvanceBooking: number;
+  defaultMeetingType: 'in_person' | 'zoom' | 'google_meet';
+  zoomConnected: boolean;
+  googleMeetConnected: boolean;
+  autoGenerateMeetingLink: boolean;
+  sendReminder24h: boolean;
+  sendReminder1h: boolean;
+}
+```
+
+#### AnalyticsData
+```typescript
+interface AnalyticsData {
+  mrr: number;
+  mrrChange: number;
+  revenueByMonth: { month: string; revenue: number }[];
+  revenueBySource: { source: string; amount: number; percentage: number }[];
+  totalClients: number;
+  activeClients: number;
+  newClientsThisMonth: number;
+  churnedClientsThisMonth: number;
+  churnRate: number;
+  retentionRate: number;
+  avgClientLifespan: number;
+  revenuePerClient: number;
+  ltv: number;
+  avgCompliance: number;
+  complianceChange: number;
+  sessionsCompleted: number;
+  directivesTriggered: number;
+  avgDirectiveEffectiveness: number;
+  complianceByGroup: { groupName: string; compliance: number }[];
+  retentionCohort: { month: string; retained: number }[];
+  topClientsByLtv: { client: Client; ltv: number }[];
+  atRiskClients: { client: Client; compliance: number }[];
+}
+```
+
+### Trigger & Action Types
+
+#### TriggerEvent (14 types)
+```typescript
+type TriggerEvent = 
+  | 'workout_completed' | 'workout_missed' | 'meal_logged'
+  | 'day_end' | 'week_end' | 'streak_milestone'
+  | 'weight_logged' | 'goal_achieved' | 'check_in_time'
+  | 'rest_day' | 'before_workout' | 'app_opened'
+  | 'inactive_period';
+```
+
+#### DataPoint (18 types)
+```typescript
+type DataPoint =
+  | 'workout_summary' | 'workout_volume' | 'workout_duration'
+  | 'exercises_completed' | 'intensity_rating' | 'calories_burned'
+  | 'protein_intake' | 'calorie_intake' | 'water_intake'
+  | 'sleep_hours' | 'sleep_quality' | 'weight'
+  | 'body_measurements' | 'streak_count' | 'weekly_compliance'
+  | 'mood_rating' | 'energy_level' | 'progress_photos'
+  | 'personal_records';
 ```
 
 ---
