@@ -29,10 +29,12 @@ export interface Client {
   role: 'client' | 'premium' | 'enterprise';
   progress: number;
   lastLogin: string;
+  lastActive: string;
   joinedAt: Date;
   goals?: string[];
   metrics?: ClientMetrics;
   orgId?: string;
+  groups?: string[];
 }
 
 export interface ClientMetrics {

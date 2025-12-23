@@ -10,9 +10,11 @@ export const mockClients: Client[] = [
     role: 'premium',
     progress: 85,
     lastLogin: '2h ago',
+    lastActive: '2h ago',
     joinedAt: new Date('2024-01-14'),
     goals: ['Lose 10 lbs', 'Build muscle', 'Improve sleep'],
     orgId: undefined,
+    groups: ['12-Week Shred - Cohort 1'],
     metrics: {
       tdee: 2100,
       bmr: 1650,
@@ -32,9 +34,11 @@ export const mockClients: Client[] = [
     role: 'client',
     progress: 72,
     lastLogin: 'Yesterday',
+    lastActive: 'Yesterday',
     joinedAt: new Date('2024-02-20'),
     goals: ['Gain muscle mass', 'Increase strength'],
     orgId: 'org-1',
+    groups: ['Morning Warriors', '12-Week Shred - Cohort 1'],
     metrics: {
       tdee: 2800,
       bmr: 1950,
@@ -53,9 +57,11 @@ export const mockClients: Client[] = [
     role: 'client',
     progress: 23,
     lastLogin: '7d ago',
+    lastActive: '7d ago',
     joinedAt: new Date('2024-03-01'),
     goals: ['Get back on track', 'Establish routine'],
     orgId: 'org-1',
+    groups: [],
   },
   {
     id: 'client-4',
@@ -65,9 +71,11 @@ export const mockClients: Client[] = [
     role: 'client',
     progress: 90,
     lastLogin: 'Just now',
+    lastActive: 'Just now',
     joinedAt: new Date('2024-12-15'),
     goals: ['Train for marathon', 'Optimize nutrition'],
     orgId: undefined,
+    groups: ['Marathon Prep 2025'],
     metrics: {
       tdee: 3200,
       bmr: 2100,
@@ -86,9 +94,11 @@ export const mockClients: Client[] = [
     role: 'enterprise',
     progress: 95,
     lastLogin: '4h ago',
+    lastActive: '4h ago',
     joinedAt: new Date('2023-11-01'),
     goals: ['Maintain fitness', 'Work-life balance'],
     orgId: 'org-1',
+    groups: ['Morning Warriors', 'Corporate Wellness'],
     metrics: {
       tdee: 1900,
       bmr: 1450,
@@ -108,8 +118,10 @@ export const mockClients: Client[] = [
     role: 'client',
     progress: 15,
     lastLogin: '5d ago',
+    lastActive: '5d ago',
     joinedAt: new Date('2024-01-20'),
     orgId: 'org-1',
+    groups: [],
   }
 ];
 
