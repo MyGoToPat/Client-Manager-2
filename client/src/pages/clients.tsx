@@ -490,7 +490,7 @@ const ClientsPage = () => {
                 {filteredClients.length === 0 && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">No clients found</p>
-                    <Button variant="link" onClick={() => { setSearch(''); setStatusFilter('all'); setGroupFilter('all'); }}>
+                    <Button variant="ghost" onClick={() => { setSearch(''); setStatusFilter('all'); setGroupFilter('all'); }}>
                       Clear filters
                     </Button>
                   </div>
@@ -507,10 +507,7 @@ const ClientsPage = () => {
         )}
       </main>
 
-      <ClientDrawer 
-        clientId={selectedClientId}
-        onClose={() => setSelectedClientId(null)}
-      />
+      <ClientDrawer />
     </div>
   );
 };
