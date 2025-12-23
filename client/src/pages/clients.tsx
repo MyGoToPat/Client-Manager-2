@@ -139,18 +139,25 @@ const ClientsPage = () => {
     );
   };
 
+  const escapeCSVValue = (value: string): string => {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+  };
+
   const handleExport = () => {
     const headers = ['Name', 'Email', 'Status', 'Role', 'Progress', 'Last Active', 'Groups'];
     const rows = filteredClients.map(c => [
-      c.name,
-      c.email,
-      c.status,
-      c.role,
+      escapeCSVValue(c.name),
+      escapeCSVValue(c.email),
+      escapeCSVValue(c.status),
+      escapeCSVValue(c.role),
       `${c.progress}%`,
-      c.lastActive || c.lastLogin,
-      (c.groups || []).join('; ')
+      escapeCSVValue(c.lastActive || c.lastLogin),
+      escapeCSVValue((c.groups || []).join('; '))
     ]);
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const csv = [headers.map(escapeCSVValue), ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -367,8 +374,8 @@ const ClientsPage = () => {
                             <SortIcon field="status" />
                           </div>
                         </TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Groups</TableHead>
+                        <TableHead data-testid="header-role">Role</TableHead>
+                        <TableHead data-testid="header-groups">Groups</TableHead>
                         <TableHead 
                           className="cursor-pointer hover-elevate"
                           onClick={() => handleSort('progress')}
@@ -416,7 +423,7 @@ const ClientsPage = () => {
                               </Avatar>
                               <div>
                                 <p className="font-medium" data-testid={`text-client-name-${client.id}`}>{client.name}</p>
-                                <p className="text-sm text-muted-foreground">{client.email}</p>
+                                <p className="text-sm text-muted-foreground" data-testid={`text-client-email-${client.id}`}>{client.email}</p>
                               </div>
                             </div>
                           </TableCell>
@@ -469,13 +476,23 @@ const ClientsPage = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewClient(client.id)}>
+                                <DropdownMenuItem 
+                                  onClick={() => handleViewClient(client.id)}
+                                  data-testid={`menu-view-profile-${client.id}`}
+                                >
                                   View Profile
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>Send Message</DropdownMenuItem>
-                                <DropdownMenuItem>Add to Group</DropdownMenuItem>
+                                <DropdownMenuItem data-testid={`menu-send-message-${client.id}`}>
+                                  Send Message
+                                </DropdownMenuItem>
+                                <DropdownMenuItem data-testid={`menu-add-to-group-${client.id}`}>
+                                  Add to Group
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
+                                <DropdownMenuItem 
+                                  className="text-destructive"
+                                  data-testid={`menu-remove-client-${client.id}`}
+                                >
                                   Remove Client
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
