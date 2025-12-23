@@ -17,21 +17,10 @@ export default function Login() {
   const [password, setPassword] = useState('admin123');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      toast({
-        title: 'Missing fields',
-        description: 'Please enter your email and password.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handleLogin = async (loginEmail: string, loginPassword: string) => {
     setIsLoading(true);
     try {
-      const user = await authService.login(email, password);
+      const user = await authService.login(loginEmail, loginPassword);
       setUser(user);
       
       const profile = await authService.getMentorProfile(user.id);
@@ -53,6 +42,25 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: 'Missing fields',
+        description: 'Please enter your email and password.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    await handleLogin(email, password);
+  };
+
+  const handleGetStarted = () => {
+    handleLogin('info@hipat.app', 'admin123');
   };
 
   return (
@@ -110,6 +118,26 @@ export default function Login() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </form>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              disabled={isLoading}
+              onClick={handleGetStarted}
+              data-testid="button-get-started"
+            >
+              Get Started (Demo)
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
