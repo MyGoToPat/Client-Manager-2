@@ -1,7 +1,9 @@
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Bot, Users, Zap, Clock, ChevronRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { authService } from '@/services';
+import { useStore } from '@/store/useStore';
 
 const features = [
   {
@@ -33,6 +35,23 @@ const steps = [
 ];
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
+  const { setUser, setMentorProfile } = useStore();
+
+  const handleGetStarted = async () => {
+    try {
+      const user = await authService.login('info@hipat.app', 'admin123');
+      setUser(user);
+      const profile = await authService.getMentorProfile(user.id);
+      if (profile) {
+        setMentorProfile(profile);
+      }
+      setLocation('/dashboard');
+    } catch (error) {
+      console.error('Auto-login failed:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
@@ -43,14 +62,7 @@ export default function Landing() {
             </div>
             <span className="text-xl font-bold">HiPat</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost" data-testid="button-login">Log in</Button>
-            </Link>
-            <Link href="/signup">
-              <Button data-testid="button-signup">Get Started</Button>
-            </Link>
-          </div>
+          <Button onClick={handleGetStarted} data-testid="button-get-started">Get Started</Button>
         </div>
       </header>
 
@@ -65,12 +77,10 @@ export default function Landing() {
               Pat handles check-ins, tracks progress, and keeps clients engaged between sessions.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Link href="/signup">
-                <Button size="lg" className="gap-2" data-testid="button-hero-cta">
-                  Start Free Trial
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </Link>
+              <Button size="lg" className="gap-2" onClick={handleGetStarted} data-testid="button-hero-cta">
+                Start Free Trial
+                <ChevronRight className="w-4 h-4" />
+              </Button>
               <Button size="lg" variant="outline" data-testid="button-watch-demo">
                 Watch Demo
               </Button>
@@ -134,11 +144,9 @@ export default function Landing() {
                 <span>Cancel anytime</span>
               </div>
             </div>
-            <Link href="/signup">
-              <Button size="lg" data-testid="button-final-cta">
-                Start Your Free Trial
-              </Button>
-            </Link>
+            <Button size="lg" onClick={handleGetStarted} data-testid="button-final-cta">
+              Start Your Free Trial
+            </Button>
           </div>
         </section>
       </main>
