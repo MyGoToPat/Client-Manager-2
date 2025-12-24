@@ -17,6 +17,9 @@ import { useStore } from '../store/useStore';
 const menuItems = [
   { title: 'Dashboard', url: '/', icon: 'dashboard' },
   { title: 'Clients', url: '/clients', icon: 'group' },
+  { title: 'Directives', url: '/directives', icon: 'assignment' },
+  { title: 'Groups', url: '/groups', icon: 'groups' },
+  { title: 'Calendar', url: '/calendar', icon: 'calendar_month' },
   { title: 'Programs', url: '/program-templates', icon: 'menu_book' },
   { title: 'Analytics', url: '/analytics', icon: 'pie_chart' },
   { title: 'Settings', url: '/settings', icon: 'settings' },
