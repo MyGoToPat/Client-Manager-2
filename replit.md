@@ -6,11 +6,20 @@ A web-based Client Management Tool for personal trainers and mentors to manage c
 ## Tech Stack
 - **Frontend:** React + TypeScript + Vite
 - **Styling:** Tailwind CSS + shadcn/ui components
+- **Icons:** Material Symbols Outlined (via Google Fonts CDN)
+- **Fonts:** Inter (primary), Space Grotesk (display), Noto Sans (body), Manrope (alternative)
 - **State Management:** Zustand
 - **Data Layer:** Abstract service layer with mock implementation (backend-agnostic)
 - **Auth:** Mock auth context with localStorage persistence
 - **Charts:** Recharts
 - **Routing:** Wouter
+
+## Design System
+- **Primary Color:** #135bec (HSL: 218 88% 50%)
+- **Dark Mode First:** Backgrounds #101622/#111722, surfaces #1e293b/#232f48
+- **HSL Color System:** All colors defined using HSL format for consistency
+- **Icon Pattern:** `<span className="material-symbols-outlined text-base">icon_name</span>`
+- See `design_guidelines.md` for complete design documentation
 
 ## Architecture
 
