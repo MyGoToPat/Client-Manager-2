@@ -1,20 +1,5 @@
 import { Link, useLocation } from 'wouter';
 import {
-  LayoutDashboard,
-  Users,
-  Zap,
-  Calendar,
-  BarChart3,
-  Settings,
-  Moon,
-  Sun,
-  LogOut,
-  Bot,
-  Building,
-  UsersRound,
-  BookOpen
-} from 'lucide-react';
-import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -31,18 +16,18 @@ import { Button } from '@/components/ui/button';
 import { useStore } from '../store/useStore';
 
 const menuItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Clients', url: '/clients', icon: Users },
-  { title: 'Mentor Directives', url: '/directives', icon: Zap },
-  { title: 'Groups', url: '/groups', icon: UsersRound },
-  { title: 'Program Templates', url: '/program-templates', icon: BookOpen },
-  { title: 'Calendar', url: '/calendar', icon: Calendar },
-  { title: 'Analytics', url: '/analytics', icon: BarChart3 },
-  { title: 'Settings', url: '/settings', icon: Settings },
+  { title: 'Dashboard', url: '/', icon: 'dashboard' },
+  { title: 'Clients', url: '/clients', icon: 'group' },
+  { title: 'Directives', url: '/directives', icon: 'bolt' },
+  { title: 'Groups', url: '/groups', icon: 'groups' },
+  { title: 'Templates', url: '/program-templates', icon: 'auto_stories' },
+  { title: 'Calendar', url: '/calendar', icon: 'calendar_month' },
+  { title: 'Analytics', url: '/analytics', icon: 'pie_chart' },
+  { title: 'Settings', url: '/settings', icon: 'settings' },
 ];
 
 const orgMenuItems = [
-  { title: 'Organization', url: '/org/org-1', icon: Building },
+  { title: 'Organization', url: '/org/org-1', icon: 'business' },
 ];
 
 export function AppSidebar() {
@@ -55,26 +40,26 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+    <Sidebar className="bg-sidebar border-r border-sidebar-border">
+      <SidebarHeader className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-            <Bot className="w-6 h-6" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary shadow-lg shadow-primary/20">
+            <span className="material-symbols-outlined text-white text-2xl">smart_toy</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-semibold text-sidebar-foreground">HiPat</span>
-            <span className="text-xs text-muted-foreground">Client Management</span>
+            <span className="text-base font-bold text-sidebar-foreground">Mentor AI</span>
+            <span className="text-xs text-muted-foreground">Pro Plan</span>
           </div>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-3 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground px-2">
-            Navigation
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 mb-2">
+            Main
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {menuItems.map((item) => {
                 const isActive = location === item.url || 
                   (item.url !== '/' && location.startsWith(item.url));
@@ -83,11 +68,17 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       asChild 
                       data-active={isActive}
-                      className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                        isActive 
+                          ? 'bg-primary/10 text-primary dark:bg-sidebar-accent dark:text-white border-l-2 border-primary' 
+                          : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      }`}
                     >
                       <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase().replace(' ', '-')}`}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
+                        <span className={`material-symbols-outlined text-xl ${isActive ? 'filled' : ''}`}>
+                          {item.icon}
+                        </span>
+                        <span className="text-sm font-medium">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -97,12 +88,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wide text-muted-foreground px-2">
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 mb-2">
             Organization
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {orgMenuItems.map((item) => {
                 const isActive = location === item.url || 
                   (item.url !== '/' && location.startsWith(item.url));
@@ -111,11 +102,17 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       asChild 
                       data-active={isActive}
-                      className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                        isActive 
+                          ? 'bg-primary/10 text-primary dark:bg-sidebar-accent dark:text-white border-l-2 border-primary' 
+                          : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      }`}
                     >
                       <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase()}`}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
+                        <span className={`material-symbols-outlined text-xl ${isActive ? 'filled' : ''}`}>
+                          {item.icon}
+                        </span>
+                        <span className="text-sm font-medium">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -127,18 +124,18 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent mb-4">
           <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
               {mentorProfile?.displayName?.split(' ').map(n => n[0]).join('') || 'CA'}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-sm font-medium text-sidebar-foreground truncate">
+            <span className="text-sm font-bold text-sidebar-foreground truncate">
               {mentorProfile?.displayName || 'Coach Alex'}
             </span>
             <span className="text-xs text-muted-foreground truncate">
-              {mentorProfile?.specializations?.[0] || 'Personal Trainer'}
+              {mentorProfile?.specializations?.[0] || 'Pro Mentor'}
             </span>
           </div>
         </div>
@@ -148,19 +145,21 @@ export function AppSidebar() {
             variant="ghost"
             size="icon"
             onClick={toggleDarkMode}
-            className="flex-shrink-0"
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
             data-testid="button-theme-toggle"
           >
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <span className="material-symbols-outlined text-xl">
+              {darkMode ? 'light_mode' : 'dark_mode'}
+            </span>
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="flex-shrink-0"
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
             data-testid="button-logout"
           >
-            <LogOut className="w-4 h-4" />
+            <span className="material-symbols-outlined text-xl">logout</span>
           </Button>
         </div>
       </SidebarFooter>
