@@ -4,19 +4,10 @@ import { clientsService } from "@/services";
 import { Header } from "@/components/header";
 import { useAskPat } from "@/App";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,8 +27,117 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Client } from "@/types";
 import { ClientDrawer } from "@/components/client-drawer";
 
-type SortField = 'name' | 'status' | 'progress' | 'lastActive';
+type SortField = 'name' | 'status' | 'lastActive';
 type SortDirection = 'asc' | 'desc';
+
+type AITagType = 'at_risk' | 'high_anxiety' | 'achieving_goal' | 'consistent' | 'needs_checkin' | 'improving' | 'goal_met';
+
+interface AITag {
+  type: AITagType;
+  label: string;
+}
+
+const mockAITags: Record<string, AITag[]> = {
+  'client-1': [
+    { type: 'achieving_goal', label: 'Achieving Goal' },
+    { type: 'consistent', label: 'Consistent' },
+  ],
+  'client-2': [
+    { type: 'improving', label: 'Improving' },
+  ],
+  'client-3': [
+    { type: 'at_risk', label: 'At Risk' },
+    { type: 'needs_checkin', label: 'Needs Check-in' },
+  ],
+  'client-4': [
+    { type: 'goal_met', label: 'Goal Met' },
+    { type: 'consistent', label: 'Consistent' },
+  ],
+  'client-5': [
+    { type: 'achieving_goal', label: 'Achieving Goal' },
+  ],
+  'client-6': [
+    { type: 'high_anxiety', label: 'High Anxiety' },
+    { type: 'at_risk', label: 'At Risk' },
+  ],
+};
+
+const getAITagStyles = (type: AITagType) => {
+  switch (type) {
+    case 'at_risk':
+      return {
+        bg: 'bg-red-100 dark:bg-red-500/20',
+        text: 'text-red-700 dark:text-red-400',
+        border: 'border-red-200 dark:border-red-500/30',
+        hasPulse: true,
+      };
+    case 'high_anxiety':
+      return {
+        bg: 'bg-orange-100 dark:bg-orange-500/20',
+        text: 'text-orange-700 dark:text-orange-400',
+        border: 'border-orange-200 dark:border-orange-500/30',
+      };
+    case 'achieving_goal':
+      return {
+        bg: 'bg-green-100 dark:bg-green-500/20',
+        text: 'text-green-700 dark:text-green-400',
+        border: 'border-green-200 dark:border-green-500/30',
+        icon: 'trending_up',
+      };
+    case 'consistent':
+      return {
+        bg: 'bg-blue-100 dark:bg-blue-500/20',
+        text: 'text-blue-700 dark:text-blue-400',
+        border: 'border-blue-200 dark:border-blue-500/30',
+      };
+    case 'needs_checkin':
+      return {
+        bg: 'bg-yellow-100 dark:bg-yellow-500/20',
+        text: 'text-yellow-700 dark:text-yellow-400',
+        border: 'border-yellow-200 dark:border-yellow-500/30',
+      };
+    case 'improving':
+      return {
+        bg: 'bg-purple-100 dark:bg-purple-500/20',
+        text: 'text-purple-700 dark:text-purple-400',
+        border: 'border-purple-200 dark:border-purple-500/30',
+      };
+    case 'goal_met':
+      return {
+        bg: 'bg-emerald-100 dark:bg-emerald-500/20',
+        text: 'text-emerald-700 dark:text-emerald-400',
+        border: 'border-emerald-200 dark:border-emerald-500/30',
+        icon: 'check_circle',
+      };
+    default:
+      return {
+        bg: 'bg-slate-100 dark:bg-slate-500/20',
+        text: 'text-slate-700 dark:text-slate-400',
+        border: 'border-slate-200 dark:border-slate-500/30',
+      };
+  }
+};
+
+const AITagBadge = ({ tag }: { tag: AITag }) => {
+  const styles = getAITagStyles(tag.type);
+  
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${styles.bg} ${styles.text} ${styles.border}`}
+    >
+      {styles.hasPulse && (
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+        </span>
+      )}
+      {styles.icon && (
+        <span className="material-symbols-outlined text-sm">{styles.icon}</span>
+      )}
+      {tag.label}
+    </span>
+  );
+};
 
 const ClientsPage = () => {
   const { clients, setClients, selectedClientId, setSelectedClientId } = useStore();
@@ -45,10 +145,11 @@ const ClientsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [groupFilter, setGroupFilter] = useState<string>('all');
+  const [aiTagFilter, setAiTagFilter] = useState<string>('all');
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [showInsightsBanner, setShowInsightsBanner] = useState(true);
 
   useEffect(() => {
     loadClients();
@@ -65,15 +166,20 @@ const ClientsPage = () => {
     }
   };
 
-  const allGroups = Array.from(new Set(clients.flatMap(c => c.groups || [])));
-
   let filteredClients = clients.filter(client => {
     const matchesSearch = 
       client.name.toLowerCase().includes(search.toLowerCase()) ||
-      client.email.toLowerCase().includes(search.toLowerCase());
+      client.email.toLowerCase().includes(search.toLowerCase()) ||
+      client.status.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
-    const matchesGroup = groupFilter === 'all' || (client.groups && client.groups.includes(groupFilter));
-    return matchesSearch && matchesStatus && matchesGroup;
+    
+    if (aiTagFilter !== 'all') {
+      const clientTags = mockAITags[client.id] || [];
+      const hasTag = clientTags.some(t => t.type === aiTagFilter);
+      if (!hasTag) return false;
+    }
+    
+    return matchesSearch && matchesStatus;
   });
 
   filteredClients = [...filteredClients].sort((a, b) => {
@@ -86,10 +192,6 @@ const ClientsPage = () => {
       case 'status':
         aVal = a.status;
         bVal = b.status;
-        break;
-      case 'progress':
-        aVal = a.progress;
-        bVal = b.progress;
         break;
       case 'lastActive':
         aVal = a.lastActive || a.lastLogin || '';
@@ -128,34 +230,6 @@ const ClientsPage = () => {
     );
   };
 
-  const escapeCSVValue = (value: string): string => {
-    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-      return `"${value.replace(/"/g, '""')}"`;
-    }
-    return value;
-  };
-
-  const handleExport = () => {
-    const headers = ['Name', 'Email', 'Status', 'Role', 'Progress', 'Last Active', 'Groups'];
-    const rows = filteredClients.map(c => [
-      escapeCSVValue(c.name),
-      escapeCSVValue(c.email),
-      escapeCSVValue(c.status),
-      escapeCSVValue(c.role),
-      `${c.progress}%`,
-      escapeCSVValue(c.lastActive || c.lastLogin),
-      escapeCSVValue((c.groups || []).join('; '))
-    ]);
-    const csv = [headers.map(escapeCSVValue), ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'clients.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleViewClient = (clientId: string) => {
     setSelectedClientId(clientId);
   };
@@ -169,350 +243,361 @@ const ClientsPage = () => {
     );
   };
 
-  const getStatusBadgeVariant = (status: Client['status']) => {
+  const getStatusBadgeClasses = (status: Client['status']) => {
     switch (status) {
-      case 'active': return 'default';
-      case 'trial': return 'secondary';
-      case 'inactive': return 'outline';
-      case 'suspended': return 'destructive';
-      default: return 'outline';
+      case 'active': 
+        return 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30';
+      case 'trial': 
+        return 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/30';
+      case 'inactive': 
+        return 'bg-slate-100 dark:bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-500/30';
+      case 'suspended': 
+        return 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30';
+      case 'pending':
+        return 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/30';
+      default: 
+        return 'bg-slate-100 dark:bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-500/30';
     }
   };
-
-  const getRoleBadgeVariant = (role: Client['role']) => {
-    switch (role) {
-      case 'premium': return 'default';
-      case 'enterprise': return 'secondary';
-      default: return 'outline';
-    }
-  };
-
-  const activeCount = clients.filter(c => c.status === 'active').length;
-  const trialCount = clients.filter(c => c.status === 'trial').length;
-  const inactiveCount = clients.filter(c => c.status === 'inactive').length;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header 
-        title="Clients" 
-        showInvite 
+        title="Client Management" 
+        showInvite={false}
         onAskPat={openAskPat}
       />
       
-      <main className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        {isLoading ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Skeleton className="h-20" />
-              <Skeleton className="h-20" />
-              <Skeleton className="h-20" />
-              <Skeleton className="h-20" />
+      <main className="flex-1 overflow-auto">
+        <div className="container mx-auto max-w-[1200px] p-4 lg:p-8 flex flex-col gap-6">
+          {isLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-12" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-16" />
+              <Skeleton className="h-96" />
             </div>
-            <Skeleton className="h-12" />
-            <Skeleton className="h-96" />
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold" data-testid="text-clients-title">Clients</h1>
-                <p className="text-muted-foreground">
-                  Manage and monitor all your clients
-                </p>
-              </div>
-              <Button data-testid="button-invite-client">
-                <span className="material-symbols-outlined text-base mr-2">person_add</span>
-                Invite Client
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-sm text-muted-foreground">Total Clients</p>
-                  <p className="text-2xl font-bold" data-testid="text-total-clients">{clients.length}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-sm text-muted-foreground">Active</p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400" data-testid="text-active-clients">
-                    {activeCount}
+          ) : (
+            <>
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight" data-testid="text-clients-title">
+                    Client Management
+                  </h1>
+                  <p className="text-slate-500 dark:text-[#92a4c9] text-base">
+                    Manage your roster and view AI-driven insights from Pat.
                   </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-sm text-muted-foreground">Trial</p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400" data-testid="text-trial-clients">
-                    {trialCount}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-sm text-muted-foreground">Inactive</p>
-                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400" data-testid="text-inactive-clients">
-                    {inactiveCount}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <span className="material-symbols-outlined text-base text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">search</span>
-                <Input
-                  placeholder="Search clients by name or email..."
-                  className="pl-10"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  data-testid="input-search-clients"
-                />
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]" data-testid="select-status-filter">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="trial">Trial</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={groupFilter} onValueChange={setGroupFilter}>
-                  <SelectTrigger className="w-[160px]" data-testid="select-group-filter">
-                    <SelectValue placeholder="Group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Groups</SelectItem>
-                    {allGroups.map(group => (
-                      <SelectItem key={group} value={group}>{group}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" onClick={handleExport} data-testid="button-export-clients">
-                  <span className="material-symbols-outlined text-base mr-2">download</span>
-                  Export
+                </div>
+                <Button className="shadow-lg shadow-primary/20" data-testid="button-add-client">
+                  <span className="material-symbols-outlined text-[20px] mr-2">add</span>
+                  Add New Client
                 </Button>
               </div>
-            </div>
 
-            {selectedClients.length > 0 && (
-              <div className="flex items-center gap-4 p-3 bg-muted rounded-lg flex-wrap">
-                <span className="text-sm font-medium" data-testid="text-selected-count">
-                  {selectedClients.length} selected
-                </span>
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" data-testid="button-message-all">
-                    <span className="material-symbols-outlined text-base mr-2">chat</span>
-                    Message All
-                  </Button>
-                  <Button variant="outline" size="sm" data-testid="button-add-to-group">
-                    <span className="material-symbols-outlined text-base mr-2">group</span>
-                    Add to Group
-                  </Button>
-                  <Button variant="outline" size="sm" data-testid="button-send-email">
-                    <span className="material-symbols-outlined text-base mr-2">mail</span>
-                    Send Email
-                  </Button>
+              {showInsightsBanner && (
+                <div className="rounded-xl border border-blue-200 dark:border-[#324467] bg-blue-50/50 dark:bg-[#1e2229] p-4 md:p-5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none"></div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-primary/10 p-2.5 rounded-full hidden sm:block">
+                        <span className="material-symbols-outlined text-primary">auto_awesome</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-slate-900 dark:text-white font-bold text-base flex items-center gap-2">
+                          <span className="sm:hidden material-symbols-outlined text-primary text-lg">auto_awesome</span>
+                          Pat's AI Insights
+                        </h3>
+                        <p className="text-slate-500 dark:text-[#92a4c9] text-sm max-w-2xl">
+                          AI tags are updated daily based on recent session transcripts and chat logs. Hover over tags for detailed sentiment analysis.
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowInsightsBanner(false)}
+                      className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white transition-colors text-sm font-medium flex items-center gap-1 shrink-0"
+                      data-testid="button-dismiss-banner"
+                    >
+                      <span>Dismiss</span>
+                      <span className="material-symbols-outlined text-lg">close</span>
+                    </button>
+                  </div>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setSelectedClients([])}
-                  className="ml-auto"
-                  data-testid="button-clear-selection"
-                >
-                  Clear Selection
-                </Button>
+              )}
+
+              <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-white dark:bg-[#1e2229] p-2 rounded-xl shadow-sm border border-slate-200 dark:border-transparent">
+                <div className="flex-1 max-w-lg">
+                  <label className="relative flex w-full items-center">
+                    <span className="absolute left-4 text-slate-400">
+                      <span className="material-symbols-outlined">search</span>
+                    </span>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-50 dark:bg-[#111722] border-none rounded-lg py-2.5 pl-12 pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/50 focus:outline-none"
+                      placeholder="Search by name, email, or status..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      data-testid="input-search-clients"
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button 
+                        className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-[#111722] rounded-lg border border-slate-200 dark:border-[#324467] hover:bg-slate-100 dark:hover:bg-[#232f48] transition-colors whitespace-nowrap"
+                        data-testid="button-status-filter"
+                      >
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                          Status: {statusFilter === 'all' ? 'All' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                        </span>
+                        <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => setStatusFilter('all')}>All Status</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('active')}>Active</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('inactive')}>Inactive</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('trial')}>Trial</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('suspended')}>Suspended</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button 
+                        className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-[#111722] rounded-lg border border-slate-200 dark:border-[#324467] hover:bg-slate-100 dark:hover:bg-[#232f48] transition-colors whitespace-nowrap"
+                        data-testid="button-ai-tags-filter"
+                      >
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                          AI Tags: {aiTagFilter === 'all' ? 'All Risks' : aiTagFilter.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                        <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => setAiTagFilter('all')}>All Risks</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setAiTagFilter('at_risk')}>At Risk</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setAiTagFilter('high_anxiety')}>High Anxiety</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setAiTagFilter('needs_checkin')}>Needs Check-in</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setAiTagFilter('achieving_goal')}>Achieving Goal</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setAiTagFilter('consistent')}>Consistent</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setAiTagFilter('improving')}>Improving</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setAiTagFilter('goal_met')}>Goal Met</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <button 
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-[#111722] rounded-lg border border-slate-200 dark:border-[#324467] hover:bg-slate-100 dark:hover:bg-[#232f48] transition-colors whitespace-nowrap"
+                    data-testid="button-more-filters"
+                  >
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">More Filters</span>
+                    <span className="material-symbols-outlined text-slate-400 text-lg">tune</span>
+                  </button>
+                </div>
               </div>
-            )}
 
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[800px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
-                            onCheckedChange={toggleSelectAll}
-                            data-testid="checkbox-select-all"
-                          />
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover-elevate"
-                          onClick={() => handleSort('name')}
-                          data-testid="header-sort-name"
-                        >
-                          <div className="flex items-center">
-                            Client
-                            <SortIcon field="name" />
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover-elevate"
-                          onClick={() => handleSort('status')}
-                          data-testid="header-sort-status"
-                        >
-                          <div className="flex items-center">
-                            Status
-                            <SortIcon field="status" />
-                          </div>
-                        </TableHead>
-                        <TableHead data-testid="header-role">Role</TableHead>
-                        <TableHead data-testid="header-groups">Groups</TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover-elevate"
-                          onClick={() => handleSort('progress')}
-                          data-testid="header-sort-progress"
-                        >
-                          <div className="flex items-center">
-                            Progress
-                            <SortIcon field="progress" />
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer hover-elevate"
-                          onClick={() => handleSort('lastActive')}
-                          data-testid="header-sort-lastActive"
-                        >
-                          <div className="flex items-center">
-                            Last Active
-                            <SortIcon field="lastActive" />
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-12"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredClients.map((client) => (
-                        <TableRow 
-                          key={client.id}
-                          className="cursor-pointer hover-elevate"
-                          onClick={() => handleViewClient(client.id)}
-                          data-testid={`row-client-${client.id}`}
-                        >
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <Checkbox
-                              checked={selectedClients.includes(client.id)}
-                              onCheckedChange={() => toggleSelect(client.id)}
-                              data-testid={`checkbox-client-${client.id}`}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarFallback>
-                                  {client.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium" data-testid={`text-client-name-${client.id}`}>{client.name}</p>
-                                <p className="text-sm text-muted-foreground" data-testid={`text-client-email-${client.id}`}>{client.email}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadgeVariant(client.status)} data-testid={`badge-status-${client.id}`}>
-                              {client.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getRoleBadgeVariant(client.role)} data-testid={`badge-role-${client.id}`}>
-                              {client.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1 flex-wrap">
-                              {client.groups && client.groups.length > 0 ? (
-                                <>
-                                  {client.groups.slice(0, 2).map((group, i) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
-                                      {group}
-                                    </Badge>
-                                  ))}
-                                  {client.groups.length > 2 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      +{client.groups.length - 2}
-                                    </Badge>
-                                  )}
-                                </>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress value={client.progress} className="w-16 h-2" />
-                              <span className="text-sm text-muted-foreground w-10" data-testid={`text-progress-${client.id}`}>
-                                {client.progress}%
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground" data-testid={`text-lastActive-${client.id}`}>
-                            {client.lastActive || client.lastLogin}
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" data-testid={`button-actions-${client.id}`}>
-                                  <span className="material-symbols-outlined text-base">more_horiz</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
-                                  onClick={() => handleViewClient(client.id)}
-                                  data-testid={`menu-view-profile-${client.id}`}
-                                >
-                                  View Profile
-                                </DropdownMenuItem>
-                                <DropdownMenuItem data-testid={`menu-send-message-${client.id}`}>
-                                  Send Message
-                                </DropdownMenuItem>
-                                <DropdownMenuItem data-testid={`menu-add-to-group-${client.id}`}>
-                                  Add to Group
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="text-destructive"
-                                  data-testid={`menu-remove-client-${client.id}`}
-                                >
-                                  Remove Client
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {filteredClients.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">No clients found</p>
-                    <Button variant="ghost" onClick={() => { setSearch(''); setStatusFilter('all'); setGroupFilter('all'); }}>
-                      Clear filters
+              {selectedClients.length > 0 && (
+                <div className="flex items-center gap-4 p-3 bg-muted rounded-lg flex-wrap">
+                  <span className="text-sm font-medium" data-testid="text-selected-count">
+                    {selectedClients.length} selected
+                  </span>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" data-testid="button-message-all">
+                      <span className="material-symbols-outlined text-base mr-2">chat</span>
+                      Message All
+                    </Button>
+                    <Button variant="outline" size="sm" data-testid="button-add-to-group">
+                      <span className="material-symbols-outlined text-base mr-2">group</span>
+                      Add to Group
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedClients([])}
+                    className="ml-auto"
+                    data-testid="button-clear-selection"
+                  >
+                    Clear Selection
+                  </Button>
+                </div>
+              )}
 
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground" data-testid="text-showing-count">
-                Showing {filteredClients.length} of {clients.length} clients
-              </p>
-            </div>
-          </>
-        )}
+              <Card className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-[700px]">
+                      <TableHeader>
+                        <TableRow className="bg-slate-50 dark:bg-[#111722]">
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
+                              onCheckedChange={toggleSelectAll}
+                              data-testid="checkbox-select-all"
+                            />
+                          </TableHead>
+                          <TableHead 
+                            className="cursor-pointer hover-elevate font-semibold text-slate-700 dark:text-slate-300"
+                            onClick={() => handleSort('name')}
+                            data-testid="header-sort-name"
+                          >
+                            <div className="flex items-center">
+                              Client
+                              <SortIcon field="name" />
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="cursor-pointer hover-elevate font-semibold text-slate-700 dark:text-slate-300"
+                            onClick={() => handleSort('status')}
+                            data-testid="header-sort-status"
+                          >
+                            <div className="flex items-center">
+                              Status
+                              <SortIcon field="status" />
+                            </div>
+                          </TableHead>
+                          <TableHead className="font-semibold text-slate-700 dark:text-slate-300" data-testid="header-ai-tags">
+                            Pat's AI Tags
+                          </TableHead>
+                          <TableHead 
+                            className="cursor-pointer hover-elevate font-semibold text-slate-700 dark:text-slate-300"
+                            onClick={() => handleSort('lastActive')}
+                            data-testid="header-sort-lastActive"
+                          >
+                            <div className="flex items-center">
+                              Last Check-in
+                              <SortIcon field="lastActive" />
+                            </div>
+                          </TableHead>
+                          <TableHead className="w-12"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredClients.map((client) => (
+                          <TableRow 
+                            key={client.id}
+                            className="cursor-pointer hover:bg-slate-50 dark:hover:bg-[#232f48] transition-colors"
+                            onClick={() => handleViewClient(client.id)}
+                            data-testid={`row-client-${client.id}`}
+                          >
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={selectedClients.includes(client.id)}
+                                onCheckedChange={() => toggleSelect(client.id)}
+                                data-testid={`checkbox-client-${client.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                    {client.name.split(' ').map(n => n[0]).join('')}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-semibold text-slate-900 dark:text-white" data-testid={`text-client-name-${client.id}`}>
+                                    {client.name}
+                                  </p>
+                                  <p className="text-sm text-slate-500 dark:text-[#92a4c9]" data-testid={`text-client-email-${client.id}`}>
+                                    {client.email}
+                                  </p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span 
+                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(client.status)}`}
+                                data-testid={`badge-status-${client.id}`}
+                              >
+                                {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1.5 flex-wrap">
+                                {mockAITags[client.id]?.map((tag, i) => (
+                                  <AITagBadge key={i} tag={tag} />
+                                )) || (
+                                  <span className="text-slate-400 dark:text-slate-500 text-sm">No tags</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-slate-600 dark:text-[#92a4c9]" data-testid={`text-lastActive-${client.id}`}>
+                              {client.lastActive || client.lastLogin}
+                            </TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" data-testid={`button-actions-${client.id}`}>
+                                    <span className="material-symbols-outlined text-base">more_horiz</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem 
+                                    onClick={() => handleViewClient(client.id)}
+                                    data-testid={`menu-view-profile-${client.id}`}
+                                  >
+                                    <span className="material-symbols-outlined text-base mr-2">person</span>
+                                    View Profile
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem data-testid={`menu-send-message-${client.id}`}>
+                                    <span className="material-symbols-outlined text-base mr-2">chat</span>
+                                    Send Message
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem data-testid={`menu-schedule-${client.id}`}>
+                                    <span className="material-symbols-outlined text-base mr-2">calendar_month</span>
+                                    Schedule Check-in
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="text-destructive"
+                                    data-testid={`menu-remove-client-${client.id}`}
+                                  >
+                                    <span className="material-symbols-outlined text-base mr-2">person_remove</span>
+                                    Remove Client
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {filteredClients.length === 0 && (
+                    <div className="text-center py-12">
+                      <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-3 block">search_off</span>
+                      <p className="text-slate-500 dark:text-[#92a4c9] mb-2">No clients found</p>
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => { setSearch(''); setStatusFilter('all'); setAiTagFilter('all'); }}
+                        data-testid="button-clear-filters"
+                      >
+                        Clear filters
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-[#324467]">
+                    <p className="text-sm text-slate-500 dark:text-[#92a4c9]" data-testid="text-showing-count">
+                      Showing 1-{filteredClients.length} of {clients.length} clients
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled data-testid="button-previous">
+                        Previous
+                      </Button>
+                      <Button size="sm" data-testid="button-next">
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
       </main>
 
       <ClientDrawer />
