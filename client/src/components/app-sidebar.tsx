@@ -4,7 +4,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -18,16 +17,9 @@ import { useStore } from '../store/useStore';
 const menuItems = [
   { title: 'Dashboard', url: '/', icon: 'dashboard' },
   { title: 'Clients', url: '/clients', icon: 'group' },
-  { title: 'Directives', url: '/directives', icon: 'bolt' },
-  { title: 'Groups', url: '/groups', icon: 'groups' },
-  { title: 'Templates', url: '/program-templates', icon: 'auto_stories' },
-  { title: 'Calendar', url: '/calendar', icon: 'calendar_month' },
+  { title: 'Programs', url: '/program-templates', icon: 'menu_book' },
   { title: 'Analytics', url: '/analytics', icon: 'pie_chart' },
   { title: 'Settings', url: '/settings', icon: 'settings' },
-];
-
-const orgMenuItems = [
-  { title: 'Organization', url: '/org/org-1', icon: 'business' },
 ];
 
 export function AppSidebar() {
@@ -40,26 +32,34 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="bg-sidebar border-r border-sidebar-border">
-      <SidebarHeader className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary shadow-lg shadow-primary/20">
-            <span className="material-symbols-outlined text-white text-2xl">smart_toy</span>
+    <Sidebar className="bg-white dark:bg-[#111722] border-r border-slate-200 dark:border-[#324467]">
+      <SidebarHeader className="p-6">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-primary/20 p-2 rounded-lg">
+            <span className="material-symbols-outlined text-primary">psychology</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-base font-bold text-sidebar-foreground">Mentor AI</span>
-            <span className="text-xs text-muted-foreground">Pro Plan</span>
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">MentorAI</span>
+        </div>
+        
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#232f48] mb-6" data-testid="profile-card">
+          <Avatar className="w-10 h-10">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
+              {mentorProfile?.displayName?.split(' ').map(n => n[0]).join('') || 'AP'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col overflow-hidden">
+            <h3 className="text-sm font-bold truncate dark:text-white">
+              {mentorProfile?.displayName || 'Dr. Alex P.'}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-[#92a4c9]">Pro Mentor</p>
           </div>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-6">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 mb-2">
-            Main
-          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="flex flex-col gap-2">
               {menuItems.map((item) => {
                 const isActive = location === item.url || 
                   (item.url !== '/' && location.startsWith(item.url));
@@ -70,49 +70,15 @@ export function AppSidebar() {
                       data-active={isActive}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                         isActive 
-                          ? 'bg-primary/10 text-primary dark:bg-sidebar-accent dark:text-white border-l-2 border-primary' 
-                          : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                          ? 'bg-primary/10 text-primary dark:bg-[#232f48] dark:text-white' 
+                          : 'text-slate-600 dark:text-[#92a4c9] hover:bg-slate-100 dark:hover:bg-[#232f48]'
                       }`}
                     >
                       <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase().replace(' ', '-')}`}>
-                        <span className={`material-symbols-outlined text-xl ${isActive ? 'filled' : ''}`}>
+                        <span className={`material-symbols-outlined ${isActive ? 'fill-1' : ''}`}>
                           {item.icon}
                         </span>
-                        <span className="text-sm font-medium">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="mt-6">
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-3 mb-2">
-            Organization
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {orgMenuItems.map((item) => {
-                const isActive = location === item.url || 
-                  (item.url !== '/' && location.startsWith(item.url));
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      data-active={isActive}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                        isActive 
-                          ? 'bg-primary/10 text-primary dark:bg-sidebar-accent dark:text-white border-l-2 border-primary' 
-                          : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                      }`}
-                    >
-                      <Link href={item.url} data-testid={`link-nav-${item.title.toLowerCase()}`}>
-                        <span className={`material-symbols-outlined text-xl ${isActive ? 'filled' : ''}`}>
-                          {item.icon}
-                        </span>
-                        <span className="text-sm font-medium">{item.title}</span>
+                        <span className="font-medium text-sm">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -123,43 +89,27 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent mb-4">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
-              {mentorProfile?.displayName?.split(' ').map(n => n[0]).join('') || 'CA'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-sm font-bold text-sidebar-foreground truncate">
-              {mentorProfile?.displayName || 'Coach Alex'}
-            </span>
-            <span className="text-xs text-muted-foreground truncate">
-              {mentorProfile?.specializations?.[0] || 'Pro Mentor'}
-            </span>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
+      <SidebarFooter className="mt-auto p-6 border-t border-slate-200 dark:border-[#324467]">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={handleLogout} 
+            className="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-[#92a4c9] hover:text-red-500 transition-colors"
+            data-testid="button-logout"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            <span className="text-sm font-medium">Log Out</span>
+          </button>
+          
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleDarkMode}
-            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+            className="text-slate-400 dark:text-[#92a4c9] hover:text-slate-600 dark:hover:text-white"
             data-testid="button-theme-toggle"
           >
-            <span className="material-symbols-outlined text-xl">
+            <span className="material-symbols-outlined text-lg">
               {darkMode ? 'light_mode' : 'dark_mode'}
             </span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLogout}
-            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
-            data-testid="button-logout"
-          >
-            <span className="material-symbols-outlined text-xl">logout</span>
           </Button>
         </div>
       </SidebarFooter>

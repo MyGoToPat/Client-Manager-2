@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Analytics Dashboard with Pat's Forecasting</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+              "surface-dark": "#1e293b",
+              "surface-highlight": "#253348"
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled-icon { font-variation-settings: 'FILL' 1; }
+        
+        /* Custom scrollbar for better look in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111722; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- SideNavBar -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111722] flex flex-col hidden md:flex">
+<div class="flex flex-col h-full p-4">
+<div class="flex flex-col gap-6">
+<!-- User Profile / Header -->
+<div class="flex gap-3 items-center px-2">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border border-slate-700 shadow-sm" data-alt="Profile picture of a mentor" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBW3MX4gYrujD-U1lJdd-ylKmvfTJOCT7X5BGN22lXh5StcSAJcgCoNi1H-mBShzxdfTs5zaEXcmdvbrhXWp2zcJ4mVzBCDUrk0bK-Ge8igZnQGSOFpYo0X7AWZtdCkXeHWbUmM6drXwvauF9-_0bG253hgsIjywkpJDYgBUAhIAORZMfDb7QUY8SR4nIH4ZckMJphgE1WY711jxAOOS07xQmGwFpIazbt0kyNsB0rk0-t69KF2wJMNILlNWYmsB5ephg8IHi2VfsQ");'></div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-base font-medium leading-normal">Mentor Dashboard</h1>
+<p class="text-slate-500 dark:text-[#92a4c9] text-xs font-normal leading-normal">Pro Plan</p>
+</div>
+</div>
+<!-- Navigation -->
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:bg-[#232f48] dark:text-white group transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px] filled-icon">pie_chart</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-[#92a4c9] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2333] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<p class="text-sm font-medium leading-normal">Clients</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-[#92a4c9] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2333] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+<p class="text-sm font-medium leading-normal">Calendar</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-[#92a4c9] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2333] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+<p class="text-sm font-medium leading-normal">Resources</p>
+</a>
+<div class="my-2 border-t border-slate-200 dark:border-slate-800"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-[#92a4c9] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2333] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+<p class="text-sm font-medium leading-normal">Pat's AI Config</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-[#92a4c9] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1a2333] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+</div>
+</div>
+<div class="mt-auto">
+<div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-xl p-4 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-white text-[64px]">auto_awesome</span>
+</div>
+<p class="text-white text-sm font-bold relative z-10">Pat's Insight</p>
+<p class="text-indigo-200 text-xs mt-1 relative z-10">Your retention is up 12% this month. Keep it up!</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark">
+<div class="w-full max-w-[1400px] mx-auto p-4 md:p-8 flex flex-col gap-6">
+<!-- Header Section -->
+<div class="flex flex-col gap-4">
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap gap-2 items-center">
+<a class="text-slate-500 dark:text-[#92a4c9] text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<span class="text-slate-300 dark:text-slate-600 text-sm font-medium">/</span>
+<span class="text-slate-900 dark:text-white text-sm font-medium">Analytics</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<h1 class="text-slate-900 dark:text-white text-[28px] font-bold leading-tight tracking-[-0.015em]">Analytics Dashboard</h1>
+<!-- Action Panel / Controls -->
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span>Last 30 Days</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-900/20">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="hidden sm:inline">Export Report</span>
+</button>
+</div>
+</div>
+</div>
+<!-- KPI Cards Row -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined text-[24px]">group</span>
+</div>
+<span class="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">+12%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Active Clients</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">42</h3>
+</div>
+<!-- Card 2 -->
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+<span class="material-symbols-outlined text-[24px]">attach_money</span>
+</div>
+<span class="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">+8.2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Monthly Revenue</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">$12,450</h3>
+</div>
+<!-- Card 3 -->
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400">
+<span class="material-symbols-outlined text-[24px] filled-icon">star</span>
+</div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">0%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Avg Session Rating</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">4.9</h3>
+</div>
+<!-- Card 4 -->
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined text-[24px]">bolt</span>
+</div>
+<span class="text-xs font-medium text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">+5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Mentor Score</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">94</h3>
+</div>
+</div>
+<!-- Pat's Forecasting Section -->
+<div class="rounded-xl border border-indigo-100 dark:border-indigo-900 bg-indigo-50/50 dark:bg-[#151b2d] overflow-hidden">
+<div class="p-5 border-b border-indigo-100 dark:border-indigo-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-indigo-50/80 dark:bg-indigo-950/20">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+<span class="material-symbols-outlined text-white text-[24px]">auto_awesome</span>
+</div>
+<div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold">Pat's AI Forecasting</h2>
+<p class="text-slate-500 dark:text-indigo-300 text-sm">Predictive insights based on your last 300 sessions</p>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                            High Confidence
+                        </span>
+</div>
+</div>
+<div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+<!-- Insight 1: Churn Risk -->
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="text-slate-800 dark:text-slate-200 font-semibold text-sm">Churn Risk Radar</h3>
+<button class="text-primary text-xs font-medium hover:underline">View All</button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Risk Item -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-[#1e293b] border-l-4 border-red-500 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Portrait of Sarah J" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCp8ElKHXfGlXSrCJMHuVzYhAkR8XTy3IMLr5vC0jIccIYlifv74iUI3beygTrvZ8cikskYrzY6msDVdsq9QkjgDhnHh-Kd08KAVyWg4s4UhRR-nOSkCAOSZt12ZbIbhJZ_t_-zPyW5jP7NqO1fqnA9BXva47N_Zyxmt34qK3H93I3Vf5JhBqKwANiBRwFdlaB4O6Ue6by-I3abTi2vDByVYl8XoEje8Z5PUC1m9U-JXdkYj6vHHX2_S4UWoT1a7IXP_y1lOUaBO5s");'></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-900 dark:text-white">Sarah Jenkins</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Last session: 12 days ago</span>
+</div>
+</div>
+<span class="text-xs font-bold text-red-500">High Risk</span>
+</div>
+<!-- Risk Item -->
+<div class="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-[#1e293b] border-l-4 border-amber-500 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="Portrait of Michael C" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZnURKMoWo0fo9ETvYbvEO5t2gZUIpKUIbcnza4IKt0DgBdAreHVdj_rZJjN2b_37gf3U2A2p7ZqldpNmhtslK7WVfp1uqyGx3zfwUXi-wbBNH7u2xeTvUC4q644oirMxt-zRGGCmfUNlZtQ-Vn7guLdPB4hYpDIbtS-h3FskrFGrply2muCg_javCLZuPSkWgkiPD32_Ih4wVyAy6T883ZpdAIUPmVVnTM7JDIyghME5C3vABIoqaQ_lN4_UaphZb0Ix7zlxhZRU");'></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-900 dark:text-white">Michael Chen</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Declining engagement</span>
+</div>
+</div>
+<span class="text-xs font-bold text-amber-500">Medium Risk</span>
+</div>
+</div>
+</div>
+<!-- Insight 2: Revenue Projection -->
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="text-slate-800 dark:text-slate-200 font-semibold text-sm">Revenue Forecast (Next 30 Days)</h3>
+</div>
+<div class="flex-1 bg-white dark:bg-[#1e293b] rounded-lg p-4 shadow-sm flex flex-col justify-end relative h-40">
+<!-- Simple CSS Chart Representation -->
+<div class="absolute top-4 left-4">
+<p class="text-2xl font-bold text-slate-900 dark:text-white">$14,200</p>
+<p class="text-xs text-green-500 font-medium">↑ Projected +14% growth</p>
+</div>
+<div class="flex items-end justify-between h-24 gap-2 mt-auto w-full px-2">
+<div class="w-1/6 bg-blue-200 dark:bg-blue-900 rounded-t-sm h-[40%]"></div>
+<div class="w-1/6 bg-blue-300 dark:bg-blue-800 rounded-t-sm h-[55%]"></div>
+<div class="w-1/6 bg-blue-400 dark:bg-blue-700 rounded-t-sm h-[45%]"></div>
+<div class="w-1/6 bg-blue-500 dark:bg-blue-600 rounded-t-sm h-[70%]"></div>
+<!-- Predicted Bars -->
+<div class="w-1/6 bg-indigo-400 dark:bg-indigo-500 rounded-t-sm h-[85%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">Predicted</div>
+</div>
+<div class="w-1/6 bg-indigo-500 dark:bg-indigo-400 rounded-t-sm h-[95%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">Predicted</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Insight 3: Directive Effectiveness -->
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="text-slate-800 dark:text-slate-200 font-semibold text-sm">Directive Effectiveness</h3>
+</div>
+<div class="flex flex-col gap-3 bg-white dark:bg-[#1e293b] rounded-lg p-4 shadow-sm h-full justify-center">
+<!-- Stat 1 -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-slate-600 dark:text-slate-400">Goal Setting</span>
+<span class="text-slate-900 dark:text-white font-medium">92%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 w-[92%] rounded-full"></div>
+</div>
+</div>
+<!-- Stat 2 -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-slate-600 dark:text-slate-400">Career Mapping</span>
+<span class="text-slate-900 dark:text-white font-medium">78%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-500 w-[78%] rounded-full"></div>
+</div>
+</div>
+<!-- Stat 3 -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-slate-600 dark:text-slate-400">Skill Audits</span>
+<span class="text-slate-900 dark:text-white font-medium">64%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 w-[64%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-8">
+<!-- Large Chart: Client Growth -->
+<div class="lg:col-span-2 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-slate-900 dark:text-white font-bold text-lg">Client Growth &amp; Retention</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm">New vs Churned clients over time</p>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center gap-2 text-xs">
+<span class="size-3 rounded-full bg-primary"></span>
+<span class="text-slate-600 dark:text-slate-300">New</span>
+</div>
+<div class="flex items-center gap-2 text-xs">
+<span class="size-3 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+<span class="text-slate-600 dark:text-slate-300">Churned</span>
+</div>
+</div>
+</div>
+<!-- Chart Placeholder using CSS Gradients -->
+<div class="relative h-64 w-full flex items-end gap-1 sm:gap-4 px-2 sm:px-4 pt-8 border-b border-slate-200 dark:border-slate-700">
+<!-- Y Axis Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pr-4">
+<div class="w-full h-px bg-slate-100 dark:bg-slate-800"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-800"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-800"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-800"></div>
+<div class="w-full h-px bg-slate-100 dark:bg-slate-800"></div>
+</div>
+<!-- Data Points (Stylized) -->
+<div class="relative flex-1 h-full flex items-end justify-between px-2">
+<!-- Curved line SVG overlay -->
+<svg class="absolute inset-0 w-full h-full overflow-visible pb-8" preserveaspectratio="none">
+<path d="M0,200 C50,180 100,100 150,120 S250,80 300,60 S400,90 500,40 S600,20 800,10" fill="none" stroke="#135bec" stroke-width="3" vector-effect="non-scaling-stroke"></path>
+<path d="M0,200 C50,180 100,100 150,120 S250,80 300,60 S400,90 500,40 S600,20 800,10 V256 H0 Z" fill="url(#gradient)" opacity="0.2" vector-effect="non-scaling-stroke"></path>
+<defs>
+<lineargradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#135bec;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#135bec;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<!-- X Axis Labels -->
+<div class="flex justify-between text-xs text-slate-400 mt-4 px-4">
+<span>Jan</span>
+<span>Feb</span>
+<span>Mar</span>
+<span>Apr</span>
+<span>May</span>
+<span>Jun</span>
+<span>Jul</span>
+<span>Aug</span>
+</div>
+</div>
+<!-- Small Panel: Report Generator -->
+<div class="lg:col-span-1 flex flex-col gap-6">
+<!-- Report Card -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<h3 class="text-slate-900 dark:text-white font-bold text-lg mb-2">Generate Report</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Create a custom PDF report for your stakeholders including Pat's AI predictions.</p>
+<!-- Slider for Date Range -->
+<div class="mb-6">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Date Range</span>
+<span class="text-xs font-bold text-primary">Last 90 Days</span>
+</div>
+<div class="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full">
+<div class="absolute left-0 top-0 h-full w-3/4 bg-primary rounded-full"></div>
+<div class="absolute left-3/4 top-1/2 -translate-y-1/2 size-4 bg-white border-2 border-primary rounded-full shadow cursor-pointer hover:scale-110 transition-transform"></div>
+</div>
+</div>
+<!-- Toggles -->
+<div class="flex flex-col gap-3 mb-6">
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="relative inline-flex items-center h-5 rounded-full w-9 bg-primary transition-colors">
+<span class="translate-x-4 inline-block w-3 h-3 transform bg-white rounded-full transition-transform"></span>
+</div>
+<span class="text-sm text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">Include Forecasts</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="relative inline-flex items-center h-5 rounded-full w-9 bg-slate-300 dark:bg-slate-600 transition-colors">
+<span class="translate-x-1 inline-block w-3 h-3 transform bg-white rounded-full transition-transform"></span>
+</div>
+<span class="text-sm text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">Anonymize Client Data</span>
+</label>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium text-sm hover:opacity-90 transition-opacity">
+<span>Download PDF</span>
+</button>
+</div>
+<!-- Mini Stat Card -->
+<div class="bg-gradient-to-br from-indigo-600 to-primary rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]">psychology</span>
+</div>
+<h3 class="font-bold text-lg relative z-10">AI Tip</h3>
+<p class="text-sm text-indigo-100 mt-2 mb-4 relative z-10">Clients who complete "Goal Setting" in week 1 have a 40% higher LTV.</p>
+<button class="text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded transition-colors relative z-10">
+                            View Directive
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
