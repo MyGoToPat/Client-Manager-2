@@ -1,4 +1,3 @@
-import { AlertTriangle, MessageSquare, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +21,7 @@ export function NeedsAttentionSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="w-4 h-4 text-chart-3" />
+            <span className="material-symbols-outlined text-lg text-chart-3">warning</span>
             Needs Attention
           </CardTitle>
         </CardHeader>
@@ -39,7 +38,7 @@ export function NeedsAttentionSection({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <AlertTriangle className="w-4 h-4 text-chart-3" />
+          <span className="material-symbols-outlined text-lg text-chart-3">warning</span>
           Needs Attention
           <Badge variant="secondary" className="ml-auto">{clients.length}</Badge>
         </CardTitle>
@@ -61,7 +60,7 @@ export function NeedsAttentionSection({
               <div className="flex items-center gap-2 mb-1">
                 <p className="font-medium truncate">{item.client.name}</p>
                 <Badge variant="destructive" className="text-xs">
-                  <TrendingDown className="w-3 h-3 mr-1" />
+                  <span className="material-symbols-outlined text-xs mr-1">trending_down</span>
                   -{item.complianceDrop}%
                 </Badge>
               </div>
@@ -79,7 +78,7 @@ export function NeedsAttentionSection({
                 onClick={() => onMessageClient?.(item.client.id)}
                 data-testid={`button-message-${item.client.id}`}
               >
-                <MessageSquare className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">chat</span>
               </Button>
               <Button 
                 variant="default" 

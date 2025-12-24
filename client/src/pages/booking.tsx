@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { format, startOfWeek, addDays, isSameDay, isToday, addWeeks, isBefore, startOfDay } from 'date-fns';
-import { ChevronLeft, ChevronRight, Clock, User, CheckCircle2, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,7 +102,7 @@ export default function BookingPage() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <span className="material-symbols-outlined text-6xl text-green-500 mx-auto mb-4">check_circle</span>
             <CardTitle>Booking Confirmed!</CardTitle>
             <CardDescription>
               Your session with {mockMentor.name} has been scheduled.
@@ -112,11 +111,11 @@ export default function BookingPage() {
           <CardContent className="space-y-4">
             <div className="p-4 bg-muted rounded-lg space-y-2">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <span className="material-symbols-outlined text-base text-muted-foreground">calendar_month</span>
                 <span>{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="material-symbols-outlined text-base text-muted-foreground">schedule</span>
                 <span>{selectedTime && formatTimeSlot(selectedTime)} ({mockSettings.defaultSessionLength} minutes)</span>
               </div>
             </div>
@@ -170,7 +169,7 @@ export default function BookingPage() {
                         disabled={isBefore(weekStart, startOfDay(new Date()))}
                         data-testid="button-prev-week"
                       >
-                        <ChevronLeft className="w-4 h-4" />
+                        <span className="material-symbols-outlined text-base">chevron_left</span>
                       </Button>
                       <span className="text-sm font-medium min-w-[150px] text-center">
                         {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d')}
@@ -181,7 +180,7 @@ export default function BookingPage() {
                         onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
                         data-testid="button-next-week"
                       >
-                        <ChevronRight className="w-4 h-4" />
+                        <span className="material-symbols-outlined text-base">chevron_right</span>
                       </Button>
                     </div>
                   </div>
@@ -329,18 +328,18 @@ export default function BookingPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
-                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="material-symbols-outlined text-base text-muted-foreground">person</span>
                     <span>{mockMentor.name}</span>
                   </div>
                   {selectedDate && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="material-symbols-outlined text-base text-muted-foreground">calendar_month</span>
                       <span>{format(selectedDate, 'EEE, MMM d, yyyy')}</span>
                     </div>
                   )}
                   {selectedTime && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="material-symbols-outlined text-base text-muted-foreground">schedule</span>
                       <span>{formatTimeSlot(selectedTime)}</span>
                     </div>
                   )}

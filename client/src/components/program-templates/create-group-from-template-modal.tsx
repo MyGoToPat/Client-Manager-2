@@ -9,7 +9,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ProgramTemplate, Client, ClientGroup } from '../../types';
 
@@ -86,7 +85,7 @@ export function CreateGroupFromTemplateModal({ open, onClose, template, clients,
         </DialogHeader>
 
         <Alert>
-          <Info className="h-4 w-4" />
+          <span className="material-symbols-outlined text-base">info</span>
           <AlertDescription>
             This will create a new cohort with all {template?.modules?.length || 0} modules and {template?.directives?.length || 0} automated directives from the template.
           </AlertDescription>
@@ -113,7 +112,7 @@ export function CreateGroupFromTemplateModal({ open, onClose, template, clients,
                   className="w-full justify-start text-left font-normal"
                   data-testid="button-start-date"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <span className="material-symbols-outlined text-base mr-2">calendar_month</span>
                   {startDate ? format(startDate, 'PPP') : 'Pick a date'}
                 </Button>
               </PopoverTrigger>

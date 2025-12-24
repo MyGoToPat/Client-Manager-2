@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'wouter';
-import { Users, UserCheck, Activity, UserPlus, MoreVertical, Shield, User, DollarSign, Calendar, Building, Settings } from 'lucide-react';
 import { Header } from '../components/header';
 import { MetricCard } from '../components/metric-card';
 import { ClientTable } from '../components/client-table';
@@ -125,7 +124,7 @@ export default function OrganizationDashboard() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-md bg-muted">
-              <Building className="w-6 h-6" />
+              <span className="material-symbols-outlined text-2xl">business</span>
             </div>
             <div>
               <h1 className="text-2xl font-bold">{org?.name || 'Organization'}</h1>
@@ -133,7 +132,7 @@ export default function OrganizationDashboard() {
             </div>
           </div>
           <Button variant="outline" data-testid="button-org-settings">
-            <Settings className="w-4 h-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">settings</span>
             Settings
           </Button>
         </div>
@@ -160,25 +159,25 @@ export default function OrganizationDashboard() {
                   <MetricCard
                     label="Mentors"
                     value={metrics.totalMentors}
-                    icon={<Users className="w-5 h-5" />}
+                    icon={<span className="material-symbols-outlined text-xl">group</span>}
                   />
                   <MetricCard
                     label="Total Clients"
                     value={metrics.totalClients}
                     trend={15}
                     trendLabel="this month"
-                    icon={<UserCheck className="w-5 h-5" />}
+                    icon={<span className="material-symbols-outlined text-xl">how_to_reg</span>}
                   />
                   <MetricCard
                     label="Sessions/Month"
                     value={metrics.sessionsPerMonth}
-                    icon={<Calendar className="w-5 h-5" />}
+                    icon={<span className="material-symbols-outlined text-xl">calendar_month</span>}
                   />
                   <MetricCard
                     label="Revenue"
                     value={`$${metrics.revenue.toLocaleString()}`}
                     trend={8}
-                    icon={<DollarSign className="w-5 h-5" />}
+                    icon={<span className="material-symbols-outlined text-xl">attach_money</span>}
                   />
                 </>
               )}
@@ -239,7 +238,7 @@ export default function OrganizationDashboard() {
                 <p className="text-sm text-muted-foreground">Manage your organization's mentors</p>
               </div>
               <Button data-testid="button-invite-mentor">
-                <UserPlus className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">person_add</span>
                 Invite Mentor
               </Button>
             </div>
@@ -270,7 +269,7 @@ export default function OrganizationDashboard() {
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
+                                <span className="material-symbols-outlined text-xs">group</span>
                                 {mentor.clientCount} clients
                               </span>
                               <span>Last active: {mentor.lastActive}</span>
@@ -288,20 +287,20 @@ export default function OrganizationDashboard() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" data-testid={`button-mentor-menu-${mentor.id}`}>
-                              <MoreVertical className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-base">more_vert</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem className="gap-2">
-                              <User className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-base">person</span>
                               View Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
-                              <Users className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-base">group</span>
                               View Clients
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
-                              <Shield className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-base">shield</span>
                               Change Role
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -345,7 +344,7 @@ export default function OrganizationDashboard() {
               />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <span className="material-symbols-outlined text-5xl mx-auto mb-4 opacity-50 block">group</span>
                 <p className="text-lg font-medium">No organization clients</p>
                 <p className="text-sm">Invite clients to your organization</p>
               </div>
@@ -354,7 +353,7 @@ export default function OrganizationDashboard() {
 
           <TabsContent value="reports" className="space-y-6 mt-6">
             <div className="text-center py-12 text-muted-foreground">
-              <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <span className="material-symbols-outlined text-5xl mx-auto mb-4 opacity-50 block">monitoring</span>
               <p className="text-lg font-medium">Reports Coming Soon</p>
               <p className="text-sm">Organization-level analytics and reports will be available here.</p>
             </div>

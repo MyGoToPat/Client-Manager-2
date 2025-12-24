@@ -1,4 +1,3 @@
-import { DollarSign, TrendingUp, TrendingDown, Users, Target, UserPlus, UserMinus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { BusinessStats } from '../../types';
@@ -12,18 +11,18 @@ interface MetricItemProps {
   value: string | number;
   change?: number;
   changeLabel?: string;
-  icon: React.ElementType;
+  icon: string;
   invertColors?: boolean;
 }
 
-function MetricItem({ label, value, change, changeLabel, icon: Icon, invertColors }: MetricItemProps) {
+function MetricItem({ label, value, change, changeLabel, icon, invertColors }: MetricItemProps) {
   const isPositive = invertColors ? (change ?? 0) < 0 : (change ?? 0) > 0;
   const changeDisplay = changeLabel || (change !== undefined ? `${change > 0 ? '+' : ''}${change}%` : null);
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50">
       <div className="p-2 rounded-md bg-background">
-        <Icon className="w-4 h-4 text-muted-foreground" />
+        <span className="material-symbols-outlined text-base text-muted-foreground">{icon}</span>
       </div>
       <div className="flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
@@ -34,11 +33,9 @@ function MetricItem({ label, value, change, changeLabel, icon: Icon, invertColor
           "flex items-center gap-1 text-sm font-medium",
           isPositive ? "text-chart-2" : "text-destructive"
         )}>
-          {isPositive ? (
-            <TrendingUp className="w-4 h-4" />
-          ) : (
-            <TrendingDown className="w-4 h-4" />
-          )}
+          <span className="material-symbols-outlined text-base">
+            {isPositive ? 'trending_up' : 'trending_down'}
+          </span>
           {changeDisplay}
         </div>
       )}
@@ -51,7 +48,7 @@ export function BusinessSnapshotSection({ stats }: BusinessSnapshotSectionProps)
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <DollarSign className="w-4 h-4" />
+          <span className="material-symbols-outlined text-lg">attach_money</span>
           Business Snapshot
         </CardTitle>
       </CardHeader>
@@ -61,28 +58,28 @@ export function BusinessSnapshotSection({ stats }: BusinessSnapshotSectionProps)
             label="Monthly Revenue"
             value={`$${stats.mrr.toLocaleString()}`}
             change={stats.mrrChange}
-            icon={DollarSign}
+            icon="attach_money"
           />
           <MetricItem
             label="Revenue/Client"
             value={`$${stats.revenuePerClient}`}
-            icon={Users}
+            icon="group"
           />
           <MetricItem
             label="New Clients"
             value={`+${stats.newClients}`}
-            icon={UserPlus}
+            icon="person_add"
           />
           <MetricItem
             label="Churned"
             value={stats.churnedClients}
-            icon={UserMinus}
+            icon="person_remove"
           />
           <MetricItem
             label="Avg Compliance"
             value={`${stats.avgCompliance}%`}
             change={stats.complianceChange}
-            icon={Target}
+            icon="target"
           />
         </div>
       </CardContent>

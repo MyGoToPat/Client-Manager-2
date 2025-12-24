@@ -1,4 +1,3 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -7,15 +6,15 @@ interface MetricCardProps {
   value: string | number;
   trend?: number;
   trendLabel?: string;
-  icon?: React.ReactNode;
+  icon?: string;
   className?: string;
 }
 
 export function MetricCard({ label, value, trend, trendLabel, icon, className }: MetricCardProps) {
   const getTrendIcon = () => {
-    if (!trend) return <Minus className="w-3 h-3" />;
-    if (trend > 0) return <TrendingUp className="w-3 h-3" />;
-    return <TrendingDown className="w-3 h-3" />;
+    if (!trend) return 'remove';
+    if (trend > 0) return 'trending_up';
+    return 'trending_down';
   };
 
   const getTrendColor = () => {
@@ -37,7 +36,7 @@ export function MetricCard({ label, value, trend, trendLabel, icon, className }:
             </span>
             {(trend !== undefined || trendLabel) && (
               <div className={cn('flex items-center gap-1 text-xs', getTrendColor())}>
-                {getTrendIcon()}
+                <span className="material-symbols-outlined text-sm">{getTrendIcon()}</span>
                 <span>
                   {trend !== undefined && `${trend > 0 ? '+' : ''}${trend}%`}
                   {trendLabel && ` ${trendLabel}`}
@@ -47,7 +46,7 @@ export function MetricCard({ label, value, trend, trendLabel, icon, className }:
           </div>
           {icon && (
             <div className="flex items-center justify-center w-10 h-10 rounded-md bg-muted text-muted-foreground">
-              {icon}
+              <span className="material-symbols-outlined text-xl">{icon}</span>
             </div>
           )}
         </div>

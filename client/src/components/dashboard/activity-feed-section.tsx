@@ -1,4 +1,3 @@
-import { Activity, Dumbbell, Utensils, MessageSquare, Flame, ClipboardCheck, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -9,16 +8,16 @@ interface ActivityFeedSectionProps {
   onViewClient?: (clientId: string) => void;
 }
 
-const activityIcons = {
-  workout_completed: Dumbbell,
-  meal_logged: Utensils,
-  message_sent: MessageSquare,
-  streak_milestone: Flame,
-  check_in: ClipboardCheck,
-  joined_group: Users,
+const activityIcons: Record<string, string> = {
+  workout_completed: 'fitness_center',
+  meal_logged: 'restaurant',
+  message_sent: 'chat',
+  streak_milestone: 'local_fire_department',
+  check_in: 'fact_check',
+  joined_group: 'group',
 };
 
-const activityColors = {
+const activityColors: Record<string, string> = {
   workout_completed: 'text-chart-1 bg-chart-1/10',
   meal_logged: 'text-chart-2 bg-chart-2/10',
   message_sent: 'text-chart-4 bg-chart-4/10',
@@ -33,7 +32,7 @@ export function ActivityFeedSection({ activities, onViewClient }: ActivityFeedSe
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Activity className="w-4 h-4" />
+            <span className="material-symbols-outlined text-lg">trending_up</span>
             Recent Activity
           </CardTitle>
         </CardHeader>
@@ -50,15 +49,15 @@ export function ActivityFeedSection({ activities, onViewClient }: ActivityFeedSe
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Activity className="w-4 h-4" />
+          <span className="material-symbols-outlined text-lg">trending_up</span>
           Recent Activity
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => {
-            const Icon = activityIcons[activity.type];
-            const colorClass = activityColors[activity.type];
+            const iconName = activityIcons[activity.type] || 'info';
+            const colorClass = activityColors[activity.type] || 'text-muted-foreground bg-muted';
 
             return (
               <div 
@@ -68,7 +67,7 @@ export function ActivityFeedSection({ activities, onViewClient }: ActivityFeedSe
                 data-testid={`activity-${activity.id}`}
               >
                 <div className={`p-2 rounded-full ${colorClass}`}>
-                  <Icon className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-base">{iconName}</span>
                 </div>
                 
                 <div className="flex-1 min-w-0">

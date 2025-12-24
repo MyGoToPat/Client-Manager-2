@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, MessageSquare, Calendar, Clock } from 'lucide-react';
 import { ExportDropdown } from '@/components/export-dropdown';
 import { exportClients, type ExportFormat } from '@/lib/export-utils';
 import { Header } from '../components/header';
@@ -104,27 +103,27 @@ export default function Dashboard() {
                 title="Needs Attention"
                 count={mockNeedsAttention.length}
                 subtitle="Compliance dropped"
-                icon={AlertTriangle}
+                icon="warning"
                 variant="warning"
               />
               <PriorityCard
                 title="Unread Messages"
                 count={mockUnreadMessages}
                 subtitle="Respond to clients"
-                icon={MessageSquare}
+                icon="chat"
                 variant="info"
               />
               <PriorityCard
                 title="Today's Sessions"
                 count={mockTodaysSessions.length}
                 subtitle="Scheduled today"
-                icon={Calendar}
+                icon="calendar_month"
               />
               <PriorityCard
                 title="Due Soon"
                 count={mockDueSoonPrograms.length}
                 subtitle="Programs ending"
-                icon={Clock}
+                icon="schedule"
               />
             </div>
 

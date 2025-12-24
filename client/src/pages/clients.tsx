@@ -3,17 +3,6 @@ import { useStore } from "@/store/useStore";
 import { clientsService } from "@/services";
 import { Header } from "@/components/header";
 import { useAskPat } from "@/App";
-import { 
-  Search, 
-  Download, 
-  MoreHorizontal, 
-  ChevronDown,
-  ChevronUp,
-  UserPlus,
-  MessageSquare,
-  Users,
-  Mail
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -173,9 +162,11 @@ const ClientsPage = () => {
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' 
-      ? <ChevronUp className="h-4 w-4 ml-1" />
-      : <ChevronDown className="h-4 w-4 ml-1" />;
+    return (
+      <span className="material-symbols-outlined text-sm ml-1">
+        {sortDirection === 'asc' ? 'expand_less' : 'expand_more'}
+      </span>
+    );
   };
 
   const getStatusBadgeVariant = (status: Client['status']) => {
@@ -230,7 +221,7 @@ const ClientsPage = () => {
                 </p>
               </div>
               <Button data-testid="button-invite-client">
-                <UserPlus className="h-4 w-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">person_add</span>
                 Invite Client
               </Button>
             </div>
@@ -270,7 +261,7 @@ const ClientsPage = () => {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <span className="material-symbols-outlined text-base text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2">search</span>
                 <Input
                   placeholder="Search clients by name or email..."
                   className="pl-10"
@@ -304,7 +295,7 @@ const ClientsPage = () => {
                   </SelectContent>
                 </Select>
                 <Button variant="outline" onClick={handleExport} data-testid="button-export-clients">
-                  <Download className="h-4 w-4 mr-2" />
+                  <span className="material-symbols-outlined text-base mr-2">download</span>
                   Export
                 </Button>
               </div>
@@ -317,15 +308,15 @@ const ClientsPage = () => {
                 </span>
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" data-testid="button-message-all">
-                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <span className="material-symbols-outlined text-base mr-2">chat</span>
                     Message All
                   </Button>
                   <Button variant="outline" size="sm" data-testid="button-add-to-group">
-                    <Users className="h-4 w-4 mr-2" />
+                    <span className="material-symbols-outlined text-base mr-2">group</span>
                     Add to Group
                   </Button>
                   <Button variant="outline" size="sm" data-testid="button-send-email">
-                    <Mail className="h-4 w-4 mr-2" />
+                    <span className="material-symbols-outlined text-base mr-2">mail</span>
                     Send Email
                   </Button>
                 </div>
@@ -472,7 +463,7 @@ const ClientsPage = () => {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" data-testid={`button-actions-${client.id}`}>
-                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="material-symbols-outlined text-base">more_horiz</span>
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">

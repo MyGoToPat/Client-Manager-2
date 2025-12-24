@@ -1,4 +1,3 @@
-import { Calendar, Clock, MapPin, Video, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ export function TodaysSessionsSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Calendar className="w-4 h-4" />
+            <span className="material-symbols-outlined text-lg">calendar_month</span>
             Today's Sessions
           </CardTitle>
         </CardHeader>
@@ -41,7 +40,7 @@ export function TodaysSessionsSection({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Calendar className="w-4 h-4" />
+          <span className="material-symbols-outlined text-lg">calendar_month</span>
           Today's Sessions
           <Badge variant="secondary" className="ml-auto">{sessions.length}</Badge>
         </CardTitle>
@@ -77,18 +76,18 @@ export function TodaysSessionsSection({
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
+                      <span className="material-symbols-outlined text-sm">schedule</span>
                       {format(sessionTime, 'h:mm a')}
                     </span>
                     <span className="flex items-center gap-1">
                       {session.calendarEventId ? (
                         <>
-                          <Video className="w-3 h-3" />
+                          <span className="material-symbols-outlined text-sm">videocam</span>
                           Zoom
                         </>
                       ) : (
                         <>
-                          <MapPin className="w-3 h-3" />
+                          <span className="material-symbols-outlined text-sm">location_on</span>
                           In-Person
                         </>
                       )}
@@ -107,7 +106,7 @@ export function TodaysSessionsSection({
                       onClick={() => onJoinCall?.(session.id)}
                       data-testid={`button-join-${session.id}`}
                     >
-                      <ExternalLink className="w-4 h-4 mr-1" />
+                      <span className="material-symbols-outlined text-base mr-1">open_in_new</span>
                       Join
                     </Button>
                   )}

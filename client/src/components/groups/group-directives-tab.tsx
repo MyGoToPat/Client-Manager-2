@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Zap, Clock, Calendar } from 'lucide-react';
 import { CreateGroupDirectiveModal } from './create-group-directive-modal';
 import type { ClientGroup, TemplateDirective } from '../../types';
 
@@ -43,7 +42,7 @@ export function GroupDirectivesTab({ group, onUpdate }: Props) {
           </p>
         </div>
         <Button onClick={() => setShowCreateModal(true)} data-testid="button-new-directive">
-          <Plus className="h-4 w-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">add</span>
           New Directive
         </Button>
       </div>
@@ -52,7 +51,7 @@ export function GroupDirectivesTab({ group, onUpdate }: Props) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+              <span className="material-symbols-outlined text-base">calendar_month</span>
               Program-Timed Directives
             </CardTitle>
             <CardDescription>
@@ -77,7 +76,7 @@ export function GroupDirectivesTab({ group, onUpdate }: Props) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Zap className="h-4 w-4" />
+            <span className="material-symbols-outlined text-base">bolt</span>
             Event-Based Directives
           </CardTitle>
           <CardDescription>
@@ -101,7 +100,7 @@ export function GroupDirectivesTab({ group, onUpdate }: Props) {
         <Card className="bg-muted/50">
           <CardContent className="pt-4">
             <div className="flex gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <span className="material-symbols-outlined text-base text-muted-foreground mt-0.5 shrink-0">schedule</span>
               <div className="text-sm">
                 <p className="font-medium">How program-timed directives work</p>
                 <p className="text-muted-foreground">
@@ -154,7 +153,7 @@ function DirectiveCard({
           {isProgramTimed ? (
             <span className="text-sm font-bold">W{directive.week}</span>
           ) : (
-            <Zap className="h-4 w-4" />
+            <span className="material-symbols-outlined text-base">bolt</span>
           )}
         </div>
         <div className="min-w-0">

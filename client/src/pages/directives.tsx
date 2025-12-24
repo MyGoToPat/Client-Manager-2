@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Zap, Search, BarChart2, MoreVertical, Pencil, Copy, Trash2, Users, User, FolderOpen } from 'lucide-react';
 import { ExportDropdown } from '@/components/export-dropdown';
 import { exportDirectives, type ExportFormat } from '@/lib/export-utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -189,14 +188,14 @@ export default function Directives() {
 
   const getAssignmentLabel = (directive: MentorDirective) => {
     if (directive.assignmentType === 'all') {
-      return { label: 'All Clients', icon: Users, colorClass: 'bg-chart-1/10 text-chart-1 border-chart-1/20' };
+      return { label: 'All Clients', icon: 'group', colorClass: 'bg-chart-1/10 text-chart-1 border-chart-1/20' };
     }
     if (directive.assignmentType === 'group') {
       const group = groups.find(g => g.id === directive.groupId);
-      return { label: group?.name || 'Unknown Group', icon: FolderOpen, colorClass: 'bg-chart-4/10 text-chart-4 border-chart-4/20' };
+      return { label: group?.name || 'Unknown Group', icon: 'folder', colorClass: 'bg-chart-4/10 text-chart-4 border-chart-4/20' };
     }
     const client = clients.find(c => c.id === directive.clientId);
-    return { label: client?.name || 'Unknown Client', icon: User, colorClass: 'bg-muted text-muted-foreground border-muted' };
+    return { label: client?.name || 'Unknown Client', icon: 'person', colorClass: 'bg-muted text-muted-foreground border-muted' };
   };
 
   const filteredDirectives = useMemo(() => {
@@ -221,7 +220,7 @@ export default function Directives() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4 flex-1 flex-wrap">
             <div className="relative w-full max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
               <Input
                 type="search"
                 placeholder="Search directives..."
@@ -273,7 +272,7 @@ export default function Directives() {
               disabled={filteredDirectives.length === 0}
             />
             <Button onClick={handleCreate} data-testid="button-new-directive">
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               New Directive
             </Button>
           </div>
@@ -289,7 +288,6 @@ export default function Directives() {
           <div className="space-y-4">
             {filteredDirectives.map((directive) => {
               const assignment = getAssignmentLabel(directive);
-              const AssignmentIcon = assignment.icon;
               
               return (
                 <Card key={directive.id} className={cn(!directive.isActive && 'opacity-60')}>
@@ -297,7 +295,7 @@ export default function Directives() {
                     <div className="flex items-start justify-between gap-6">
                       <div className="flex items-start gap-4 flex-1">
                         <div className="flex items-center justify-center w-12 h-12 rounded-md bg-primary/10 flex-shrink-0">
-                          <Zap className="w-6 h-6 text-primary" />
+                          <span className="material-symbols-outlined text-2xl text-primary">bolt</span>
                         </div>
                         
                         <div className="flex-1 min-w-0 space-y-3">
@@ -317,7 +315,7 @@ export default function Directives() {
                                   {directive.delivery.urgency} priority
                                 </Badge>
                                 <Badge variant="outline" className={cn(assignment.colorClass)}>
-                                  <AssignmentIcon className="w-3 h-3 mr-1" />
+                                  <span className="material-symbols-outlined text-xs mr-1">{assignment.icon}</span>
                                   {assignment.label}
                                 </Badge>
                               </div>
@@ -332,16 +330,16 @@ export default function Directives() {
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button size="icon" variant="ghost" data-testid={`button-menu-${directive.id}`}>
-                                    <MoreVertical className="w-4 h-4" />
+                                    <span className="material-symbols-outlined text-base">more_vert</span>
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => handleEdit(directive)} data-testid={`menu-edit-${directive.id}`}>
-                                    <Pencil className="w-4 h-4 mr-2" />
+                                    <span className="material-symbols-outlined text-base mr-2">edit</span>
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleDuplicate(directive)} data-testid={`menu-duplicate-${directive.id}`}>
-                                    <Copy className="w-4 h-4 mr-2" />
+                                    <span className="material-symbols-outlined text-base mr-2">content_copy</span>
                                     Duplicate
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
@@ -350,7 +348,7 @@ export default function Directives() {
                                     className="text-destructive"
                                     data-testid={`menu-delete-${directive.id}`}
                                   >
-                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    <span className="material-symbols-outlined text-base mr-2">delete</span>
                                     Delete
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -370,7 +368,7 @@ export default function Directives() {
 
                           <div className="flex items-center gap-6 pt-2 flex-wrap">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <BarChart2 className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-base">bar_chart</span>
                               Triggered {directive.triggeredCount}x
                             </div>
                             {directive.effectivenessScore && (
@@ -398,7 +396,7 @@ export default function Directives() {
           </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground">
-            <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <span className="material-symbols-outlined text-5xl mx-auto mb-4 opacity-50">bolt</span>
             <p className="text-lg font-medium">No directives found</p>
             <p className="text-sm">
               {searchQuery || categoryFilter !== 'all' || assignmentFilter !== 'all'

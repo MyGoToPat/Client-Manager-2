@@ -1,4 +1,3 @@
-import { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -6,7 +5,7 @@ interface PriorityCardProps {
   title: string;
   count: number;
   subtitle: string;
-  icon: LucideIcon;
+  icon: string;
   variant?: 'default' | 'warning' | 'success' | 'info';
   onClick?: () => void;
 }
@@ -22,7 +21,7 @@ export function PriorityCard({
   title, 
   count, 
   subtitle, 
-  icon: Icon, 
+  icon, 
   variant = 'default',
   onClick 
 }: PriorityCardProps) {
@@ -40,7 +39,7 @@ export function PriorityCard({
             <p className="text-xs text-muted-foreground">{subtitle}</p>
           </div>
           <div className={cn("p-2 rounded-md bg-muted", variantStyles[variant])}>
-            <Icon className="w-5 h-5" />
+            <span className="material-symbols-outlined text-xl">{icon}</span>
           </div>
         </div>
       </CardContent>

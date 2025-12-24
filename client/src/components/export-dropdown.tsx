@@ -1,4 +1,3 @@
-import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,17 +18,17 @@ export function ExportDropdown({ onExport, disabled, label = 'Export' }: ExportD
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" disabled={disabled} data-testid="button-export">
-          <Download className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">download</span>
           {label}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => onExport('csv')} data-testid="button-export-csv">
-          <FileSpreadsheet className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">table_chart</span>
           Export as CSV
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onExport('pdf')} data-testid="button-export-pdf">
-          <FileText className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">description</span>
           Export as PDF
         </DropdownMenuItem>
       </DropdownMenuContent>

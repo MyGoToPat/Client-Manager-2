@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Bot, Send, Copy, Check, Sparkles } from 'lucide-react';
 import {
   CommandDialog,
   CommandInput,
@@ -182,7 +181,7 @@ export function AskPatModal({ open, onOpenChange }: AskPatModalProps) {
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <div className="flex items-center gap-2 px-3 border-b">
-        <Bot className="w-5 h-5 text-primary" />
+        <span className="material-symbols-outlined text-base text-primary">smart_toy</span>
         <CommandInput
           placeholder="Ask Pat anything..."
           value={query}
@@ -203,7 +202,7 @@ export function AskPatModal({ open, onOpenChange }: AskPatModalProps) {
             disabled={isLoading}
             data-testid="button-submit-pat"
           >
-            <Send className="w-4 h-4" />
+            <span className="material-symbols-outlined text-base">send</span>
           </Button>
         )}
       </div>
@@ -211,7 +210,7 @@ export function AskPatModal({ open, onOpenChange }: AskPatModalProps) {
       <CommandList className="max-h-[400px]">
         {isLoading && (
           <div className="flex items-center justify-center gap-2 py-8">
-            <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+            <span className="material-symbols-outlined text-base text-primary animate-pulse">smart_toy</span>
             <span className="text-muted-foreground">Pat is thinking...</span>
           </div>
         )}
@@ -220,7 +219,7 @@ export function AskPatModal({ open, onOpenChange }: AskPatModalProps) {
           <div className="p-4 space-y-4">
             <div className="flex items-start gap-3">
               <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary/10 flex-shrink-0">
-                <Bot className="w-4 h-4 text-primary" />
+                <span className="material-symbols-outlined text-base text-primary">smart_toy</span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium mb-2">Pat's Response</p>
@@ -233,12 +232,16 @@ export function AskPatModal({ open, onOpenChange }: AskPatModalProps) {
             <div className="flex items-center gap-2 pt-2 border-t">
               {response.actionable && (
                 <Button size="sm" onClick={handleSendToClient} data-testid="button-send-to-client">
-                  <Send className="w-3 h-3 mr-1" />
+                  <span className="material-symbols-outlined text-base mr-1">send</span>
                   Send to Client
                 </Button>
               )}
               <Button size="sm" variant="outline" onClick={handleCopy} data-testid="button-copy-response">
-                {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                {copied ? (
+                  <span className="material-symbols-outlined text-base mr-1">check</span>
+                ) : (
+                  <span className="material-symbols-outlined text-base mr-1">content_copy</span>
+                )}
                 {copied ? 'Copied' : 'Copy'}
               </Button>
               <Button size="sm" variant="ghost" onClick={handleReset} data-testid="button-new-query">

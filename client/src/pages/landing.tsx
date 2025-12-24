@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'wouter';
-import { Bot, Users, Zap, Clock, ChevronRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { authService } from '@/services';
@@ -7,22 +6,22 @@ import { useStore } from '@/store/useStore';
 
 const features = [
   {
-    icon: Users,
+    icon: 'group',
     title: 'Multi-Mentor Support',
     description: 'Assign different mentors to handle workout, nutrition, and mindset domains for each client.',
   },
   {
-    icon: Bot,
+    icon: 'smart_toy',
     title: '24/7 Pat AI Assistant',
     description: 'Pat bridges the gap between sessions, providing personalized support when you\'re not available.',
   },
   {
-    icon: Zap,
+    icon: 'bolt',
     title: 'Smart Directives',
     description: 'Create automated triggers that send personalized messages based on client behavior.',
   },
   {
-    icon: Clock,
+    icon: 'schedule',
     title: 'Real-time Progress',
     description: 'Track workouts, nutrition, and sleep with AI-powered insights and recommendations.',
   },
@@ -58,7 +57,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground">
-              <Bot className="w-5 h-5" />
+              <span className="material-symbols-outlined text-xl">smart_toy</span>
             </div>
             <span className="text-xl font-bold">HiPat</span>
           </div>
@@ -79,7 +78,7 @@ export default function Landing() {
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Button size="lg" className="gap-2" onClick={handleGetStarted} data-testid="button-hero-cta">
                 Start Free Trial
-                <ChevronRight className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">chevron_right</span>
               </Button>
               <Button size="lg" variant="outline" data-testid="button-watch-demo">
                 Watch Demo
@@ -96,7 +95,7 @@ export default function Landing() {
                 <Card key={feature.title} className="border-0 bg-background">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
-                      <feature.icon className="w-6 h-6" />
+                      <span className="material-symbols-outlined text-2xl">{feature.icon}</span>
                     </div>
                     <h3 className="font-semibold mb-2">{feature.title}</h3>
                     <p className="text-sm text-muted-foreground">{feature.description}</p>
@@ -132,15 +131,15 @@ export default function Landing() {
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
               <div className="flex items-center gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-chart-4" />
+                <span className="material-symbols-outlined text-base text-chart-4">check_circle</span>
                 <span>Free 14-day trial</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-chart-4" />
+                <span className="material-symbols-outlined text-base text-chart-4">check_circle</span>
                 <span>No credit card required</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-chart-4" />
+                <span className="material-symbols-outlined text-base text-chart-4">check_circle</span>
                 <span>Cancel anytime</span>
               </div>
             </div>
@@ -154,7 +153,7 @@ export default function Landing() {
       <footer className="border-t border-border py-8 px-4">
         <div className="container mx-auto flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Bot className="w-4 h-4" />
+            <span className="material-symbols-outlined text-base">smart_toy</span>
             <span>HiPat</span>
           </div>
           <p>Built for fitness professionals who want to scale their impact.</p>

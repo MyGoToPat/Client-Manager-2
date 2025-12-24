@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Copy, Check, Mail, Building, User } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -95,7 +94,7 @@ export function InviteClientDialog({ open, onOpenChange }: InviteClientDialogPro
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5" />
+            <span className="material-symbols-outlined text-base">mail</span>
             Invite New Client
           </DialogTitle>
           <DialogDescription>
@@ -121,7 +120,7 @@ export function InviteClientDialog({ open, onOpenChange }: InviteClientDialogPro
             <RadioGroup value={assignTo} onValueChange={(v) => setAssignTo(v as 'personal' | 'org')}>
               <div className="flex items-center gap-3 p-3 rounded-md border border-border hover-elevate cursor-pointer" onClick={() => setAssignTo('personal')}>
                 <RadioGroupItem value="personal" id="personal" data-testid="radio-personal" />
-                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="material-symbols-outlined text-base text-muted-foreground">person</span>
                 <Label htmlFor="personal" className="cursor-pointer flex-1">
                   <div className="font-medium">My Personal Clients</div>
                   <div className="text-xs text-muted-foreground">Direct relationship with you</div>
@@ -129,7 +128,7 @@ export function InviteClientDialog({ open, onOpenChange }: InviteClientDialogPro
               </div>
               <div className="flex items-center gap-3 p-3 rounded-md border border-border hover-elevate cursor-pointer" onClick={() => setAssignTo('org')}>
                 <RadioGroupItem value="org" id="org" data-testid="radio-org" />
-                <Building className="w-4 h-4 text-muted-foreground" />
+                <span className="material-symbols-outlined text-base text-muted-foreground">business</span>
                 <Label htmlFor="org" className="cursor-pointer flex-1">
                   <div className="font-medium">FitLife Gym</div>
                   <div className="text-xs text-muted-foreground">Gym-managed client</div>
@@ -178,7 +177,11 @@ export function InviteClientDialog({ open, onOpenChange }: InviteClientDialogPro
                   onClick={handleCopy}
                   data-testid="button-copy-link"
                 >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied ? (
+                    <span className="material-symbols-outlined text-base">check</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-base">content_copy</span>
+                  )}
                 </Button>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Bot, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,7 +77,7 @@ export default function Signup() {
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-primary text-primary-foreground mb-4">
-            <Bot className="w-8 h-8" />
+            <span className="material-symbols-outlined text-3xl">smart_toy</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">HiPat</h1>
           <p className="text-muted-foreground">Client Management Tool</p>
@@ -94,7 +93,7 @@ export default function Signup() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">mail</span>
                   <Input
                     id="email"
                     type="email"
@@ -111,7 +110,7 @@ export default function Signup() {
                 <Label htmlFor="role">Role</Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger data-testid="select-role">
-                    <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className="material-symbols-outlined text-base mr-2 text-muted-foreground">person</span>
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -125,7 +124,7 @@ export default function Signup() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">lock</span>
                   <Input
                     id="password"
                     type="password"
@@ -141,7 +140,7 @@ export default function Signup() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">lock</span>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -156,7 +155,7 @@ export default function Signup() {
 
               <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-signup">
                 {isLoading ? 'Creating account...' : 'Create account'}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <span className="material-symbols-outlined text-base ml-2">arrow_forward</span>
               </Button>
             </form>
 

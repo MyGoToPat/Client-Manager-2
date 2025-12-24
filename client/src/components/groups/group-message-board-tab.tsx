@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Pin, MoreVertical, MessageCircle, ThumbsUp, Heart, Flame, Trophy, Send, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { groupsService } from '../../services/groups.service';
@@ -16,11 +15,11 @@ interface Props {
   group: ClientGroup;
 }
 
-const reactionIcons: Record<string, typeof ThumbsUp> = {
-  thumbsup: ThumbsUp,
-  heart: Heart,
-  fire: Flame,
-  trophy: Trophy,
+const reactionIcons: Record<string, string> = {
+  thumbsup: 'thumb_up',
+  heart: 'favorite',
+  fire: 'local_fire_department',
+  trophy: 'emoji_events',
 };
 
 export function GroupMessageBoardTab({ group }: Props) {
@@ -108,7 +107,7 @@ export function GroupMessageBoardTab({ group }: Props) {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Message Board</h2>
         <Button onClick={() => setNewPostOpen(true)} data-testid="button-new-post">
-          <Plus className="h-4 w-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">add</span>
           New Post
         </Button>
       </div>
@@ -116,7 +115,7 @@ export function GroupMessageBoardTab({ group }: Props) {
       {pinnedPosts.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Pin className="h-4 w-4" />
+            <span className="material-symbols-outlined text-base">push_pin</span>
             Pinned
           </div>
           {pinnedPosts.map(post => (
@@ -159,13 +158,13 @@ export function GroupMessageBoardTab({ group }: Props) {
       {posts.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center">
-            <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <span className="material-symbols-outlined text-5xl text-muted-foreground mb-4">chat_bubble</span>
             <h3 className="font-medium mb-2">No posts yet</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Start engaging with your group by creating a post
             </p>
             <Button onClick={() => setNewPostOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               Create First Post
             </Button>
           </CardContent>
@@ -245,23 +244,23 @@ function PostCard({
           <div className="flex items-center gap-2">
             {post.isPinned && (
               <Badge variant="secondary">
-                <Pin className="h-3 w-3 mr-1" />
+                <span className="material-symbols-outlined text-xs mr-1">push_pin</span>
                 Pinned
               </Badge>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-4 w-4" />
+                  <span className="material-symbols-outlined text-base">more_vert</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onTogglePin}>
-                  <Pin className="h-4 w-4 mr-2" />
+                  <span className="material-symbols-outlined text-base mr-2">push_pin</span>
                   {post.isPinned ? 'Unpin' : 'Pin'}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <span className="material-symbols-outlined text-base mr-2">delete</span>
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -275,10 +274,10 @@ function PostCard({
         <div className="flex items-center gap-4 mt-4 pt-4 border-t">
           <div className="flex items-center gap-2">
             {Object.entries(post.reactions).map(([reaction, userIds]) => {
-              const Icon = reactionIcons[reaction] || ThumbsUp;
+              const iconName = reactionIcons[reaction] || 'thumb_up';
               return (
                 <Badge key={reaction} variant="secondary" className="gap-1">
-                  <Icon className="w-3 h-3" />
+                  <span className="material-symbols-outlined text-xs">{iconName}</span>
                   {userIds.length}
                 </Badge>
               );
@@ -288,7 +287,7 @@ function PostCard({
             onClick={onToggleExpand}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <MessageCircle className="h-4 w-4" />
+            <span className="material-symbols-outlined text-base">chat_bubble</span>
             {comments.length} comments
           </button>
         </div>
@@ -323,7 +322,7 @@ function PostCard({
                 data-testid={`input-comment-${post.id}`}
               />
               <Button size="icon" onClick={onAddComment} disabled={!newComment.trim()}>
-                <Send className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">send</span>
               </Button>
             </div>
           </div>

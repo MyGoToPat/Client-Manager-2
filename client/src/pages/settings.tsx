@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, ExternalLink, User, Bell, Shield, Link2 } from 'lucide-react';
 import { Header } from '../components/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,19 +118,19 @@ export default function Settings() {
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList>
             <TabsTrigger value="profile" data-testid="tab-profile">
-              <User className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">person</span>
               Profile
             </TabsTrigger>
             <TabsTrigger value="notifications" data-testid="tab-notifications">
-              <Bell className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">notifications</span>
               Notifications
             </TabsTrigger>
             <TabsTrigger value="referrals" data-testid="tab-referrals">
-              <Link2 className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">link</span>
               Referrals
             </TabsTrigger>
             <TabsTrigger value="security" data-testid="tab-security">
-              <Shield className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">shield</span>
               Security
             </TabsTrigger>
           </TabsList>
@@ -296,7 +295,11 @@ export default function Settings() {
                         data-testid="input-referral-link"
                       />
                       <Button variant="outline" size="icon" onClick={handleCopyReferral} data-testid="button-copy-referral">
-                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copied ? (
+                          <span className="material-symbols-outlined text-base">check</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-base">content_copy</span>
+                        )}
                       </Button>
                     </div>
 
@@ -371,7 +374,7 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
-                        <ExternalLink className="w-5 h-5 text-muted-foreground" />
+                        <span className="material-symbols-outlined text-base text-muted-foreground">open_in_new</span>
                       </div>
                       <div>
                         <p className="font-medium">Google Calendar</p>
@@ -384,7 +387,7 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center">
-                        <ExternalLink className="w-5 h-5 text-muted-foreground" />
+                        <span className="material-symbols-outlined text-base text-muted-foreground">open_in_new</span>
                       </div>
                       <div>
                         <p className="font-medium">Apple Calendar</p>

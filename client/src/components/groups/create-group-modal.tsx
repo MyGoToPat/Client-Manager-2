@@ -21,7 +21,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Search, Calendar as CalendarIcon, Users, BookOpen, Gift, Building } from 'lucide-react';
 import { groupsService } from '../../services/groups.service';
 import { clientsService } from '../../services/clients.service';
 import type { ClientGroup, GroupType, Client } from '../../types';
@@ -62,6 +61,13 @@ const durationOptions = [
   { value: 12, label: '12 weeks' },
   { value: 16, label: '16 weeks' },
 ];
+
+const groupTypeIcons: Record<string, string> = {
+  program_cohort: 'menu_book',
+  custom: 'group',
+  promotion: 'redeem',
+  organization: 'business',
+};
 
 export function CreateGroupModal({ open, onOpenChange, group, onSuccess }: CreateGroupModalProps) {
   const isEditing = !!group;
@@ -198,12 +204,12 @@ export function CreateGroupModal({ open, onOpenChange, group, onSuccess }: Creat
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { value: 'program_cohort', label: 'Program Cohort', desc: 'A group going through a structured program', icon: BookOpen },
-                  { value: 'custom', label: 'Custom Group', desc: 'General grouping (morning clients, etc.)', icon: Users },
-                  { value: 'promotion', label: 'Promotional Group', desc: 'Limited-time group for special offers', icon: Gift },
-                  { value: 'organization', label: 'Organization', desc: 'Gym/studio based group', icon: Building },
+                  { value: 'program_cohort', label: 'Program Cohort', desc: 'A group going through a structured program' },
+                  { value: 'custom', label: 'Custom Group', desc: 'General grouping (morning clients, etc.)' },
+                  { value: 'promotion', label: 'Promotional Group', desc: 'Limited-time group for special offers' },
+                  { value: 'organization', label: 'Organization', desc: 'Gym/studio based group' },
                 ].map((option) => {
-                  const Icon = option.icon;
+                  const iconName = groupTypeIcons[option.value];
                   return (
                     <button
                       key={option.value}
@@ -217,7 +223,7 @@ export function CreateGroupModal({ open, onOpenChange, group, onSuccess }: Creat
                       )}
                       data-testid={`button-type-${option.value}`}
                     >
-                      <Icon className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <span className="material-symbols-outlined text-xl text-muted-foreground mt-0.5">{iconName}</span>
                       <div>
                         <div className="font-medium text-sm">{option.label}</div>
                         <div className="text-xs text-muted-foreground">{option.desc}</div>
@@ -350,7 +356,7 @@ export function CreateGroupModal({ open, onOpenChange, group, onSuccess }: Creat
                             className="w-full justify-start text-left font-normal"
                             data-testid="button-start-date"
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            <span className="material-symbols-outlined text-base mr-2">calendar_month</span>
                             {startDate ? format(startDate, 'MMM d, yyyy') : 'Pick a date'}
                           </Button>
                         </PopoverTrigger>
@@ -386,7 +392,7 @@ export function CreateGroupModal({ open, onOpenChange, group, onSuccess }: Creat
               </h3>
               <div className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
                   <Input
                     placeholder="Search clients..."
                     value={clientSearch}

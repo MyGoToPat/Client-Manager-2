@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'wouter';
-import { Bot, CheckCircle, Users, Star, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -65,7 +64,7 @@ export default function ReferralLanding() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="p-8 space-y-4">
-            <Bot className="w-16 h-16 mx-auto text-muted-foreground" />
+            <span className="material-symbols-outlined text-6xl mx-auto text-muted-foreground block">smart_toy</span>
             <h1 className="text-2xl font-bold">Referral Not Found</h1>
             <p className="text-muted-foreground">
               This referral link is invalid or has expired.
@@ -85,7 +84,7 @@ export default function ReferralLanding() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground">
-              <Bot className="w-5 h-5" />
+              <span className="material-symbols-outlined text-xl">smart_toy</span>
             </div>
             <span className="text-xl font-bold">HiPat</span>
           </div>
@@ -119,11 +118,11 @@ export default function ReferralLanding() {
 
               <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground py-4 border-y border-border">
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-base">group</span>
                   <span>50+ clients</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-chart-3" />
+                  <span className="material-symbols-outlined text-base text-chart-3">star</span>
                   <span>4.9 rating</span>
                 </div>
               </div>
@@ -132,15 +131,15 @@ export default function ReferralLanding() {
                 <h2 className="font-semibold">What you'll get:</h2>
                 <ul className="text-left space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-chart-4 flex-shrink-0 mt-0.5" />
+                    <span className="material-symbols-outlined text-xl text-chart-4 flex-shrink-0 mt-0.5">check_circle</span>
                     <span>Personalized workout and nutrition guidance from {mentor?.displayName}</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-chart-4 flex-shrink-0 mt-0.5" />
+                    <span className="material-symbols-outlined text-xl text-chart-4 flex-shrink-0 mt-0.5">check_circle</span>
                     <span>24/7 access to Pat, your AI fitness assistant</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-chart-4 flex-shrink-0 mt-0.5" />
+                    <span className="material-symbols-outlined text-xl text-chart-4 flex-shrink-0 mt-0.5">check_circle</span>
                     <span>Real-time progress tracking and insights</span>
                   </li>
                 </ul>
@@ -149,7 +148,7 @@ export default function ReferralLanding() {
               <Link href={`/signup?ref=${params.code}`}>
                 <Button size="lg" className="w-full gap-2" data-testid="button-get-started">
                   Get Started with {mentor?.displayName}
-                  <ChevronRight className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-base">chevron_right</span>
                 </Button>
               </Link>
 

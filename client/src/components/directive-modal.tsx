@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Users, User, FolderOpen, Zap, Clock, BarChart3, MessageCircle, Bell, Heart, CheckCircle, HelpCircle, Megaphone, Plus, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -38,14 +37,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import type { MentorDirective, Client, ClientGroup, DirectiveType, TriggerEvent, DataPoint } from '../types';
 
-const DIRECTIVE_TYPES: { value: DirectiveType; label: string; description: string; icon: typeof Zap }[] = [
-  { value: 'analysis', label: 'Analysis', description: 'Pat analyzes data and provides insights', icon: BarChart3 },
-  { value: 'summary', label: 'Summary', description: 'Pat summarizes activity over a period', icon: MessageCircle },
-  { value: 'alert', label: 'Alert', description: 'Pat notifies when conditions are met', icon: Bell },
-  { value: 'reminder', label: 'Reminder', description: 'Pat reminds client to do something', icon: Clock },
-  { value: 'encouragement', label: 'Encouragement', description: 'Pat sends motivation based on achievements', icon: Heart },
-  { value: 'check_in', label: 'Check-in', description: 'Pat asks client how they are feeling', icon: HelpCircle },
-  { value: 'coaching_cue', label: 'Coaching Cue', description: 'Pat delivers specific training advice', icon: Megaphone },
+const DIRECTIVE_TYPES: { value: DirectiveType; label: string; description: string; icon: string }[] = [
+  { value: 'analysis', label: 'Analysis', description: 'Pat analyzes data and provides insights', icon: 'bar_chart' },
+  { value: 'summary', label: 'Summary', description: 'Pat summarizes activity over a period', icon: 'chat_bubble' },
+  { value: 'alert', label: 'Alert', description: 'Pat notifies when conditions are met', icon: 'notifications' },
+  { value: 'reminder', label: 'Reminder', description: 'Pat reminds client to do something', icon: 'schedule' },
+  { value: 'encouragement', label: 'Encouragement', description: 'Pat sends motivation based on achievements', icon: 'favorite' },
+  { value: 'check_in', label: 'Check-in', description: 'Pat asks client how they are feeling', icon: 'help' },
+  { value: 'coaching_cue', label: 'Coaching Cue', description: 'Pat delivers specific training advice', icon: 'campaign' },
 ];
 
 const TRIGGER_EVENTS: { value: TriggerEvent; label: string; category: string }[] = [
@@ -432,14 +431,14 @@ export function DirectiveModal({
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value="all" id="assign-all" data-testid="radio-assign-all" />
                               <Label htmlFor="assign-all" className="flex items-center gap-2 cursor-pointer">
-                                <Users className="w-4 h-4" />
+                                <span className="material-symbols-outlined text-base">group</span>
                                 All Clients
                               </Label>
                             </div>
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value="group" id="assign-group" data-testid="radio-assign-group" />
                               <Label htmlFor="assign-group" className="flex items-center gap-2 cursor-pointer">
-                                <FolderOpen className="w-4 h-4" />
+                                <span className="material-symbols-outlined text-base">folder_open</span>
                                 A Group
                               </Label>
                               {assignmentType === 'group' && (
@@ -461,7 +460,7 @@ export function DirectiveModal({
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value="individual" id="assign-individual" data-testid="radio-assign-individual" />
                               <Label htmlFor="assign-individual" className="flex items-center gap-2 cursor-pointer">
-                                <User className="w-4 h-4" />
+                                <span className="material-symbols-outlined text-base">person</span>
                                 Individual
                               </Label>
                               {assignmentType === 'individual' && (
@@ -507,21 +506,21 @@ export function DirectiveModal({
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value="event" id="trigger-event" data-testid="radio-trigger-event" />
                               <Label htmlFor="trigger-event" className="flex items-center gap-2 cursor-pointer">
-                                <Zap className="w-4 h-4" />
+                                <span className="material-symbols-outlined text-base">bolt</span>
                                 When something happens (Event)
                               </Label>
                             </div>
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value="schedule" id="trigger-schedule" data-testid="radio-trigger-schedule" />
                               <Label htmlFor="trigger-schedule" className="flex items-center gap-2 cursor-pointer">
-                                <Clock className="w-4 h-4" />
+                                <span className="material-symbols-outlined text-base">schedule</span>
                                 On a schedule (Time-based)
                               </Label>
                             </div>
                             <div className="flex items-center gap-3">
                               <RadioGroupItem value="condition" id="trigger-condition" data-testid="radio-trigger-condition" />
                               <Label htmlFor="trigger-condition" className="flex items-center gap-2 cursor-pointer">
-                                <BarChart3 className="w-4 h-4" />
+                                <span className="material-symbols-outlined text-base">bar_chart</span>
                                 When a condition is met
                               </Label>
                             </div>
@@ -726,7 +725,7 @@ export function DirectiveModal({
                             {DIRECTIVE_TYPES.map(t => (
                               <SelectItem key={t.value} value={t.value}>
                                 <div className="flex items-center gap-2">
-                                  <t.icon className="w-4 h-4" />
+                                  <span className="material-symbols-outlined text-base">{t.icon}</span>
                                   <span>{t.label}</span>
                                 </div>
                               </SelectItem>
@@ -894,7 +893,7 @@ export function DirectiveModal({
                             <Badge key={i} variant="secondary" className="gap-1">
                               {q}
                               <button type="button" onClick={() => setCustomQuestions(customQuestions.filter((_, j) => j !== i))}>
-                                <X className="w-3 h-3" />
+                                <span className="material-symbols-outlined text-sm">close</span>
                               </button>
                             </Badge>
                           ))}
@@ -909,7 +908,7 @@ export function DirectiveModal({
                           )}
                         />
                         <Button type="button" size="icon" variant="outline" onClick={addCustomQuestion}>
-                          <Plus className="w-4 h-4" />
+                          <span className="material-symbols-outlined text-base">add</span>
                         </Button>
                       </div>
                     </div>

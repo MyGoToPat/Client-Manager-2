@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { Calendar, Target, Activity, Droplets, Flame } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +13,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Calendar className="w-4 h-4" />
+        <span className="material-symbols-outlined text-base">calendar_month</span>
         <span>Joined {format(new Date(client.joinedAt), 'MMMM d, yyyy')}</span>
       </div>
 
@@ -23,7 +22,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
       {client.goals && client.goals.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-muted-foreground" />
+            <span className="material-symbols-outlined text-base text-muted-foreground">target</span>
             <h3 className="font-medium">Goals</h3>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -52,7 +51,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-10 h-10 rounded-md bg-chart-1/10">
-                    <Flame className="w-5 h-5 text-chart-1" />
+                    <span className="material-symbols-outlined text-xl text-chart-1">local_fire_department</span>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">TDEE</p>
@@ -67,7 +66,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-10 h-10 rounded-md bg-chart-2/10">
-                    <Activity className="w-5 h-5 text-chart-2" />
+                    <span className="material-symbols-outlined text-xl text-chart-2">trending_up</span>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">BMR</p>
@@ -82,7 +81,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-10 h-10 rounded-md bg-chart-4/10">
-                    <Droplets className="w-5 h-5 text-chart-4" />
+                    <span className="material-symbols-outlined text-xl text-chart-4">water_drop</span>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">Hydration</p>
@@ -98,7 +97,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 rounded-md bg-chart-5/10">
-                      <Activity className="w-5 h-5 text-chart-5" />
+                      <span className="material-symbols-outlined text-xl text-chart-5">trending_up</span>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Weight</p>

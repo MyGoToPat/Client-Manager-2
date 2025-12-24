@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Search, Plus, MoreVertical, Mail, UserMinus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { clientsService } from '../../services/clients.service';
 import type { ClientGroup, Client } from '../../types';
@@ -48,7 +47,7 @@ export function GroupMembersTab({ group }: Props) {
     <div className="space-y-4">
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
           <Input 
             placeholder="Search members..." 
             className="pl-9"
@@ -58,7 +57,7 @@ export function GroupMembersTab({ group }: Props) {
           />
         </div>
         <Button data-testid="button-add-members">
-          <Plus className="h-4 w-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">add</span>
           Add Members
         </Button>
       </div>
@@ -101,16 +100,16 @@ export function GroupMembersTab({ group }: Props) {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" data-testid={`button-member-menu-${member.id}`}>
-                        <MoreVertical className="h-4 w-4" />
+                        <span className="material-symbols-outlined text-base">more_vert</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem data-testid={`button-message-${member.id}`}>
-                        <Mail className="h-4 w-4 mr-2" />
+                        <span className="material-symbols-outlined text-base mr-2">mail</span>
                         Message
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive" data-testid={`button-remove-member-${member.id}`}>
-                        <UserMinus className="h-4 w-4 mr-2" />
+                        <span className="material-symbols-outlined text-base mr-2">person_remove</span>
                         Remove from Group
                       </DropdownMenuItem>
                     </DropdownMenuContent>

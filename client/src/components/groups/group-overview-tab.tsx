@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Target, TrendingUp, Zap, MessageSquare, Plus } from 'lucide-react';
 import type { ClientGroup } from '../../types';
 
 interface Props {
@@ -14,7 +13,7 @@ export function GroupOverviewTab({ group }: Props) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base text-muted-foreground">group</span>
               <span className="text-sm text-muted-foreground">Members</span>
             </div>
             <p className="text-2xl font-bold mt-1" data-testid="stat-members">{group.memberCount}</p>
@@ -23,7 +22,7 @@ export function GroupOverviewTab({ group }: Props) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base text-muted-foreground">target</span>
               <span className="text-sm text-muted-foreground">Avg Compliance</span>
             </div>
             <p className="text-2xl font-bold mt-1" data-testid="stat-compliance">{group.avgCompliance}%</p>
@@ -32,7 +31,7 @@ export function GroupOverviewTab({ group }: Props) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base text-muted-foreground">trending_up</span>
               <span className="text-sm text-muted-foreground">Avg Progress</span>
             </div>
             <p className="text-2xl font-bold mt-1" data-testid="stat-progress">{group.avgProgress}%</p>
@@ -41,7 +40,7 @@ export function GroupOverviewTab({ group }: Props) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base text-muted-foreground">bolt</span>
               <span className="text-sm text-muted-foreground">Active Directives</span>
             </div>
             <p className="text-2xl font-bold mt-1" data-testid="stat-directives">{group.directives?.length || 0}</p>
@@ -55,15 +54,15 @@ export function GroupOverviewTab({ group }: Props) {
         </CardHeader>
         <CardContent className="flex gap-2 flex-wrap">
           <Button variant="outline" data-testid="button-post-announcement">
-            <MessageSquare className="h-4 w-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">chat</span>
             Post Announcement
           </Button>
           <Button variant="outline" data-testid="button-create-directive">
-            <Zap className="h-4 w-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">bolt</span>
             Create Directive
           </Button>
           <Button variant="outline" data-testid="button-add-members">
-            <Plus className="h-4 w-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">add</span>
             Add Members
           </Button>
         </CardContent>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'wouter';
-import { Users, UserPlus, MoreVertical, Shield, User } from 'lucide-react';
 import { Header } from '../components/header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,7 +72,7 @@ export default function OrganizationTeam() {
             <p className="text-sm text-muted-foreground">Manage your organization's mentors</p>
           </div>
           <Button data-testid="button-invite-mentor">
-            <UserPlus className="w-4 h-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">person_add</span>
             Invite Mentor
           </Button>
         </div>
@@ -104,7 +103,7 @@ export default function OrganizationTeam() {
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
+                            <span className="material-symbols-outlined text-xs">group</span>
                             {mentor.clientCount} clients
                           </span>
                           <span>Last active: {mentor.lastActive}</span>
@@ -122,20 +121,20 @@ export default function OrganizationTeam() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" data-testid={`button-mentor-menu-${mentor.id}`}>
-                          <MoreVertical className="w-4 h-4" />
+                          <span className="material-symbols-outlined text-base">more_vert</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem className="gap-2">
-                          <User className="w-4 h-4" />
+                          <span className="material-symbols-outlined text-base">person</span>
                           View Profile
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2">
-                          <Users className="w-4 h-4" />
+                          <span className="material-symbols-outlined text-base">group</span>
                           View Clients
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2">
-                          <Shield className="w-4 h-4" />
+                          <span className="material-symbols-outlined text-base">shield</span>
                           Change Role
                         </DropdownMenuItem>
                       </DropdownMenuContent>

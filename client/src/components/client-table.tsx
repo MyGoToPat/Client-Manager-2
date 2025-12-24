@@ -1,4 +1,3 @@
-import { MoreHorizontal, Mail, Phone } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -128,7 +127,7 @@ export function ClientTable({ clients, onClientClick, onStatusChange }: ClientTa
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" data-testid={`button-actions-${client.id}`}>
-                      <MoreHorizontal className="w-4 h-4" />
+                      <span className="material-symbols-outlined text-base">more_horiz</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -136,12 +135,12 @@ export function ClientTable({ clients, onClientClick, onStatusChange }: ClientTa
                       View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                      <Mail className="w-4 h-4 mr-2" />
+                      <span className="material-symbols-outlined text-base mr-2">mail</span>
                       Send Message
                     </DropdownMenuItem>
                     {client.phone && (
                       <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                        <Phone className="w-4 h-4 mr-2" />
+                        <span className="material-symbols-outlined text-base mr-2">phone</span>
                         Call Client
                       </DropdownMenuItem>
                     )}

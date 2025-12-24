@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format, startOfWeek, addDays, isSameDay, isToday } from 'date-fns';
-import { ChevronLeft, ChevronRight, Clock, User, Plus, Settings2, CalendarCheck, Ban } from 'lucide-react';
 import { Header } from '../components/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -143,7 +142,7 @@ function AvailabilityModal({ open, onOpenChange, availability, onSave }: Availab
                       onClick={() => addTimeSlot(index)}
                       data-testid={`button-add-slot-${index}`}
                     >
-                      <Plus className="w-3 h-3 mr-1" />
+                      <span className="material-symbols-outlined text-base mr-1">add</span>
                       Add Slot
                     </Button>
                   )}
@@ -190,7 +189,7 @@ function AvailabilityModal({ open, onOpenChange, availability, onSave }: Availab
                             onClick={() => removeTimeSlot(slot.id)}
                             data-testid={`button-remove-slot-${slot.id}`}
                           >
-                            <Ban className="w-4 h-4 text-muted-foreground" />
+                            <span className="material-symbols-outlined text-base text-muted-foreground">block</span>
                           </Button>
                         )}
                       </div>
@@ -409,10 +408,10 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={goToPreviousWeek} data-testid="button-prev-week">
-              <ChevronLeft className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">chevron_left</span>
             </Button>
             <Button variant="outline" size="icon" onClick={goToNextWeek} data-testid="button-next-week">
-              <ChevronRight className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">chevron_right</span>
             </Button>
             <Button variant="outline" onClick={goToToday} data-testid="button-today">
               Today
@@ -424,15 +423,15 @@ export default function CalendarPage() {
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setShowAvailabilityModal(true)} data-testid="button-availability">
-              <CalendarCheck className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">event_available</span>
               Availability
             </Button>
             <Button variant="outline" onClick={() => setShowSettingsModal(true)} data-testid="button-settings">
-              <Settings2 className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">settings</span>
               Settings
             </Button>
             <Button data-testid="button-add-booking">
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               Add Booking
             </Button>
           </div>
@@ -478,7 +477,7 @@ export default function CalendarPage() {
                         </div>
                         {!hasAvailability && (
                           <Badge variant="secondary" className="text-[10px] px-1">
-                            <Ban className="w-2.5 h-2.5 mr-0.5" />
+                            <span className="material-symbols-outlined text-[10px] mr-0.5">block</span>
                             Off
                           </Badge>
                         )}
@@ -545,7 +544,7 @@ export default function CalendarPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-muted-foreground" />
+                    <span className="material-symbols-outlined text-base text-muted-foreground">person</span>
                     <h3 className="text-lg font-semibold">{selectedBooking.clientName}</h3>
                     <Badge 
                       variant="secondary" 
@@ -555,7 +554,7 @@ export default function CalendarPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
+                    <span className="material-symbols-outlined text-base">schedule</span>
                     {format(new Date(selectedBooking.scheduledAt), 'EEEE, MMMM d, yyyy')} at {format(new Date(selectedBooking.scheduledAt), 'h:mm a')}
                     <span className="mx-1">-</span>
                     {selectedBooking.durationMinutes} minutes
@@ -570,40 +569,11 @@ export default function CalendarPage() {
                   <Button variant="outline" onClick={() => setSelectedBooking(null)}>
                     Close
                   </Button>
-                  {selectedBooking.status === 'scheduled' && (
-                    <>
-                      <Button variant="outline">Reschedule</Button>
-                      <Button variant="destructive">Cancel</Button>
-                    </>
-                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
-
-        <div className="flex items-center gap-4 text-sm flex-wrap">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-chart-2/30" />
-            <span className="text-muted-foreground">Available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-chart-1" />
-            <span className="text-muted-foreground">Scheduled</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-chart-4" />
-            <span className="text-muted-foreground">Completed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-destructive" />
-            <span className="text-muted-foreground">No Show</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-muted" />
-            <span className="text-muted-foreground">Cancelled/Unavailable</span>
-          </div>
-        </div>
       </main>
 
       <AvailabilityModal

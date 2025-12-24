@@ -1,24 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { 
-  Plus, 
-  Search, 
-  Users, 
-  Calendar, 
-  TrendingUp, 
-  MoreVertical,
-  MessageSquare,
-  Zap,
-  Archive,
-  Trash2,
-  Edit,
-  Dumbbell,
-  Sunrise,
-  Scale,
-  Gift,
-  Building,
-  FolderOpen
-} from 'lucide-react';
 import { ExportDropdown } from '@/components/export-dropdown';
 import { exportGroups, type ExportFormat } from '@/lib/export-utils';
 import { Button } from '@/components/ui/button';
@@ -52,18 +33,18 @@ const groupTypeConfig: Record<GroupType, { label: string; color: string }> = {
   organization: { label: 'Organization', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
 };
 
-const iconMap: Record<string, typeof Dumbbell> = {
-  dumbbell: Dumbbell,
-  sunrise: Sunrise,
-  scale: Scale,
-  gift: Gift,
-  building: Building,
-  users: Users,
+const iconMap: Record<string, string> = {
+  dumbbell: 'fitness_center',
+  sunrise: 'wb_sunny',
+  scale: 'scale',
+  gift: 'redeem',
+  building: 'business',
+  users: 'group',
 };
 
-function getIcon(iconName?: string) {
-  if (!iconName) return FolderOpen;
-  return iconMap[iconName] || FolderOpen;
+function getIconName(iconName?: string): string {
+  if (!iconName) return 'folder';
+  return iconMap[iconName] || 'folder';
 }
 
 function GroupCard({ group, onEdit, onArchive, onDelete }: { 
@@ -72,7 +53,7 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
   onArchive: () => void;
   onDelete: () => void;
 }) {
-  const IconComponent = getIcon(group.icon);
+  const iconName = getIconName(group.icon);
   const typeConfig = groupTypeConfig[group.type];
 
   return (
@@ -81,7 +62,7 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-md flex items-center justify-center bg-muted">
-              <IconComponent className="w-5 h-5 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base text-muted-foreground">{iconName}</span>
             </div>
             <div>
               <h3 className="font-medium text-foreground">{group.name}</h3>
@@ -94,17 +75,17 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" data-testid={`button-group-menu-${group.id}`}>
-                <MoreVertical className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">more_vert</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit} data-testid={`menu-edit-${group.id}`}>
-                <Edit className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">edit</span>
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onArchive} data-testid={`menu-archive-${group.id}`}>
-                <Archive className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">archive</span>
                 Archive
               </DropdownMenuItem>
               <DropdownMenuItem 
@@ -112,7 +93,7 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
                 className="text-destructive"
                 data-testid={`menu-delete-${group.id}`}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">delete</span>
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -122,11 +103,11 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
         {group.program && (
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
             <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">calendar_month</span>
               <span>Started: {format(new Date(group.program.startDate), 'MMM d, yyyy')}</span>
             </div>
             <div className="flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">trending_up</span>
               <span>Week {group.program.currentWeek} of {group.program.durationWeeks}</span>
             </div>
           </div>
@@ -140,11 +121,11 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           <div className="flex items-center gap-1">
-            <Users className="w-4 h-4" />
+            <span className="material-symbols-outlined text-base">group</span>
             <span>{group.memberCount} members</span>
           </div>
           <div className="flex items-center gap-1">
-            <TrendingUp className="w-4 h-4" />
+            <span className="material-symbols-outlined text-base">trending_up</span>
             <span>{group.avgCompliance}% compliance</span>
           </div>
         </div>
@@ -157,13 +138,13 @@ function GroupCard({ group, onEdit, onArchive, onDelete }: {
           </Link>
           <Link href={`/groups/${group.id}?tab=board`}>
             <Button variant="ghost" size="sm" data-testid={`button-message-board-${group.id}`}>
-              <MessageSquare className="w-4 h-4 mr-1" />
+              <span className="material-symbols-outlined text-base mr-1">chat</span>
               Message Board
             </Button>
           </Link>
           <Link href={`/groups/${group.id}?tab=directives`}>
             <Button variant="ghost" size="sm" data-testid={`button-directives-${group.id}`}>
-              <Zap className="w-4 h-4 mr-1" />
+              <span className="material-symbols-outlined text-base mr-1">bolt</span>
               Directives
             </Button>
           </Link>
@@ -234,7 +215,7 @@ export default function Groups() {
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div className="flex items-center gap-3 flex-wrap flex-1">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <span className="material-symbols-outlined text-base absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">search</span>
               <Input
                 placeholder="Search groups..."
                 value={searchQuery}
@@ -275,7 +256,7 @@ export default function Groups() {
               disabled={filteredGroups.length === 0}
             />
             <Button onClick={() => setCreateModalOpen(true)} data-testid="button-create-group">
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               Create Group
             </Button>
           </div>
@@ -287,7 +268,7 @@ export default function Groups() {
           </div>
         ) : filteredGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <FolderOpen className="w-12 h-12 text-muted-foreground mb-4" />
+            <span className="material-symbols-outlined text-5xl text-muted-foreground mb-4">folder</span>
             <h3 className="text-lg font-medium mb-2">No groups found</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery || typeFilter !== 'all' 
@@ -295,7 +276,7 @@ export default function Groups() {
                 : 'Create your first group to start organizing clients'}
             </p>
             <Button onClick={() => setCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               Create Group
             </Button>
           </div>

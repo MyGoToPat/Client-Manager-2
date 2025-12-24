@@ -1,4 +1,3 @@
-import { Dumbbell, Play, Pause, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,7 @@ export function ClientWorkoutPlansTab({ workoutPlans }: ClientWorkoutPlansTabPro
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1">
                   <div className="flex items-center justify-center w-10 h-10 rounded-md bg-chart-1/10 flex-shrink-0">
-                    <Dumbbell className="w-5 h-5 text-chart-1" />
+                    <span className="material-symbols-outlined text-xl text-chart-1">fitness_center</span>
                   </div>
                   
                   <div className="flex-1 min-w-0 space-y-2">
@@ -78,17 +77,17 @@ export function ClientWorkoutPlansTab({ workoutPlans }: ClientWorkoutPlansTabPro
                     <div className="flex items-center gap-2 pt-2">
                       {plan.status === 'active' ? (
                         <Button size="sm" variant="outline" data-testid={`button-pause-${plan.id}`}>
-                          <Pause className="w-3 h-3 mr-1" />
+                          <span className="material-symbols-outlined text-sm mr-1">pause</span>
                           Pause
                         </Button>
                       ) : plan.status === 'paused' ? (
                         <Button size="sm" variant="outline" data-testid={`button-resume-${plan.id}`}>
-                          <Play className="w-3 h-3 mr-1" />
+                          <span className="material-symbols-outlined text-sm mr-1">play_arrow</span>
                           Resume
                         </Button>
                       ) : null}
                       <Button size="sm" variant="ghost" data-testid={`button-view-${plan.id}`}>
-                        <Eye className="w-3 h-3 mr-1" />
+                        <span className="material-symbols-outlined text-sm mr-1">visibility</span>
                         View
                       </Button>
                     </div>
@@ -101,7 +100,7 @@ export function ClientWorkoutPlansTab({ workoutPlans }: ClientWorkoutPlansTabPro
 
         {workoutPlans.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            <Dumbbell className="w-10 h-10 mx-auto mb-3 opacity-50" />
+            <span className="material-symbols-outlined text-4xl mx-auto mb-3 opacity-50 block">fitness_center</span>
             <p>No workout plans assigned</p>
             <p className="text-sm">Create a workout plan for this client</p>
           </div>

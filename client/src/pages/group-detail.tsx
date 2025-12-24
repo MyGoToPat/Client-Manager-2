@@ -1,23 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useRoute } from 'wouter';
-import { 
-  Edit,
-  Archive,
-  Users,
-  MessageSquare,
-  Zap,
-  TrendingUp,
-  Calendar,
-  Plus,
-  MoreVertical,
-  Pin,
-  Trash2,
-  ThumbsUp,
-  Heart,
-  Flame,
-  Trophy,
-  Send
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,11 +27,11 @@ import type { ClientGroup, GroupPost, GroupComment, Client } from '../types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-const reactionIcons: Record<string, typeof ThumbsUp> = {
-  thumbsup: ThumbsUp,
-  heart: Heart,
-  fire: Flame,
-  trophy: Trophy,
+const reactionIcons: Record<string, string> = {
+  thumbsup: 'thumb_up',
+  heart: 'favorite',
+  fire: 'local_fire_department',
+  trophy: 'emoji_events',
 };
 
 function OverviewTab({ group }: { group: ClientGroup }) {
@@ -60,7 +42,7 @@ function OverviewTab({ group }: { group: ClientGroup }) {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Calendar className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">calendar_month</span>
                 <span className="text-sm">Current Week</span>
               </div>
               <div className="text-2xl font-bold">
@@ -72,7 +54,7 @@ function OverviewTab({ group }: { group: ClientGroup }) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Users className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">group</span>
               <span className="text-sm">Members</span>
             </div>
             <div className="text-2xl font-bold">{group.memberCount}</div>
@@ -81,7 +63,7 @@ function OverviewTab({ group }: { group: ClientGroup }) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <TrendingUp className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">trending_up</span>
               <span className="text-sm">Compliance</span>
             </div>
             <div className="text-2xl font-bold">{group.avgCompliance}%</div>
@@ -90,7 +72,7 @@ function OverviewTab({ group }: { group: ClientGroup }) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <TrendingUp className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">trending_up</span>
               <span className="text-sm">Avg Progress</span>
             </div>
             <div className="text-2xl font-bold">+{group.avgProgress}%</div>
@@ -142,15 +124,15 @@ function OverviewTab({ group }: { group: ClientGroup }) {
         <CardContent>
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" size="sm">
-              <MessageSquare className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">chat</span>
               Post Announcement
             </Button>
             <Button variant="outline" size="sm">
-              <Zap className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">bolt</span>
               Create Directive
             </Button>
             <Button variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               Add Members
             </Button>
           </div>
@@ -192,7 +174,7 @@ function MembersTab({ group }: { group: ClientGroup }) {
           {clients.length} member{clients.length !== 1 ? 's' : ''}
         </h3>
         <Button variant="outline" size="sm">
-          <Plus className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">add</span>
           Add Members
         </Button>
       </div>
@@ -308,7 +290,7 @@ function MessageBoardTab({ group }: { group: ClientGroup }) {
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-medium text-muted-foreground">Message Board</h3>
         <Button onClick={() => setNewPostOpen(true)} data-testid="button-new-post">
-          <Plus className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-base mr-2">add</span>
           New Post
         </Button>
       </div>
@@ -316,7 +298,7 @@ function MessageBoardTab({ group }: { group: ClientGroup }) {
       {pinnedPosts.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-            <Pin className="w-3 h-3" />
+            <span className="material-symbols-outlined text-xs">push_pin</span>
             Pinned
           </h4>
           {pinnedPosts.map(post => (
@@ -360,13 +342,13 @@ function MessageBoardTab({ group }: { group: ClientGroup }) {
 
       {posts.length === 0 && (
         <div className="text-center py-12">
-          <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <span className="material-symbols-outlined text-5xl text-muted-foreground mb-4">chat</span>
           <h3 className="font-medium mb-2">No posts yet</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Start engaging with your group by creating a post
           </p>
           <Button onClick={() => setNewPostOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">add</span>
             Create First Post
           </Button>
         </div>
@@ -438,16 +420,16 @@ function PostCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <MoreVertical className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">more_vert</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onTogglePin}>
-                <Pin className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">push_pin</span>
                 {post.isPinned ? 'Unpin' : 'Pin'}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">delete</span>
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -461,10 +443,10 @@ function PostCard({
 
         <div className="flex items-center gap-2 flex-wrap">
           {Object.entries(post.reactions).map(([reaction, userIds]) => {
-            const Icon = reactionIcons[reaction] || ThumbsUp;
+            const iconName = reactionIcons[reaction] || 'thumb_up';
             return (
               <Badge key={reaction} variant="secondary" className="gap-1">
-                <Icon className="w-3 h-3" />
+                <span className="material-symbols-outlined text-xs">{iconName}</span>
                 {userIds.length}
               </Badge>
             );
@@ -511,7 +493,7 @@ function PostCard({
                 data-testid={`input-comment-${post.id}`}
               />
               <Button size="icon" onClick={onAddComment} disabled={!newComment.trim()}>
-                <Send className="w-4 h-4" />
+                <span className="material-symbols-outlined text-base">send</span>
               </Button>
             </div>
           </div>
@@ -533,7 +515,7 @@ function DirectivesTab({ group }: { group: ClientGroup }) {
         </div>
         <Link href={`/directives?group=${group.id}`}>
           <Button variant="outline" size="sm">
-            <Plus className="w-4 h-4 mr-2" />
+            <span className="material-symbols-outlined text-base mr-2">add</span>
             Create Directive
           </Button>
         </Link>
@@ -541,14 +523,14 @@ function DirectivesTab({ group }: { group: ClientGroup }) {
 
       <Card>
         <CardContent className="p-8 text-center">
-          <Zap className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <span className="material-symbols-outlined text-5xl text-muted-foreground mb-4">bolt</span>
           <h3 className="font-medium mb-2">No group-specific directives</h3>
           <p className="text-sm text-muted-foreground mb-4">
             Create directives that only apply to this group
           </p>
           <Link href={`/directives?group=${group.id}`}>
             <Button>
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">add</span>
               Create Directive
             </Button>
           </Link>
@@ -563,7 +545,7 @@ function ProgressTab({ group }: { group: ClientGroup }) {
     <div className="space-y-4">
       <Card>
         <CardContent className="p-8 text-center">
-          <TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <span className="material-symbols-outlined text-5xl text-muted-foreground mb-4">trending_up</span>
           <h3 className="font-medium mb-2">Progress Analytics</h3>
           <p className="text-sm text-muted-foreground">
             Aggregate progress data and analytics for this group will be displayed here
@@ -627,7 +609,7 @@ export default function GroupDetail() {
           <h2 className="text-xl font-medium mb-4">Group not found</h2>
           <Link href="/groups">
             <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-base mr-2">arrow_back</span>
               Back to Groups
             </Button>
           </Link>
@@ -657,36 +639,36 @@ export default function GroupDetail() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">edit</span>
                 Edit
               </Button>
               <Button variant="outline" size="sm">
-                <Archive className="w-4 h-4 mr-2" />
+                <span className="material-symbols-outlined text-base mr-2">archive</span>
                 Archive
               </Button>
             </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="overview" data-testid="tab-overview">
-                <TrendingUp className="w-4 h-4 mr-2" />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
+                <span className="material-symbols-outlined text-base">dashboard</span>
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="members" data-testid="tab-members">
-                <Users className="w-4 h-4 mr-2" />
+              <TabsTrigger value="members" className="flex items-center gap-2" data-testid="tab-members">
+                <span className="material-symbols-outlined text-base">group</span>
                 Members
               </TabsTrigger>
-              <TabsTrigger value="board" data-testid="tab-board">
-                <MessageSquare className="w-4 h-4 mr-2" />
+              <TabsTrigger value="board" className="flex items-center gap-2" data-testid="tab-board">
+                <span className="material-symbols-outlined text-base">chat</span>
                 Message Board
               </TabsTrigger>
-              <TabsTrigger value="directives" data-testid="tab-directives">
-                <Zap className="w-4 h-4 mr-2" />
+              <TabsTrigger value="directives" className="flex items-center gap-2" data-testid="tab-directives">
+                <span className="material-symbols-outlined text-base">bolt</span>
                 Directives
               </TabsTrigger>
-              <TabsTrigger value="progress" data-testid="tab-progress">
-                <TrendingUp className="w-4 h-4 mr-2" />
+              <TabsTrigger value="progress" className="flex items-center gap-2" data-testid="tab-progress">
+                <span className="material-symbols-outlined text-base">trending_up</span>
                 Progress
               </TabsTrigger>
             </TabsList>
@@ -694,15 +676,19 @@ export default function GroupDetail() {
             <TabsContent value="overview">
               <OverviewTab group={group} />
             </TabsContent>
+
             <TabsContent value="members">
               <MembersTab group={group} />
             </TabsContent>
+
             <TabsContent value="board">
               <MessageBoardTab group={group} />
             </TabsContent>
+
             <TabsContent value="directives">
               <DirectivesTab group={group} />
             </TabsContent>
+
             <TabsContent value="progress">
               <ProgressTab group={group} />
             </TabsContent>

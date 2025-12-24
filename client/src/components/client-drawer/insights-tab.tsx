@@ -1,5 +1,4 @@
 import { formatDistanceToNow } from 'date-fns';
-import { TrendingUp, AlertTriangle, Lightbulb, Trophy, Check, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,11 +10,11 @@ interface ClientInsightsTabProps {
   insights: AIInsight[];
 }
 
-const typeConfig: Record<AIInsight['type'], { icon: React.ElementType; color: string; label: string }> = {
-  pattern: { icon: TrendingUp, color: 'text-chart-1 bg-chart-1/10', label: 'Pattern' },
-  alert: { icon: AlertTriangle, color: 'text-chart-3 bg-chart-3/10', label: 'Alert' },
-  suggestion: { icon: Lightbulb, color: 'text-chart-5 bg-chart-5/10', label: 'Suggestion' },
-  achievement: { icon: Trophy, color: 'text-chart-4 bg-chart-4/10', label: 'Achievement' },
+const typeConfig: Record<AIInsight['type'], { icon: string; color: string; label: string }> = {
+  pattern: { icon: 'trending_up', color: 'text-chart-1 bg-chart-1/10', label: 'Pattern' },
+  alert: { icon: 'warning', color: 'text-chart-3 bg-chart-3/10', label: 'Alert' },
+  suggestion: { icon: 'lightbulb', color: 'text-chart-5 bg-chart-5/10', label: 'Suggestion' },
+  achievement: { icon: 'emoji_events', color: 'text-chart-4 bg-chart-4/10', label: 'Achievement' },
 };
 
 const priorityColors: Record<AIInsight['priority'], string> = {
@@ -42,14 +41,13 @@ export function ClientInsightsTab({ insights }: ClientInsightsTabProps) {
       <div className="space-y-3">
         {sortedInsights.map((insight) => {
           const config = typeConfig[insight.type];
-          const Icon = config.icon;
           
           return (
             <Card key={insight.id} className="overflow-hidden">
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
                   <div className={cn('flex items-center justify-center w-10 h-10 rounded-md flex-shrink-0', config.color)}>
-                    <Icon className="w-5 h-5" />
+                    <span className="material-symbols-outlined text-xl">{config.icon}</span>
                   </div>
                   
                   <div className="flex-1 min-w-0 space-y-2">
@@ -80,11 +78,11 @@ export function ClientInsightsTab({ insights }: ClientInsightsTabProps) {
                         <p className="text-sm text-foreground mb-3">{insight.suggestedAction}</p>
                         <div className="flex items-center gap-2">
                           <Button size="sm" data-testid={`button-implement-${insight.id}`}>
-                            <Check className="w-3 h-3 mr-1" />
+                            <span className="material-symbols-outlined text-sm mr-1">check</span>
                             Implement
                           </Button>
                           <Button size="sm" variant="outline" data-testid={`button-later-${insight.id}`}>
-                            <Clock className="w-3 h-3 mr-1" />
+                            <span className="material-symbols-outlined text-sm mr-1">schedule</span>
                             Later
                           </Button>
                         </div>
@@ -92,7 +90,7 @@ export function ClientInsightsTab({ insights }: ClientInsightsTabProps) {
                     )}
 
                     <div className="flex items-center gap-1 text-xs text-muted-foreground pt-1">
-                      <Clock className="w-3 h-3" />
+                      <span className="material-symbols-outlined text-sm">schedule</span>
                       {formatDistanceToNow(new Date(insight.timestamp), { addSuffix: true })}
                     </div>
                   </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { Plus, BookOpen, Users, Clock, BarChart2, MoreVertical, Edit, Copy, Trash2, PlayCircle } from 'lucide-react';
 import { Header } from '../components/header';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +34,7 @@ function ProgramTemplateCard({ template, onEdit, onCreateGroup, onDuplicate, onD
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-md bg-muted">
-              <BookOpen className="w-5 h-5 text-muted-foreground" />
+              <span className="material-symbols-outlined text-xl text-muted-foreground">book_5</span>
             </div>
             <div>
               <CardTitle className="text-base">{template.name}</CardTitle>
@@ -49,20 +48,20 @@ function ProgramTemplateCard({ template, onEdit, onCreateGroup, onDuplicate, onD
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" data-testid={`button-menu-${template.id}`}>
-                  <MoreVertical className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-xl">more_vert</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onEdit}>
-                  <Edit className="w-4 h-4 mr-2" />
+                  <span className="material-symbols-outlined text-xl mr-2">edit</span>
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onDuplicate}>
-                  <Copy className="w-4 h-4 mr-2" />
+                  <span className="material-symbols-outlined text-xl mr-2">content_copy</span>
                   Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <span className="material-symbols-outlined text-xl mr-2">delete</span>
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -75,15 +74,15 @@ function ProgramTemplateCard({ template, onEdit, onCreateGroup, onDuplicate, onD
         
         <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
-            <PlayCircle className="w-4 h-4" />
+            <span className="material-symbols-outlined text-xl">play_circle</span>
             {template.modules.length} modules
           </span>
           <span className="flex items-center gap-1">
-            <Users className="w-4 h-4" />
+            <span className="material-symbols-outlined text-xl">group</span>
             {template.timesUsed} uses
           </span>
           <span className="flex items-center gap-1">
-            <BarChart2 className="w-4 h-4" />
+            <span className="material-symbols-outlined text-xl">monitoring</span>
             {template.avgCompletionRate}%
           </span>
         </div>
@@ -100,7 +99,7 @@ function ProgramTemplateCard({ template, onEdit, onCreateGroup, onDuplicate, onD
           onClick={onCreateGroup}
           data-testid={`button-create-group-${template.id}`}
         >
-          <Users className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-xl mr-2">group</span>
           Create Group from Template
         </Button>
       </CardFooter>
@@ -194,7 +193,7 @@ export default function ProgramTemplates() {
             onClick={() => setLocation('/program-templates/new')}
             data-testid="button-create-template"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <span className="material-symbols-outlined text-xl mr-2">add</span>
             Create Template
           </Button>
         </div>
@@ -202,7 +201,7 @@ export default function ProgramTemplates() {
         {filteredTemplates.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <span className="material-symbols-outlined text-4xl mx-auto mb-4 text-muted-foreground opacity-50 block">book_5</span>
               <h3 className="text-lg font-medium mb-2">No templates found</h3>
               <p className="text-muted-foreground mb-4">
                 {searchQuery
@@ -211,7 +210,7 @@ export default function ProgramTemplates() {
               </p>
               {!searchQuery && (
                 <Button onClick={() => setLocation('/program-templates/new')}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <span className="material-symbols-outlined text-xl mr-2">add</span>
                   Create Template
                 </Button>
               )}

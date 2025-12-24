@@ -1,5 +1,4 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Plus, Zap, BarChart2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ export function ClientDirectivesTab({ directives, onToggle }: ClientDirectivesTa
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Mentor Directives</h3>
         <Button size="sm" data-testid="button-new-directive">
-          <Plus className="w-4 h-4 mr-1" />
+          <span className="material-symbols-outlined text-base mr-1">add</span>
           New Directive
         </Button>
       </div>
@@ -45,7 +44,7 @@ export function ClientDirectivesTab({ directives, onToggle }: ClientDirectivesTa
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1">
                   <div className="flex items-center justify-center w-10 h-10 rounded-md bg-primary/10 flex-shrink-0">
-                    <Zap className="w-5 h-5 text-primary" />
+                    <span className="material-symbols-outlined text-xl text-primary">bolt</span>
                   </div>
                   
                   <div className="flex-1 min-w-0 space-y-2">
@@ -74,7 +73,7 @@ export function ClientDirectivesTab({ directives, onToggle }: ClientDirectivesTa
 
                     <div className="flex items-center gap-4 pt-2">
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <BarChart2 className="w-3 h-3" />
+                        <span className="material-symbols-outlined text-sm">bar_chart</span>
                         Triggered {directive.triggeredCount}x
                       </div>
                       {directive.effectivenessScore && (
@@ -100,7 +99,7 @@ export function ClientDirectivesTab({ directives, onToggle }: ClientDirectivesTa
 
         {directives.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            <Zap className="w-10 h-10 mx-auto mb-3 opacity-50" />
+            <span className="material-symbols-outlined text-4xl mx-auto mb-3 opacity-50 block">bolt</span>
             <p>No directives for this client yet</p>
             <p className="text-sm">Create a directive to automate personalized messages</p>
           </div>

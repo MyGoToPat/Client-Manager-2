@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'wouter';
-import { 
-  ArrowLeft, Save, Plus, Video, FileText, Dumbbell, ClipboardCheck, 
-  MessageSquare, Trash2, ChevronDown, ChevronRight, GripVertical 
-} from 'lucide-react';
 import { Header } from '../components/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,12 +26,12 @@ import { mockProgramTemplates } from '../mocks/program-templates.mock';
 import type { ProgramTemplate, ProgramModule, TemplateDirective } from '../types';
 
 const moduleTypeIcons = {
-  video: Video,
-  pdf: FileText,
-  workout: Dumbbell,
-  quiz: ClipboardCheck,
-  checkin: ClipboardCheck,
-  text: MessageSquare,
+  video: 'videocam',
+  pdf: 'description',
+  workout: 'fitness_center',
+  quiz: 'assignment',
+  checkin: 'fact_check',
+  text: 'chat_bubble',
 };
 
 const moduleTypeLabels = {
@@ -62,9 +58,9 @@ function WeekContentEditor({ week, modules, onAddModule, onRemoveModule }: WeekC
       <CollapsibleTrigger asChild>
         <div className="flex items-center gap-3 p-3 rounded-md bg-muted/50 cursor-pointer hover-elevate">
           {isOpen ? (
-            <ChevronDown className="w-4 h-4" />
+            <span className="material-symbols-outlined text-xl">keyboard_arrow_down</span>
           ) : (
-            <ChevronRight className="w-4 h-4" />
+            <span className="material-symbols-outlined text-xl">keyboard_arrow_right</span>
           )}
           <span className="font-medium">Week {week}</span>
           <Badge variant="secondary" className="ml-auto">
@@ -79,15 +75,15 @@ function WeekContentEditor({ week, modules, onAddModule, onRemoveModule }: WeekC
           </p>
         ) : (
           modules.map((module) => {
-            const Icon = moduleTypeIcons[module.type];
+            const iconName = moduleTypeIcons[module.type];
             return (
               <div 
                 key={module.id}
                 className="flex items-center gap-3 p-2 rounded-md bg-background border"
               >
-                <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                <span className="material-symbols-outlined text-xl text-muted-foreground cursor-grab">drag_indicator</span>
                 <div className="p-1.5 rounded bg-muted">
-                  <Icon className="w-4 h-4 text-muted-foreground" />
+                  <span className="material-symbols-outlined text-xl text-muted-foreground">{iconName}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{module.title}</p>
@@ -102,7 +98,7 @@ function WeekContentEditor({ week, modules, onAddModule, onRemoveModule }: WeekC
                   size="icon"
                   onClick={() => onRemoveModule(module.id)}
                 >
-                  <Trash2 className="w-4 h-4 text-muted-foreground" />
+                  <span className="material-symbols-outlined text-xl text-muted-foreground">delete</span>
                 </Button>
               </div>
             );
@@ -114,7 +110,7 @@ function WeekContentEditor({ week, modules, onAddModule, onRemoveModule }: WeekC
           className="w-full" 
           onClick={onAddModule}
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <span className="material-symbols-outlined text-xl mr-2">add</span>
           Add Module
         </Button>
       </CollapsibleContent>
@@ -232,7 +228,7 @@ export default function ProgramTemplateBuilder() {
               onClick={() => setLocation('/program-templates')}
               data-testid="button-back"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </Button>
             <div>
               <h1 className="text-2xl font-bold">
@@ -244,7 +240,7 @@ export default function ProgramTemplateBuilder() {
             </div>
           </div>
           <Button onClick={handleSave} data-testid="button-save-template">
-            <Save className="w-4 h-4 mr-2" />
+            <span className="material-symbols-outlined text-xl mr-2">save</span>
             Save Template
           </Button>
         </div>
@@ -352,13 +348,13 @@ export default function ProgramTemplateBuilder() {
                     size="icon"
                     onClick={() => handleRemoveDirective(directive.id)}
                   >
-                    <Trash2 className="w-4 h-4 text-muted-foreground" />
+                    <span className="material-symbols-outlined text-xl text-muted-foreground">delete</span>
                   </Button>
                 </div>
               ))
             )}
             <Button variant="outline" onClick={handleAddDirective}>
-              <Plus className="w-4 h-4 mr-2" />
+              <span className="material-symbols-outlined text-xl mr-2">add</span>
               Add Directive
             </Button>
           </CardContent>

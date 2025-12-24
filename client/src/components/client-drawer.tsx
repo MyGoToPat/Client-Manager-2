@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { X, Mail, Phone, Calendar, Target, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -146,12 +145,12 @@ export function ClientDrawer() {
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
+                        <span className="material-symbols-outlined text-base">mail</span>
                         {client.email}
                       </span>
                       {client.phone && (
                         <span className="flex items-center gap-1">
-                          <Phone className="w-3 h-3" />
+                          <span className="material-symbols-outlined text-base">phone</span>
                           {client.phone}
                         </span>
                       )}
@@ -160,10 +159,10 @@ export function ClientDrawer() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="icon" data-testid="button-edit-client">
-                    <Edit2 className="w-4 h-4" />
+                    <span className="material-symbols-outlined text-base">edit</span>
                   </Button>
                   <Button variant="ghost" size="icon" onClick={handleClose} data-testid="button-close-drawer">
-                    <X className="w-4 h-4" />
+                    <span className="material-symbols-outlined text-base">close</span>
                   </Button>
                 </div>
               </div>

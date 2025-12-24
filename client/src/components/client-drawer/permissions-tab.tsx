@@ -1,6 +1,4 @@
-import { Shield, Dumbbell, Apple, Moon, MessageCircle, Camera, Activity } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -15,34 +13,34 @@ interface ClientPermissionsTabProps {
   permissions: ClientPermission[];
 }
 
-const categoryConfig: Record<ClientPermission['dataCategory'], { icon: React.ElementType; label: string; description: string }> = {
+const categoryConfig: Record<ClientPermission['dataCategory'], { icon: string; label: string; description: string }> = {
   workout: { 
-    icon: Dumbbell, 
+    icon: 'fitness_center', 
     label: 'Workout Data', 
     description: 'Exercise logs, sets, reps, and workout history' 
   },
   nutrition: { 
-    icon: Apple, 
+    icon: 'restaurant', 
     label: 'Nutrition Logs', 
     description: 'Food diary, macros, and meal tracking' 
   },
   sleep: { 
-    icon: Moon, 
+    icon: 'bedtime', 
     label: 'Sleep Tracking', 
     description: 'Sleep duration, quality, and patterns' 
   },
   chat: { 
-    icon: MessageCircle, 
+    icon: 'chat', 
     label: 'Chat History', 
     description: 'Conversations with Pat AI assistant' 
   },
   progress_photos: { 
-    icon: Camera, 
+    icon: 'photo_camera', 
     label: 'Progress Photos', 
     description: 'Before/after and progress images' 
   },
   body_metrics: { 
-    icon: Activity, 
+    icon: 'trending_up', 
     label: 'Body Metrics', 
     description: 'Weight, body fat, measurements' 
   },
@@ -59,14 +57,13 @@ export function ClientPermissionsTab({ permissions }: ClientPermissionsTabProps)
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Shield className="w-4 h-4" />
+        <span className="material-symbols-outlined text-base">shield</span>
         <span>Control what data you can access for this client</span>
       </div>
 
       <div className="space-y-3">
         {permissions.map((permission) => {
           const config = categoryConfig[permission.dataCategory];
-          const Icon = config.icon;
           const isEnabled = permission.accessLevel !== 'none';
 
           return (
@@ -78,7 +75,9 @@ export function ClientPermissionsTab({ permissions }: ClientPermissionsTabProps)
                       'flex items-center justify-center w-10 h-10 rounded-md flex-shrink-0',
                       isEnabled ? 'bg-primary/10' : 'bg-muted'
                     )}>
-                      <Icon className={cn('w-5 h-5', isEnabled ? 'text-primary' : 'text-muted-foreground')} />
+                      <span className={cn('material-symbols-outlined text-xl', isEnabled ? 'text-primary' : 'text-muted-foreground')}>
+                        {config.icon}
+                      </span>
                     </div>
                     
                     <div className="flex-1 min-w-0">

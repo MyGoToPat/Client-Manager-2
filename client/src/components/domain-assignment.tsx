@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Dumbbell, Apple, Brain, Bot, User, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,9 +18,9 @@ interface DomainAssignmentProps {
 }
 
 const domainConfig = {
-  workout: { icon: Dumbbell, label: 'Workout', color: 'text-chart-1 bg-chart-1/10' },
-  nutrition: { icon: Apple, label: 'Nutrition', color: 'text-chart-2 bg-chart-2/10' },
-  mindset: { icon: Brain, label: 'Mindset', color: 'text-chart-4 bg-chart-4/10' },
+  workout: { icon: 'fitness_center', label: 'Workout', color: 'text-chart-1 bg-chart-1/10' },
+  nutrition: { icon: 'restaurant', label: 'Nutrition', color: 'text-chart-2 bg-chart-2/10' },
+  mindset: { icon: 'psychology', label: 'Mindset', color: 'text-chart-4 bg-chart-4/10' },
 };
 
 const mockMentors = [
@@ -96,7 +95,6 @@ export function DomainAssignmentCard({ clientId }: DomainAssignmentProps) {
       <CardContent className="space-y-3">
         {assignments.map((assignment) => {
           const config = domainConfig[assignment.domain];
-          const Icon = config.icon;
           const isPat = assignment.handlerType === 'pat';
 
           return (
@@ -106,7 +104,7 @@ export function DomainAssignmentCard({ clientId }: DomainAssignmentProps) {
             >
               <div className="flex items-center gap-3">
                 <div className={cn('flex items-center justify-center w-9 h-9 rounded-md', config.color)}>
-                  <Icon className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-base">{config.icon}</span>
                 </div>
                 <span className="font-medium text-sm">{config.label}</span>
               </div>
@@ -121,16 +119,16 @@ export function DomainAssignmentCard({ clientId }: DomainAssignmentProps) {
                   >
                     {isPat ? (
                       <>
-                        <Bot className="w-4 h-4 text-primary" />
+                        <span className="material-symbols-outlined text-base text-primary">smart_toy</span>
                         <span>Pat AI</span>
                       </>
                     ) : (
                       <>
-                        <User className="w-4 h-4" />
+                        <span className="material-symbols-outlined text-base">person</span>
                         <span>{assignment.handlerName || 'Mentor'}</span>
                       </>
                     )}
-                    <ChevronDown className="w-3 h-3 ml-1" />
+                    <span className="material-symbols-outlined text-sm ml-1">expand_more</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -138,7 +136,7 @@ export function DomainAssignmentCard({ clientId }: DomainAssignmentProps) {
                     onClick={() => handleAssignmentChange(assignment.id, 'pat')}
                     className="gap-2"
                   >
-                    <Bot className="w-4 h-4 text-primary" />
+                    <span className="material-symbols-outlined text-base text-primary">smart_toy</span>
                     <div className="flex flex-col">
                       <span>Pat AI</span>
                       <span className="text-xs text-muted-foreground">24/7 AI assistant</span>
@@ -156,7 +154,7 @@ export function DomainAssignmentCard({ clientId }: DomainAssignmentProps) {
                       )}
                       className="gap-2"
                     >
-                      <User className="w-4 h-4" />
+                      <span className="material-symbols-outlined text-base">person</span>
                       <span>{mentor.name}</span>
                     </DropdownMenuItem>
                   ))}

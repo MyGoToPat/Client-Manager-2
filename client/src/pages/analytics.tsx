@@ -5,7 +5,6 @@ import { MetricCard } from '../components/metric-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Users, Target, Zap } from 'lucide-react';
 import { clientsService, directivesService } from '../services';
 import type { Client, MentorDirective } from '../types';
 
@@ -86,25 +85,25 @@ export default function Analytics() {
                 label="Total Clients"
                 value={clients.length}
                 trend={12}
-                icon={<Users className="w-5 h-5" />}
+                icon="group"
               />
               <MetricCard
                 label="Avg Progress"
                 value={`${Math.round(clients.reduce((sum, c) => sum + c.progress, 0) / clients.length)}%`}
                 trend={5}
-                icon={<Target className="w-5 h-5" />}
+                icon="target"
               />
               <MetricCard
                 label="Directives Triggered"
                 value={totalTriggers}
                 trend={18}
-                icon={<Zap className="w-5 h-5" />}
+                icon="bolt"
               />
               <MetricCard
                 label="Avg Effectiveness"
                 value={`${avgEffectiveness.toFixed(2)}%`}
                 trend={3}
-                icon={<TrendingUp className="w-5 h-5" />}
+                icon="trending_up"
               />
             </div>
 
@@ -227,23 +226,22 @@ export default function Analytics() {
                           .sort((a, b) => (b.effectivenessScore || 0) - (a.effectivenessScore || 0))
                           .slice(0, 5)
                           .map((directive, index) => (
-                            <div key={directive.id} className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm font-mono text-muted-foreground w-4">
-                                  {index + 1}.
-                                </span>
-                                <div>
-                                  <p className="text-sm font-medium">{directive.name}</p>
-                                  <p className="text-xs text-muted-foreground capitalize">
-                                    {directive.category} - {directive.triggeredCount} triggers
-                                  </p>
-                                </div>
+                            <div key={directive.id} className="flex items-center gap-3">
+                              <div className="text-xs font-mono text-muted-foreground w-4">
+                                #{index + 1}
                               </div>
-                              <span className="text-sm font-mono font-bold text-chart-4">
-                                {(directive.effectivenessScore || 0).toFixed(2)}%
-                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{directive.name}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{directive.category}</p>
+                              </div>
+                              <div className="text-sm font-mono font-medium text-chart-2">
+                                {directive.effectivenessScore}%
+                              </div>
                             </div>
                           ))}
+                        {directives.filter(d => d.effectivenessScore).length === 0 && (
+                          <p className="text-sm text-muted-foreground">No effectiveness data available yet.</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
