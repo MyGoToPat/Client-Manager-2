@@ -363,12 +363,21 @@ export interface NeedsAttentionClient {
 }
 
 // Program Template Types
+export type PatInsightType = 'positive' | 'optimization' | 'data_trend';
+
+export interface PatInsight {
+  type: PatInsightType;
+  label: string;
+  message: string;
+}
+
 export interface ProgramTemplate {
   id: string;
   mentorId: string;
   name: string;
   description: string;
   coverImage?: string;
+  coverGradient?: string;
   durationWeeks: number;
   modules: ProgramModule[];
   directives: TemplateDirective[];
@@ -377,6 +386,8 @@ export interface ProgramTemplate {
   price?: number;
   timesUsed: number;
   avgCompletionRate: number;
+  activeUsers: number;
+  patInsight?: PatInsight;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
