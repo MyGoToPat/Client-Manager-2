@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Search, Bell, Plus, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -26,20 +25,22 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange,
   const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between gap-4 p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 flex items-center justify-between gap-4 px-6 py-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-4">
         <SidebarTrigger data-testid="button-sidebar-toggle" />
-        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+        <h1 className="text-xl font-bold text-foreground">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-4 flex-1 max-w-2xl mx-4">
+      <div className="flex items-center gap-4 flex-1 max-w-xl mx-4">
         {onSearchChange && (
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xl">
+              search
+            </span>
             <Input
               type="search"
-              placeholder="Search clients..."
-              className="pl-10 w-full"
+              placeholder="Search clients or sessions..."
+              className="pl-10 w-full bg-muted border-border"
               value={searchValue}
               onChange={(e) => onSearchChange(e.target.value)}
               data-testid="input-search"
@@ -50,18 +51,18 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange,
 
       <div className="flex items-center gap-2">
         {onAskPat && (
-          <Button variant="outline" onClick={onAskPat} data-testid="button-ask-pat">
-            <Bot className="w-4 h-4 mr-2" />
+          <Button variant="outline" onClick={onAskPat} data-testid="button-ask-pat" className="gap-2">
+            <span className="material-symbols-outlined text-lg">smart_toy</span>
             Ask Pat
-            <kbd className="ml-2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            <kbd className="ml-1 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="text-xs">Cmd</span>K
             </kbd>
           </Button>
         )}
 
         {showInvite && (
-          <Button onClick={() => setInviteOpen(true)} data-testid="button-invite-client">
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={() => setInviteOpen(true)} data-testid="button-invite-client" className="gap-2">
+            <span className="material-symbols-outlined text-lg">person_add</span>
             Invite Client
           </Button>
         )}
@@ -69,7 +70,7 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange,
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative" data-testid="button-notifications">
-              <Bell className="w-5 h-5" />
+              <span className="material-symbols-outlined text-xl">notifications</span>
               <Badge 
                 variant="destructive" 
                 className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
@@ -79,22 +80,38 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange,
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuLabel className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">notifications</span>
+              Notifications
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-              <span className="font-medium text-sm">New client signup</span>
-              <span className="text-xs text-muted-foreground">David Thompson joined via your referral link</span>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-base">person_add</span>
+                <span className="font-medium text-sm">New client signup</span>
+              </div>
+              <span className="text-xs text-muted-foreground ml-6">David Thompson joined via your referral link</span>
             </DropdownMenuItem>
             <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-              <span className="font-medium text-sm">Directive triggered</span>
-              <span className="text-xs text-muted-foreground">Post-Workout Protein Reminder sent to Sarah</span>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-chart-4 text-base">bolt</span>
+                <span className="font-medium text-sm">Directive triggered</span>
+              </div>
+              <span className="text-xs text-muted-foreground ml-6">Post-Workout Protein Reminder sent to Sarah</span>
             </DropdownMenuItem>
             <DropdownMenuItem className="flex flex-col items-start gap-1 py-3">
-              <span className="font-medium text-sm">Client at risk</span>
-              <span className="text-xs text-muted-foreground">Emily Rodriguez hasn't logged in for 7 days</span>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-destructive text-base">warning</span>
+                <span className="font-medium text-sm">Client at risk</span>
+              </div>
+              <span className="text-xs text-muted-foreground ml-6">Emily Rodriguez hasn't logged in for 7 days</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Button variant="ghost" size="icon" data-testid="button-settings">
+          <span className="material-symbols-outlined text-xl">settings</span>
+        </Button>
       </div>
 
       <InviteClientDialog open={inviteOpen} onOpenChange={setInviteOpen} />
