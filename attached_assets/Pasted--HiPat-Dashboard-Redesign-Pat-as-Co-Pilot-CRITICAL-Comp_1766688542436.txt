@@ -1,0 +1,1306 @@
+# HiPat Dashboard Redesign: Pat as Co-Pilot
+
+## CRITICAL: Complete Dashboard Transformation
+
+The current dashboard is business-centric (revenue, ratings, scores). We're transforming it into **Pat briefing the mentor** - a personal chief of staff experience.
+
+**Current:** Metrics and charts
+**New:** Pat's contextual daily briefing with actionable insights
+
+---
+
+## TASK 1: New Dashboard Layout Structure
+
+### File: `client/src/pages/dashboard.tsx`
+
+**COMPLETE REPLACEMENT** - Delete existing content and rebuild with this structure:
+
+```tsx
+import { useState, useEffect } from 'react';
+import { Header } from '@/components/header';
+import { ClientDrawer } from '@/components/client-drawer';
+import { useStore } from '@/store/useStore';
+import { useAskPat } from '@/App';
+import { 
+  PatGreeting,
+  TodaysSessions,
+  NeedsAttention,
+  Celebrations,
+  ActivitySummary 
+} from '@/components/dashboard';
+import { 
+  mockDashboardBriefing,
+  getDashboardBriefing 
+} from '@/mocks/dashboard-briefing.mock';
+
+export default function Dashboard() {
+  const { setSelectedClientId } = useStore();
+  const { openAskPat } = useAskPat();
+  const [briefing, setBriefing] = useState(mockDashboardBriefing);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading briefing from Pat
+    const loadBriefing = async () => {
+      setIsLoading(true);
+      // In production, this would call Pat's analysis engine
+      const data = await getDashboardBriefing();
+      setBriefing(data);
+      setIsLoading(false);
+    };
+    loadBriefing();
+  }, []);
+
+  const handleViewClient = (clientId: string) => {
+    setSelectedClientId(clientId);
+  };
+
+  const handleMessageClient = (clientId: string) => {
+    // Open message modal or drawer
+    setSelectedClientId(clientId);
+  };
+
+  const handleAdjustPlan = (clientId: string, type: 'macros' | 'workout') => {
+    // Open adjustment modal
+    setSelectedClientId(clientId);
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header title="Dashboard" onAskPat={openAskPat} />
+
+      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+        <div className="max-w-5xl mx-auto space-y-6">
+          
+          {/* Pat's Greeting */}
+          <PatGreeting 
+            briefing={briefing}
+            isLoading={isLoading}
+          />
+
+          {/* Today's Sessions (if any) */}
+          {briefing.todaysSessions.length > 0 && (
+            <TodaysSessions 
+              sessions={briefing.todaysSessions}
+              onViewClient={handleViewClient}
+              onAdjustPlan={handleAdjustPlan}
+              onMessageClient={handleMessageClient}
+            />
+          )}
+
+          {/* Needs Your Attention */}
+          {briefing.needsAttention.length > 0 && (
+            <NeedsAttention 
+              items={briefing.needsAttention}
+              onViewClient={handleViewClient}
+              onMessageClient={handleMessageClient}
+              onAdjustPlan={handleAdjustPlan}
+            />
+          )}
+
+          {/* Worth Celebrating */}
+          {briefing.celebrations.length > 0 && (
+            <Celebrations 
+              items={briefing.celebrations}
+              onViewClient={handleViewClient}
+              onCelebrate={handleMessageClient}
+            />
+          )}
+
+          {/* Activity Summary */}
+          <ActivitySummary 
+            summary={briefing.activitySummary}
+          />
+
+        </div>
+      </main>
+
+      <ClientDrawer />
+    </div>
+  );
+}
+```
+
+---
+
+## TASK 2: Dashboard Briefing Types
+
+### File: `client/src/types/index.ts`
+
+**ADD** these new types at the end of the file:
+
+```typescript
+// ============================================
+// PAT'S DASHBOARD BRIEFING TYPES
+// ============================================
+
+export interface DashboardBriefing {
+  greeting: string;
+  subGreeting: string;
+  clientSummary: {
+    total: number;
+    healthy: number;
+    needsAttention: number;
+  };
+  todaysSessions: SessionBriefing[];
+  needsAttention: AttentionItem[];
+  celebrations: CelebrationItem[];
+  activitySummary: ActivitySummary;
+  generatedAt: Date;
+}
+
+export interface SessionBriefing {
+  id: string;
+  time: string;
+  client: Client;
+  sessionType: string;
+  location: 'in_person' | 'zoom' | 'google_meet';
+  clientStatus: 'thriving' | 'steady' | 'struggling';
+  statusColor: 'green' | 'yellow' | 'red';
+  recentHighlights: string[];
+  concerns?: string[];
+  patSuggestions: string[];
+  todaysWorkout?: {
+    name: string;
+    exercises: { name: string; sets: number; reps: number; weight?: string }[];
+  };
+}
+
+export interface AttentionItem {
+  id: string;
+  client: Client;
+  urgency: 'urgent' | 'attention' | 'monitor';
+  urgencyColor: 'red' | 'yellow' | 'blue';
+  headline: string;
+  observation: string;
+  clientSaid?: string;
+  pattern?: string;
+  patSuggestion: string;
+  suggestedActions: {
+    label: string;
+    action: 'message' | 'view' | 'adjust_macros' | 'adjust_workout' | 'call';
+    primary?: boolean;
+  }[];
+  daysInactive?: number;
+  compliancePercent?: number;
+}
+
+export interface CelebrationItem {
+  id: string;
+  client: Client;
+  type: 'pr' | 'streak' | 'goal_progress' | 'milestone' | 'consistency';
+  icon: string;
+  headline: string;
+  details: string;
+  patAlreadyDid?: string;
+  timestamp: Date;
+}
+
+export interface ActivitySummary {
+  workouts: {
+    completed: number;
+    remaining: number;
+    skipped: number;
+  };
+  nutrition: {
+    logged: number;
+    expected: number;
+    onTarget: number;
+  };
+  recentActivity: {
+    clientId: string;
+    clientName: string;
+    action: string;
+    timestamp: Date;
+  }[];
+}
+```
+
+---
+
+## TASK 3: Dashboard Briefing Mock Data
+
+### File: `client/src/mocks/dashboard-briefing.mock.ts`
+
+**CREATE** this new file:
+
+```typescript
+import { DashboardBriefing, SessionBriefing, AttentionItem, CelebrationItem } from '@/types';
+import { mockClients } from './clients.mock';
+
+// Helper to get time of day greeting
+const getTimeGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+// Helper to get mentor name from store (mock for now)
+const getMentorName = (): string => 'Coach Alex';
+
+export const mockDashboardBriefing: DashboardBriefing = {
+  greeting: `${getTimeGreeting()}, ${getMentorName()}.`,
+  subGreeting: "You have 47 clients. 38 are doing great, but I need your eyes on 3.",
+  clientSummary: {
+    total: 47,
+    healthy: 38,
+    needsAttention: 3,
+  },
+  todaysSessions: [
+    {
+      id: 'session-1',
+      time: '10:00 AM',
+      client: mockClients[0], // Sarah Johnson
+      sessionType: 'Upper Body Strength',
+      location: 'in_person',
+      clientStatus: 'thriving',
+      statusColor: 'green',
+      recentHighlights: [
+        '7-day workout streak',
+        'Hit bench PR yesterday (135 lbs, +10 lbs)',
+        'Nutrition compliance: 92%'
+      ],
+      patSuggestions: [
+        'She\'s ready to push. Consider progressive overload on compound lifts.',
+        'Perfect day to test overhead press progression.'
+      ],
+      todaysWorkout: {
+        name: 'Upper Body A',
+        exercises: [
+          { name: 'Bench Press', sets: 4, reps: 6, weight: '115 lbs' },
+          { name: 'Overhead Press', sets: 3, reps: 8, weight: '65 lbs' },
+          { name: 'Barbell Row', sets: 4, reps: 8, weight: '95 lbs' },
+          { name: 'Lateral Raises', sets: 3, reps: 12, weight: '15 lbs' },
+          { name: 'Tricep Pushdowns', sets: 3, reps: 12 },
+        ]
+      }
+    },
+    {
+      id: 'session-2',
+      time: '2:30 PM',
+      client: mockClients[1], // Michael Chen
+      sessionType: 'Progress Check-in',
+      location: 'zoom',
+      clientStatus: 'struggling',
+      statusColor: 'yellow',
+      recentHighlights: [],
+      concerns: [
+        'Missed 2 of 4 planned workouts this week',
+        'Protein averaging 120g (target: 160g)',
+        'Told Pat on Tuesday: "Work has been crazy"'
+      ],
+      patSuggestions: [
+        'Consider reducing workout frequency from 4x to 3x per week temporarily.',
+        'Discuss quick protein wins: Greek yogurt, ready-to-drink shakes.',
+        'Help him set a realistic schedule for the next 2 weeks.'
+      ],
+    },
+    {
+      id: 'session-3',
+      time: '5:00 PM',
+      client: mockClients[3], // Lisa Park (assuming exists)
+      sessionType: 'Lower Body',
+      location: 'in_person',
+      clientStatus: 'thriving',
+      statusColor: 'green',
+      recentHighlights: [
+        '30-day workout streak! 🔥',
+        'Most consistent client this month',
+        'Readiness score: High (good sleep, low stress)'
+      ],
+      patSuggestions: [
+        'Perfect day to test her squat 1RM if she\'s interested.',
+        'Last tested 3 months ago: 185 lbs'
+      ],
+      todaysWorkout: {
+        name: 'Lower Body A',
+        exercises: [
+          { name: 'Barbell Squat', sets: 4, reps: 5, weight: '155 lbs' },
+          { name: 'Romanian Deadlift', sets: 3, reps: 8, weight: '135 lbs' },
+          { name: 'Walking Lunges', sets: 3, reps: 12 },
+          { name: 'Leg Curl', sets: 3, reps: 12 },
+        ]
+      }
+    }
+  ],
+  needsAttention: [
+    {
+      id: 'attention-1',
+      client: mockClients[2], // Emily Rodriguez
+      urgency: 'urgent',
+      urgencyColor: 'red',
+      headline: 'No activity in 7 days',
+      observation: 'Emily hasn\'t logged a workout in 7 days. This is unusual - she typically misses 1-2 days maximum.',
+      clientSaid: '"I\'m feeling overwhelmed with work, might need to take a break"',
+      pattern: 'Her last period of inactivity (5 days) was followed by her dropping off entirely for a month before returning.',
+      patSuggestion: 'A quick voice note or text might help. Something supportive, not pressuring. She responds well to understanding.',
+      suggestedActions: [
+        { label: 'Send Voice Note', action: 'message', primary: true },
+        { label: 'Send Text', action: 'message' },
+        { label: 'View Profile', action: 'view' },
+        { label: 'Adjust Plan', action: 'adjust_workout' },
+      ],
+      daysInactive: 7,
+      compliancePercent: 23,
+    },
+    {
+      id: 'attention-2',
+      client: mockClients[4], // James Wilson
+      urgency: 'attention',
+      urgencyColor: 'yellow',
+      headline: 'Protein intake 40% below target',
+      observation: 'James has been under his protein target for 5 consecutive days. I noticed he\'s been eating out frequently - 4 restaurant meals yesterday alone.',
+      clientSaid: undefined,
+      pattern: 'When I suggested meal prep, he said he doesn\'t have time to cook. His compliance drops every time he travels for work.',
+      patSuggestion: 'His current protein target (180g) might be too aggressive for his lifestyle. Consider lowering to 150g - more achievable and he\'ll feel less like he\'s failing.',
+      suggestedActions: [
+        { label: 'Adjust Macros', action: 'adjust_macros', primary: true },
+        { label: 'Message James', action: 'message' },
+        { label: 'View Nutrition Log', action: 'view' },
+      ],
+      compliancePercent: 58,
+    },
+    {
+      id: 'attention-3',
+      client: mockClients[5] || mockClients[0], // Marcus Thompson or fallback
+      urgency: 'monitor',
+      urgencyColor: 'blue',
+      headline: 'Declining readiness scores',
+      observation: 'Marcus\'s readiness scores have dropped from 8 to 5 over the past week. Sleep quality is declining.',
+      pattern: 'He hasn\'t mentioned anything specific, but the pattern suggests stress or life changes affecting his recovery.',
+      patSuggestion: 'Worth checking in casually. Could be work stress, relationship issues, or just a tough week. Don\'t make it about fitness.',
+      suggestedActions: [
+        { label: 'Casual Check-in', action: 'message', primary: true },
+        { label: 'View Readiness History', action: 'view' },
+      ],
+    }
+  ],
+  celebrations: [
+    {
+      id: 'celebration-1',
+      client: mockClients[0], // Sarah Johnson
+      type: 'pr',
+      icon: '🏆',
+      headline: 'New PR! Bench Press: 135 lbs',
+      details: 'Up 10 lbs from her previous best. She\'s been working toward this for 6 weeks.',
+      patAlreadyDid: 'I sent her a celebration message and updated her PR log.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    },
+    {
+      id: 'celebration-2',
+      client: mockClients[3] || mockClients[1], // Lisa Park
+      type: 'streak',
+      icon: '🔥',
+      headline: '30-day workout streak!',
+      details: 'Lisa hasn\'t missed a single planned workout in a month. She\'s your most consistent client.',
+      patAlreadyDid: 'I acknowledged her streak and gave her a virtual high-five.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+    },
+    {
+      id: 'celebration-3',
+      client: mockClients[4] || mockClients[2], // David Thompson
+      type: 'goal_progress',
+      icon: '📉',
+      headline: 'Lost 8 lbs this month!',
+      details: 'David is on track for his 20 lb weight loss goal. At this pace, he\'ll hit it in 5 weeks.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
+    }
+  ],
+  activitySummary: {
+    workouts: {
+      completed: 12,
+      remaining: 6,
+      skipped: 3,
+    },
+    nutrition: {
+      logged: 28,
+      expected: 47,
+      onTarget: 24,
+    },
+    recentActivity: [
+      {
+        clientId: 'client-1',
+        clientName: 'Sarah Johnson',
+        action: 'completed "Upper Body Strength"',
+        timestamp: new Date(Date.now() - 1000 * 60 * 45), // 45 min ago
+      },
+      {
+        clientId: 'client-2',
+        clientName: 'Michael Chen',
+        action: 'logged breakfast (520 cal)',
+        timestamp: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
+      },
+      {
+        clientId: 'client-3',
+        clientName: 'Lisa Park',
+        action: 'hit 30-day workout streak! 🔥',
+        timestamp: new Date(Date.now() - 1000 * 60 * 180), // 3 hours ago
+      },
+      {
+        clientId: 'client-4',
+        clientName: 'David Thompson',
+        action: 'asked Pat about protein timing',
+        timestamp: new Date(Date.now() - 1000 * 60 * 240), // 4 hours ago
+      },
+    ]
+  },
+  generatedAt: new Date(),
+};
+
+// Simulated API call
+export const getDashboardBriefing = (): Promise<DashboardBriefing> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Update greeting based on current time
+      const updatedBriefing = {
+        ...mockDashboardBriefing,
+        greeting: `${getTimeGreeting()}, ${getMentorName()}.`,
+        generatedAt: new Date(),
+      };
+      resolve(updatedBriefing);
+    }, 500);
+  });
+};
+```
+
+---
+
+## TASK 4: Pat's Greeting Component
+
+### File: `client/src/components/dashboard/pat-greeting.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { DashboardBriefing } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
+interface PatGreetingProps {
+  briefing: DashboardBriefing;
+  isLoading: boolean;
+}
+
+export function PatGreeting({ briefing, isLoading }: PatGreetingProps) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-5 w-96" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-4">
+      {/* Pat's Avatar */}
+      <div className="hidden sm:block">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <span className="material-symbols-outlined text-white text-2xl">smart_toy</span>
+        </div>
+      </div>
+      
+      <div className="flex-1">
+        {/* Main Greeting */}
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+          {briefing.greeting}
+        </h1>
+        
+        {/* Sub-greeting with client summary */}
+        <p className="text-slate-600 dark:text-slate-300 mt-1 text-base md:text-lg">
+          {briefing.subGreeting}
+        </p>
+        
+        {/* Quick stats pills */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            {briefing.clientSummary.healthy} doing great
+          </span>
+          {briefing.clientSummary.needsAttention > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              {briefing.clientSummary.needsAttention} need attention
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## TASK 5: Today's Sessions Component
+
+### File: `client/src/components/dashboard/todays-sessions.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { SessionBriefing } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+
+interface TodaysSessionsProps {
+  sessions: SessionBriefing[];
+  onViewClient: (clientId: string) => void;
+  onAdjustPlan: (clientId: string, type: 'macros' | 'workout') => void;
+  onMessageClient: (clientId: string) => void;
+}
+
+export function TodaysSessions({ sessions, onViewClient, onAdjustPlan, onMessageClient }: TodaysSessionsProps) {
+  const getLocationIcon = (location: string) => {
+    switch (location) {
+      case 'zoom': return 'videocam';
+      case 'google_meet': return 'video_call';
+      default: return 'location_on';
+    }
+  };
+
+  const getLocationLabel = (location: string) => {
+    switch (location) {
+      case 'zoom': return 'Zoom';
+      case 'google_meet': return 'Google Meet';
+      default: return 'In-Person';
+    }
+  };
+
+  const getStatusBadge = (status: string, color: string) => {
+    const colorClasses = {
+      green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+      yellow: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+      red: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    };
+    
+    const icons = {
+      thriving: '🔥',
+      steady: '👍',
+      struggling: '⚠️',
+    };
+    
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${colorClasses[color as keyof typeof colorClasses]}`}>
+        {icons[status as keyof typeof icons]} {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="material-symbols-outlined text-slate-400">calendar_today</span>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          Your Sessions Today
+        </h2>
+        <Badge variant="secondary" className="ml-2">{sessions.length}</Badge>
+      </div>
+
+      <div className="space-y-4">
+        {sessions.map((session) => (
+          <Card key={session.id} className="overflow-hidden border-l-4" style={{
+            borderLeftColor: session.statusColor === 'green' ? '#10b981' : session.statusColor === 'yellow' ? '#f59e0b' : '#ef4444'
+          }}>
+            <CardContent className="p-4 md:p-5">
+              {/* Session Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {session.client.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {session.time}
+                      </span>
+                      <span className="text-slate-400">•</span>
+                      <span className="font-medium text-slate-900 dark:text-white">
+                        {session.client.name}
+                      </span>
+                      {getStatusBadge(session.clientStatus, session.statusColor)}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                      <span>{session.sessionType}</span>
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">{getLocationIcon(session.location)}</span>
+                        {getLocationLabel(session.location)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Highlights or Concerns */}
+              {session.recentHighlights.length > 0 && (
+                <div className="mb-4 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-600 dark:text-emerald-400 text-lg">🔥</span>
+                    <div>
+                      <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1">On fire this week:</p>
+                      <ul className="text-sm text-emerald-700 dark:text-emerald-400 space-y-0.5">
+                        {session.recentHighlights.map((highlight, i) => (
+                          <li key={i}>• {highlight}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {session.concerns && session.concerns.length > 0 && (
+                <div className="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-start gap-2">
+                    <span className="text-amber-600 dark:text-amber-400 text-lg">⚠️</span>
+                    <div>
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Heads up:</p>
+                      <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-0.5">
+                        {session.concerns.map((concern, i) => (
+                          <li key={i}>• {concern}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pat's Suggestions */}
+              {session.patSuggestions.length > 0 && (
+                <div className="mb-4 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400">lightbulb</span>
+                    <div>
+                      <p className="text-sm font-medium text-indigo-800 dark:text-indigo-300 mb-1">Pat's suggestions:</p>
+                      <ul className="text-sm text-indigo-700 dark:text-indigo-400 space-y-0.5">
+                        {session.patSuggestions.map((suggestion, i) => (
+                          <li key={i}>• {suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Today's Workout Preview */}
+              {session.todaysWorkout && (
+                <div className="mb-4 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Today's Workout: {session.todaysWorkout.name}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm text-slate-600 dark:text-slate-400">
+                    {session.todaysWorkout.exercises.slice(0, 4).map((ex, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-slate-400">•</span>
+                        <span>{ex.name}</span>
+                        <span className="text-slate-400">
+                          {ex.sets}×{ex.reps}
+                          {ex.weight && ` @ ${ex.weight}`}
+                        </span>
+                      </div>
+                    ))}
+                    {session.todaysWorkout.exercises.length > 4 && (
+                      <div className="text-slate-400 text-xs">
+                        + {session.todaysWorkout.exercises.length - 4} more exercises
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => onViewClient(session.client.id)}
+                >
+                  <span className="material-symbols-outlined text-base mr-1">person</span>
+                  Open Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onAdjustPlan(session.client.id, 'workout')}
+                >
+                  <span className="material-symbols-outlined text-base mr-1">edit_note</span>
+                  Adjust Workout
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onMessageClient(session.client.id)}
+                >
+                  <span className="material-symbols-outlined text-base mr-1">chat</span>
+                  Message
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## TASK 6: Needs Attention Component
+
+### File: `client/src/components/dashboard/needs-attention.tsx`
+
+**REPLACE** the existing file with:
+
+```tsx
+import { AttentionItem } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+
+interface NeedsAttentionProps {
+  items: AttentionItem[];
+  onViewClient: (clientId: string) => void;
+  onMessageClient: (clientId: string) => void;
+  onAdjustPlan: (clientId: string, type: 'macros' | 'workout') => void;
+}
+
+export function NeedsAttention({ items, onViewClient, onMessageClient, onAdjustPlan }: NeedsAttentionProps) {
+  const getUrgencyStyles = (urgency: string, color: string) => {
+    const styles = {
+      urgent: {
+        border: 'border-l-red-500',
+        bg: 'bg-red-50 dark:bg-red-900/10',
+        icon: '🔴',
+        label: 'Urgent',
+        labelClass: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+      },
+      attention: {
+        border: 'border-l-amber-500',
+        bg: 'bg-amber-50 dark:bg-amber-900/10',
+        icon: '🟡',
+        label: 'Attention',
+        labelClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+      },
+      monitor: {
+        border: 'border-l-blue-500',
+        bg: 'bg-blue-50 dark:bg-blue-900/10',
+        icon: '🔵',
+        label: 'Monitor',
+        labelClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+      },
+    };
+    return styles[urgency as keyof typeof styles] || styles.monitor;
+  };
+
+  const handleAction = (item: AttentionItem, action: string) => {
+    switch (action) {
+      case 'message':
+        onMessageClient(item.client.id);
+        break;
+      case 'view':
+        onViewClient(item.client.id);
+        break;
+      case 'adjust_macros':
+        onAdjustPlan(item.client.id, 'macros');
+        break;
+      case 'adjust_workout':
+        onAdjustPlan(item.client.id, 'workout');
+        break;
+      default:
+        onViewClient(item.client.id);
+    }
+  };
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="material-symbols-outlined text-slate-400">priority_high</span>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          Needs Your Attention
+        </h2>
+        <Badge variant="secondary" className="ml-2">{items.length}</Badge>
+      </div>
+
+      <div className="space-y-4">
+        {items.map((item) => {
+          const styles = getUrgencyStyles(item.urgency, item.urgencyColor);
+          
+          return (
+            <Card key={item.id} className={`overflow-hidden border-l-4 ${styles.border}`}>
+              <CardContent className="p-4 md:p-5">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
+                        {item.client.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {item.client.name}
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles.labelClass}`}>
+                          {styles.icon} {styles.label}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mt-0.5">
+                        {item.headline}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {item.daysInactive && (
+                    <span className="text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {item.daysInactive} days inactive
+                    </span>
+                  )}
+                </div>
+
+                {/* Observation */}
+                <div className="mb-3 text-sm text-slate-600 dark:text-slate-400">
+                  {item.observation}
+                </div>
+
+                {/* What client said to Pat */}
+                {item.clientSaid && (
+                  <div className="mb-3 p-3 rounded-lg bg-slate-100 dark:bg-slate-800 border-l-2 border-slate-400">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">What they told Pat:</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                      "{item.clientSaid}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Pattern Pat noticed */}
+                {item.pattern && (
+                  <div className="mb-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex items-start gap-2">
+                      <span className="material-symbols-outlined text-slate-400 text-sm mt-0.5">analytics</span>
+                      <div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Pattern I noticed:</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{item.pattern}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pat's suggestion */}
+                <div className="mb-4 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400">lightbulb</span>
+                    <div>
+                      <p className="text-sm font-medium text-indigo-800 dark:text-indigo-300 mb-1">My suggestion:</p>
+                      <p className="text-sm text-indigo-700 dark:text-indigo-400">{item.patSuggestion}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2">
+                  {item.suggestedActions.map((action, i) => (
+                    <Button
+                      key={i}
+                      variant={action.primary ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleAction(item, action.action)}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## TASK 7: Celebrations Component
+
+### File: `client/src/components/dashboard/celebrations.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { CelebrationItem } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
+
+interface CelebrationsProps {
+  items: CelebrationItem[];
+  onViewClient: (clientId: string) => void;
+  onCelebrate: (clientId: string) => void;
+}
+
+export function Celebrations({ items, onViewClient, onCelebrate }: CelebrationsProps) {
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-xl">🎉</span>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          Worth Celebrating
+        </h2>
+      </div>
+
+      <Card className="overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800">
+        <CardContent className="p-4 md:p-5">
+          <div className="divide-y divide-emerald-200 dark:divide-emerald-800">
+            {items.map((item, index) => (
+              <div key={item.id} className={`flex items-start gap-3 ${index > 0 ? 'pt-4' : ''} ${index < items.length - 1 ? 'pb-4' : ''}`}>
+                {/* Icon */}
+                <span className="text-2xl">{item.icon}</span>
+                
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {item.client.name}
+                    </span>
+                    <span className="text-slate-400 dark:text-slate-500">•</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                    </span>
+                  </div>
+                  
+                  <p className="font-medium text-emerald-800 dark:text-emerald-300 mt-0.5">
+                    {item.headline}
+                  </p>
+                  
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">
+                    {item.details}
+                  </p>
+                  
+                  {item.patAlreadyDid && (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-2 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">check_circle</span>
+                      Pat: {item.patAlreadyDid}
+                    </p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white dark:bg-slate-800 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                    onClick={() => onCelebrate(item.client.id)}
+                  >
+                    <span className="material-symbols-outlined text-base mr-1">celebration</span>
+                    Congrats
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onViewClient(item.client.id)}
+                  >
+                    View
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+```
+
+---
+
+## TASK 8: Activity Summary Component
+
+### File: `client/src/components/dashboard/activity-summary.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { ActivitySummary as ActivitySummaryType } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { formatDistanceToNow } from 'date-fns';
+import { Link } from 'wouter';
+
+interface ActivitySummaryProps {
+  summary: ActivitySummaryType;
+}
+
+export function ActivitySummary({ summary }: ActivitySummaryProps) {
+  const workoutPercent = summary.workouts.completed / (summary.workouts.completed + summary.workouts.remaining) * 100;
+  const nutritionPercent = summary.nutrition.logged / summary.nutrition.expected * 100;
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-slate-400">monitoring</span>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            Today's Activity
+          </h2>
+        </div>
+        <Link href="/clients">
+          <Button variant="ghost" size="sm">
+            View All Activity
+            <span className="material-symbols-outlined text-base ml-1">arrow_forward</span>
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Workouts Card */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-blue-500">fitness_center</span>
+              <span className="font-medium text-slate-900 dark:text-white">Workouts</span>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600 dark:text-slate-400">
+                  {summary.workouts.completed} completed
+                </span>
+                <span className="text-slate-500 dark:text-slate-500">
+                  {summary.workouts.remaining} remaining
+                </span>
+              </div>
+              <Progress value={workoutPercent} className="h-2" />
+              {summary.workouts.skipped > 0 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  {summary.workouts.skipped} skipped today
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Nutrition Card */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-emerald-500">restaurant</span>
+              <span className="font-medium text-slate-900 dark:text-white">Nutrition</span>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600 dark:text-slate-400">
+                  {summary.nutrition.logged} logged meals
+                </span>
+                <span className="text-slate-500 dark:text-slate-500">
+                  {summary.nutrition.onTarget} on target
+                </span>
+              </div>
+              <Progress value={nutritionPercent} className="h-2" />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {summary.nutrition.expected - summary.nutrition.logged} clients haven't logged yet
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity Feed */}
+      {summary.recentActivity.length > 0 && (
+        <Card className="mt-4">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Recent:</p>
+            <div className="space-y-2">
+              {summary.recentActivity.slice(0, 4).map((activity, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300">
+                    {activity.clientName}
+                  </span>
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {activity.action}
+                  </span>
+                  <span className="text-slate-400 dark:text-slate-500 text-xs ml-auto">
+                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </section>
+  );
+}
+```
+
+---
+
+## TASK 9: Update Dashboard Index Exports
+
+### File: `client/src/components/dashboard/index.ts`
+
+**REPLACE** with:
+
+```typescript
+export { PatGreeting } from './pat-greeting';
+export { TodaysSessions } from './todays-sessions';
+export { NeedsAttention } from './needs-attention';
+export { Celebrations } from './celebrations';
+export { ActivitySummary } from './activity-summary';
+
+// Keep old exports for backwards compatibility if needed elsewhere
+export { PriorityCard } from './priority-card';
+export { ActivityFeedSection } from './activity-feed-section';
+export { BusinessSnapshotSection } from './business-snapshot-section';
+export { NeedsAttentionSection } from './needs-attention-section';
+export { TodaysSessionsSection } from './todays-sessions-section';
+```
+
+---
+
+## TASK 10: Move Business Metrics to Analytics
+
+### File: `client/src/pages/analytics.tsx`
+
+**ADD** a new "Business" tab to the analytics page that contains:
+- Active Clients KPI
+- Monthly Revenue KPI
+- Avg Session Rating KPI
+- Mentor Score KPI
+- Revenue Forecast chart
+- Churn Risk Radar
+- Directive Effectiveness
+
+These were removed from the dashboard and should be accessible in Analytics for mentors who want to review business metrics.
+
+---
+
+## TASK 11: Update Header Component
+
+### File: `client/src/components/header.tsx`
+
+**UPDATE** the Header for the dashboard to be simpler - remove "Invite Client" and "Export Report" buttons from the dashboard header since the dashboard is now a briefing, not a report.
+
+Keep these buttons on the Clients and Analytics pages where they make sense.
+
+```tsx
+// For dashboard, the header should just show:
+// - Title: "Dashboard"  
+// - Ask Pat button
+// - Settings gear
+// - Notifications bell
+```
+
+---
+
+## TASK 12: Install date-fns (if not installed)
+
+Run:
+```bash
+npm install date-fns
+```
+
+This is used for `formatDistanceToNow` in the components.
+
+---
+
+## VERIFICATION CHECKLIST
+
+After implementation, verify:
+
+1. ☐ Dashboard shows Pat's greeting with client summary
+2. ☐ Today's sessions appear as briefing cards (when sessions exist)
+3. ☐ Each session card shows:
+   - Client status (thriving/steady/struggling)
+   - Highlights OR concerns
+   - Pat's suggestions
+   - Today's workout preview
+   - Action buttons
+4. ☐ Needs Attention section shows:
+   - Urgency levels (urgent/attention/monitor)
+   - What client told Pat
+   - Pattern Pat noticed
+   - Pat's suggestion
+   - Action buttons
+5. ☐ Celebrations section shows:
+   - PRs, streaks, milestones
+   - What Pat already did
+   - Quick congrats button
+6. ☐ Activity summary shows:
+   - Workout completion progress
+   - Nutrition logging progress
+   - Recent activity feed
+7. ☐ Business metrics are GONE from dashboard
+8. ☐ Business metrics appear in Analytics page
+
+---
+
+## VISUAL REFERENCE
+
+The new dashboard should feel like Pat talking to the mentor:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ 🤖 Good morning, Coach Alex.                                    │
+│    You have 47 clients. 38 are doing great, but I need your    │
+│    eyes on 3.                                                   │
+│                                                                  │
+│    [🟢 38 doing great] [🟡 3 need attention]                    │
+├──────────────────────────────────────────────────────────────────┤
+│ 📅 YOUR SESSIONS TODAY                                          │
+│ ┌────────────────────────────────────────────────────────────┐  │
+│ │ 10:00 AM • Sarah Johnson • Upper Body • 🔥 Thriving       │  │
+│ │ She's on fire: 7-day streak, hit bench PR yesterday       │  │
+│ │ 💡 Consider progressive overload on compounds today       │  │
+│ │ [Open Profile] [Adjust Workout] [Message]                 │  │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ ⚠️ NEEDS YOUR ATTENTION                                         │
+│ ┌────────────────────────────────────────────────────────────┐  │
+│ │ 🔴 Emily Rodriguez - No activity in 7 days                │  │
+│ │ She told me: "I'm feeling overwhelmed with work"          │  │
+│ │ 💡 A supportive voice note might help                     │  │
+│ │ [Send Voice Note] [Adjust Plan]                           │  │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ 🎉 WORTH CELEBRATING                                            │
+│ 🏆 Sarah Johnson - New PR! Bench 135 lbs                       │
+│ 🔥 Lisa Park - 30-day streak!                                  │
+│ [Send Congrats]                                                 │
+├──────────────────────────────────────────────────────────────────┤
+│ 📊 TODAY'S ACTIVITY                                             │
+│ Workouts: ████████░░ 12/18 (67%)                               │
+│ Nutrition: ██████░░░░ 28/47 logged                             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## FUTURE ENHANCEMENTS (Not This Phase)
+
+These will come later:
+1. Voice interaction with Pat ("Hey Pat, tell me about Sarah")
+2. Quick macro adjustment modal
+3. Quick workout adjustment modal
+4. Real-time updates via WebSocket
+5. Pat's analysis engine (replace mock with AI)
+
+For now, focus on the UI transformation using mock data.
+
+---
+
+*End of Implementation Instructions*

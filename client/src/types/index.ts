@@ -501,3 +501,88 @@ export interface AnalyticsData {
   topClientsByLtv: { client: Client; ltv: number }[];
   atRiskClients: { client: Client; compliance: number }[];
 }
+
+// ============================================
+// PAT'S DASHBOARD BRIEFING TYPES
+// ============================================
+
+export interface DashboardBriefing {
+  greeting: string;
+  subGreeting: string;
+  clientSummary: {
+    total: number;
+    healthy: number;
+    needsAttention: number;
+  };
+  todaysSessions: SessionBriefing[];
+  needsAttention: AttentionItem[];
+  celebrations: CelebrationItem[];
+  activitySummary: DashboardActivitySummary;
+  generatedAt: Date;
+}
+
+export interface SessionBriefing {
+  id: string;
+  time: string;
+  client: Client;
+  sessionType: string;
+  location: 'in_person' | 'zoom' | 'google_meet';
+  clientStatus: 'thriving' | 'steady' | 'struggling';
+  statusColor: 'green' | 'yellow' | 'red';
+  recentHighlights: string[];
+  concerns?: string[];
+  patSuggestions: string[];
+  todaysWorkout?: {
+    name: string;
+    exercises: { name: string; sets: number; reps: number; weight?: string }[];
+  };
+}
+
+export interface AttentionItem {
+  id: string;
+  client: Client;
+  urgency: 'urgent' | 'attention' | 'monitor';
+  urgencyColor: 'red' | 'yellow' | 'blue';
+  headline: string;
+  observation: string;
+  clientSaid?: string;
+  pattern?: string;
+  patSuggestion: string;
+  suggestedActions: {
+    label: string;
+    action: 'message' | 'view' | 'adjust_macros' | 'adjust_workout' | 'call';
+    primary?: boolean;
+  }[];
+  daysInactive?: number;
+  compliancePercent?: number;
+}
+
+export interface CelebrationItem {
+  id: string;
+  client: Client;
+  type: 'pr' | 'streak' | 'goal_progress' | 'milestone' | 'consistency';
+  icon: string;
+  headline: string;
+  details: string;
+  patAlreadyDid?: string;
+  timestamp: Date;
+}
+
+export interface DashboardActivitySummary {
+  workouts: {
+    completed: number;
+    remaining: number;
+    skipped: number;
+  };
+  nutrition: {
+    logged: number;
+    expected: number;
+    onTarget: number;
+  };
+  recentActivity: {
+    clientId: string;
+    clientName: string;
+    action: string;
+    timestamp: Date;
+  }[];
+}
