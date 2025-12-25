@@ -22,6 +22,42 @@ export interface MentorProfile {
 // Client Engagement Types
 export type ClientEngagementType = 'in_person' | 'online_1on1' | 'program_only';
 
+// ============================================
+// CLIENT SESSION & PAT FLAG TYPES
+// ============================================
+
+export interface ClientSession {
+  id: string;
+  clientId: string;
+  date: Date;
+  time: string;
+  type: string;
+  location: 'in_person' | 'zoom' | 'google_meet' | 'phone';
+  venue?: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  notes?: string;
+  prepNotes?: string[];
+}
+
+export interface PatFlag {
+  id: string;
+  type: 'urgent' | 'attention' | 'monitor' | 'positive';
+  category: 'compliance' | 'nutrition' | 'workout' | 'engagement' | 'milestone';
+  headline: string;
+  details: string;
+  clientSaid?: string;
+  patSuggestion: string;
+  createdAt: Date;
+  acknowledged: boolean;
+}
+
+export interface MacroGoals {
+  protein: number;
+  carbs: number;
+  fat: number;
+  calories?: number;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -38,23 +74,48 @@ export interface Client {
   metrics?: ClientMetrics;
   orgId?: string;
   groups?: string[];
-  // V2: Client segmentation fields
+  
+  // ============================================
+  // ENGAGEMENT & SESSION FIELDS
+  // ============================================
+  
   engagementType?: ClientEngagementType;
   primaryVenue?: string;
-  programIds?: string[];
-  sessionFrequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'program_only';
+  preferredPlatform?: 'zoom' | 'google_meet' | 'phone';
+  sessionFrequency?: 'daily' | '2x_week' | '3x_week' | 'weekly' | 'biweekly' | 'monthly' | 'as_needed' | 'program_only';
+  preferredDays?: number[];
+  preferredTime?: string;
   preferredSessionDay?: number;
+  programIds?: string[];
+  nextSession?: ClientSession;
+  recentSessions?: ClientSession[];
+  
+  // ============================================
+  // PAT'S ANALYSIS FIELDS
+  // ============================================
+  
+  patStatus?: 'thriving' | 'steady' | 'struggling' | 'inactive';
+  patStatusColor?: 'green' | 'yellow' | 'red' | 'gray';
+  compliancePercent?: number;
+  daysSinceActivity?: number;
+  patFlags?: PatFlag[];
+  sessionPrepNotes?: string[];
+  macroGoals?: MacroGoals;
 }
 
 export interface ClientMetrics {
   tdee: number;
   bmr: number;
-  proteinGoal: number;
-  carbsGoal: number;
-  fatGoal: number;
-  hydrationGoal: number;
+  proteinGoal?: number;
+  carbsGoal?: number;
+  fatGoal?: number;
+  hydrationGoal?: number;
   bodyFatPercent?: number;
   weight?: number;
+  hydration?: number;
+  workoutScore?: number;
+  nutritionScore?: number;
+  sleepScore?: number;
 }
 
 export interface ClientMentorRelationship {

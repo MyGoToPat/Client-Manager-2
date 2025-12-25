@@ -1,0 +1,1413 @@
+# HiPat Dashboard Phase 2: Smart Client Organization
+
+## OVERVIEW
+
+Phase 1 (Complete): Pat's briefing format with session cards, attention items, celebrations
+Phase 2 (This Document): Organize clients by type and time relevance
+
+**The Problem:** A mentor with 300 clients can't see them all the same way:
+- 20 In-Person clients at a gym → Need TODAY's prep
+- 50 Online 1:1 clients → Need THIS WEEK's prep  
+- 230 Program members → Only need EXCEPTIONS flagged
+
+**The Solution:** Pat organizes the dashboard by what needs attention NOW.
+
+---
+
+## NEW DATA STRUCTURES
+
+### TASK 1: Update Client Types
+
+### File: `client/src/types/index.ts`
+
+**ADD** these types:
+
+```typescript
+// ============================================
+// CLIENT SEGMENTATION TYPES
+// ============================================
+
+export type ClientEngagementType = 'in_person' | 'online_1on1' | 'program_only';
+
+export interface ClientSegmentation {
+  inPerson: {
+    count: number;
+    todayCount: number;
+    clients: Client[];
+  };
+  online1on1: {
+    count: number;
+    thisWeekCount: number;
+    clients: Client[];
+  };
+  programOnly: {
+    count: number;
+    activePrograms: number;
+    clients: Client[];
+  };
+}
+
+export interface ProgramHealthSummary {
+  id: string;
+  name: string;
+  type: 'cohort' | 'challenge' | 'course';
+  currentWeek: number;
+  totalWeeks: number;
+  memberCount: number;
+  onTrackPercent: number;
+  flaggedCount: number;
+  flaggedMembers: {
+    client: Client;
+    reason: string;
+    urgency: 'urgent' | 'attention' | 'monitor';
+  }[];
+  recentWins: {
+    type: 'milestone' | 'completion' | 'streak';
+    count: number;
+    description: string;
+  }[];
+  status: 'healthy' | 'needs_attention' | 'at_risk';
+}
+
+export interface WeeklySession {
+  id: string;
+  date: Date;
+  dayLabel: string; // "Today", "Tomorrow", "Wednesday", etc.
+  time: string;
+  client: Client;
+  sessionType: string;
+  location: 'in_person' | 'zoom' | 'google_meet';
+  venue?: string; // For in-person: "FitLife Downtown"
+  clientStatus: 'thriving' | 'steady' | 'struggling';
+  statusColor: 'green' | 'yellow' | 'red';
+  needsPrep: boolean;
+  prepNote?: string;
+}
+
+export interface SmartGreeting {
+  greeting: string;
+  contextLine: string;
+  urgentContext?: string; // "Your first session is in 2 hours"
+  segments: {
+    inPerson: { label: string; count: number; todayCount?: number };
+    online: { label: string; count: number; thisWeekCount?: number };
+    programs: { label: string; groupCount: number; memberCount: number };
+  };
+}
+
+// Update DashboardBriefing to include new sections
+export interface DashboardBriefingV2 extends DashboardBriefing {
+  smartGreeting: SmartGreeting;
+  inPersonToday: WeeklySession[];
+  onlineThisWeek: WeeklySession[];
+  programHealth: ProgramHealthSummary[];
+  clientSegmentation: ClientSegmentation;
+}
+```
+
+---
+
+### TASK 2: Update Client Model
+
+### File: `client/src/types/index.ts`
+
+**UPDATE** the existing Client interface to include engagement type:
+
+```typescript
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  status: 'active' | 'inactive' | 'trial' | 'suspended';
+  
+  // NEW: Engagement type
+  engagementType: ClientEngagementType;
+  
+  // NEW: For in-person clients
+  primaryVenue?: string; // "FitLife Downtown", "Home Gym", etc.
+  
+  // NEW: For program clients
+  programIds?: string[];
+  
+  // NEW: Session frequency
+  sessionFrequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'program_only';
+  preferredSessionDay?: number; // 0-6 for Sunday-Saturday
+  
+  // Existing fields...
+  startDate: Date;
+  goals: string[];
+  // ... rest of existing fields
+}
+```
+
+---
+
+## UPDATED MOCK DATA
+
+### TASK 3: Create Segmented Mock Data
+
+### File: `client/src/mocks/dashboard-briefing-v2.mock.ts`
+
+**CREATE** this new file:
+
+```typescript
+import { 
+  DashboardBriefingV2, 
+  SmartGreeting, 
+  WeeklySession, 
+  ProgramHealthSummary,
+  ClientSegmentation 
+} from '@/types';
+import { mockClients } from './clients.mock';
+
+// Helper functions
+const getTimeGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const getMentorName = (): string => 'Coach Alex';
+
+const getDayLabel = (date: Date): string => {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
+  
+  return date.toLocaleDateString('en-US', { weekday: 'long' });
+};
+
+const getNextSessionContext = (sessions: WeeklySession[]): string | undefined => {
+  if (sessions.length === 0) return undefined;
+  
+  const now = new Date();
+  const todaySessions = sessions.filter(s => getDayLabel(s.date) === 'Today');
+  
+  if (todaySessions.length > 0) {
+    const nextSession = todaySessions[0];
+    const sessionTime = new Date(nextSession.date);
+    const hoursUntil = Math.round((sessionTime.getTime() - now.getTime()) / (1000 * 60 * 60));
+    
+    if (hoursUntil <= 0) {
+      return `Your session with ${nextSession.client.name} starts soon.`;
+    } else if (hoursUntil === 1) {
+      return `Your first session is in 1 hour with ${nextSession.client.name}.`;
+    } else if (hoursUntil <= 3) {
+      return `Your first session is in ${hoursUntil} hours with ${nextSession.client.name}.`;
+    }
+  }
+  
+  return undefined;
+};
+
+// Smart Greeting that adapts to context
+export const generateSmartGreeting = (
+  inPersonToday: WeeklySession[],
+  onlineThisWeek: WeeklySession[],
+  programHealth: ProgramHealthSummary[],
+  totalClients: number,
+  needsAttentionCount: number
+): SmartGreeting => {
+  const greeting = `${getTimeGreeting()}, ${getMentorName()}.`;
+  
+  // Build context line based on what's relevant
+  let contextLine = '';
+  const totalProgramMembers = programHealth.reduce((sum, p) => sum + p.memberCount, 0);
+  const oneOnOneCount = totalClients - totalProgramMembers;
+  
+  if (inPersonToday.length > 0) {
+    contextLine = `You have ${inPersonToday.length} in-person session${inPersonToday.length > 1 ? 's' : ''} today`;
+    if (needsAttentionCount > 0) {
+      contextLine += ` and ${needsAttentionCount} client${needsAttentionCount > 1 ? 's' : ''} need${needsAttentionCount === 1 ? 's' : ''} attention.`;
+    } else {
+      contextLine += '.';
+    }
+  } else if (onlineThisWeek.length > 0) {
+    contextLine = `No in-person sessions today. You have ${onlineThisWeek.length} online check-in${onlineThisWeek.length > 1 ? 's' : ''} this week.`;
+  } else {
+    contextLine = `You have ${oneOnOneCount} 1:1 clients and ${totalProgramMembers} in programs.`;
+    if (needsAttentionCount > 0) {
+      contextLine += ` ${needsAttentionCount} need${needsAttentionCount === 1 ? 's' : ''} your attention.`;
+    }
+  }
+  
+  return {
+    greeting,
+    contextLine,
+    urgentContext: getNextSessionContext([...inPersonToday, ...onlineThisWeek]),
+    segments: {
+      inPerson: { 
+        label: 'In-Person', 
+        count: 20, // Mock count
+        todayCount: inPersonToday.length 
+      },
+      online: { 
+        label: 'Online 1:1', 
+        count: 50, // Mock count
+        thisWeekCount: onlineThisWeek.length 
+      },
+      programs: { 
+        label: 'Programs', 
+        groupCount: programHealth.length,
+        memberCount: totalProgramMembers
+      },
+    }
+  };
+};
+
+// Mock In-Person Sessions for Today
+export const mockInPersonToday: WeeklySession[] = [
+  {
+    id: 'ip-1',
+    date: new Date(new Date().setHours(10, 0, 0, 0)),
+    dayLabel: 'Today',
+    time: '10:00 AM',
+    client: {
+      ...mockClients[0],
+      engagementType: 'in_person',
+      primaryVenue: 'FitLife Downtown'
+    },
+    sessionType: 'Upper Body Strength',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    clientStatus: 'thriving',
+    statusColor: 'green',
+    needsPrep: false,
+  },
+  {
+    id: 'ip-2',
+    date: new Date(new Date().setHours(11, 30, 0, 0)),
+    dayLabel: 'Today',
+    time: '11:30 AM',
+    client: {
+      ...mockClients[1],
+      engagementType: 'in_person',
+      primaryVenue: 'FitLife Downtown'
+    },
+    sessionType: 'Legs & Core',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    clientStatus: 'steady',
+    statusColor: 'yellow',
+    needsPrep: true,
+    prepNote: 'Check knee - mentioned discomfort last session',
+  },
+  {
+    id: 'ip-3',
+    date: new Date(new Date().setHours(14, 0, 0, 0)),
+    dayLabel: 'Today',
+    time: '2:00 PM',
+    client: {
+      ...mockClients[2],
+      engagementType: 'in_person',
+      primaryVenue: 'FitLife Downtown'
+    },
+    sessionType: 'Full Body',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    clientStatus: 'thriving',
+    statusColor: 'green',
+    needsPrep: false,
+  },
+  {
+    id: 'ip-4',
+    date: new Date(new Date().setHours(16, 0, 0, 0)),
+    dayLabel: 'Today',
+    time: '4:00 PM',
+    client: {
+      ...mockClients[3] || mockClients[0],
+      engagementType: 'in_person',
+      primaryVenue: 'FitLife Downtown'
+    },
+    sessionType: 'Push Day',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    clientStatus: 'thriving',
+    statusColor: 'green',
+    needsPrep: false,
+  },
+];
+
+// Mock Online Sessions for This Week
+export const mockOnlineThisWeek: WeeklySession[] = [
+  {
+    id: 'ol-1',
+    date: new Date(new Date().setDate(new Date().getDate() + 1)),
+    dayLabel: 'Tomorrow',
+    time: '9:00 AM',
+    client: {
+      ...mockClients[1],
+      engagementType: 'online_1on1',
+    },
+    sessionType: 'Progress Check-in',
+    location: 'zoom',
+    clientStatus: 'struggling',
+    statusColor: 'red',
+    needsPrep: true,
+    prepNote: 'Review nutrition logs - protein consistently low',
+  },
+  {
+    id: 'ol-2',
+    date: new Date(new Date().setDate(new Date().getDate() + 1)),
+    dayLabel: 'Tomorrow',
+    time: '2:00 PM',
+    client: {
+      ...mockClients[3] || mockClients[0],
+      engagementType: 'online_1on1',
+    },
+    sessionType: 'Weekly Review',
+    location: 'zoom',
+    clientStatus: 'thriving',
+    statusColor: 'green',
+    needsPrep: false,
+  },
+  {
+    id: 'ol-3',
+    date: new Date(new Date().setDate(new Date().getDate() + 2)),
+    dayLabel: getDayLabel(new Date(new Date().setDate(new Date().getDate() + 2))),
+    time: '10:00 AM',
+    client: {
+      ...mockClients[4] || mockClients[1],
+      engagementType: 'online_1on1',
+    },
+    sessionType: 'Nutrition Review',
+    location: 'google_meet',
+    clientStatus: 'steady',
+    statusColor: 'yellow',
+    needsPrep: true,
+    prepNote: 'Prep macro adjustment proposal',
+  },
+  {
+    id: 'ol-4',
+    date: new Date(new Date().setDate(new Date().getDate() + 3)),
+    dayLabel: getDayLabel(new Date(new Date().setDate(new Date().getDate() + 3))),
+    time: '11:00 AM',
+    client: {
+      ...mockClients[5] || mockClients[2],
+      engagementType: 'online_1on1',
+    },
+    sessionType: 'Monthly Review',
+    location: 'zoom',
+    clientStatus: 'thriving',
+    statusColor: 'green',
+    needsPrep: false,
+  },
+  {
+    id: 'ol-5',
+    date: new Date(new Date().setDate(new Date().getDate() + 4)),
+    dayLabel: getDayLabel(new Date(new Date().setDate(new Date().getDate() + 4))),
+    time: '3:00 PM',
+    client: {
+      ...mockClients[0],
+      engagementType: 'online_1on1',
+    },
+    sessionType: 'Goal Setting',
+    location: 'zoom',
+    clientStatus: 'steady',
+    statusColor: 'yellow',
+    needsPrep: false,
+  },
+];
+
+// Mock Program Health Data
+export const mockProgramHealth: ProgramHealthSummary[] = [
+  {
+    id: 'prog-1',
+    name: '12-Week Shred',
+    type: 'cohort',
+    currentWeek: 6,
+    totalWeeks: 12,
+    memberCount: 85,
+    onTrackPercent: 92,
+    flaggedCount: 3,
+    flaggedMembers: [
+      {
+        client: { 
+          id: 'prog-client-1', 
+          name: 'Emily Rodriguez', 
+          email: 'emily@example.com',
+          status: 'active',
+          engagementType: 'program_only',
+          startDate: new Date(),
+          goals: ['weight_loss']
+        },
+        reason: 'No activity in 7 days',
+        urgency: 'urgent'
+      },
+      {
+        client: { 
+          id: 'prog-client-2', 
+          name: 'Tom Stevens', 
+          email: 'tom@example.com',
+          status: 'active',
+          engagementType: 'program_only',
+          startDate: new Date(),
+          goals: ['weight_loss']
+        },
+        reason: 'Nutrition compliance dropped to 45%',
+        urgency: 'attention'
+      },
+      {
+        client: { 
+          id: 'prog-client-3', 
+          name: 'Ana Martinez', 
+          email: 'ana@example.com',
+          status: 'active',
+          engagementType: 'program_only',
+          startDate: new Date(),
+          goals: ['weight_loss']
+        },
+        reason: 'Asked Pat about quitting',
+        urgency: 'urgent'
+      },
+    ],
+    recentWins: [
+      { type: 'milestone', count: 15, description: '15 members completed Week 6' },
+      { type: 'streak', count: 8, description: '8 members on 7+ day streaks' },
+    ],
+    status: 'needs_attention',
+  },
+  {
+    id: 'prog-2',
+    name: 'Beginner Strength',
+    type: 'course',
+    currentWeek: 3,
+    totalWeeks: 8,
+    memberCount: 95,
+    onTrackPercent: 88,
+    flaggedCount: 0,
+    flaggedMembers: [],
+    recentWins: [
+      { type: 'completion', count: 92, description: '92 members completed Week 2' },
+    ],
+    status: 'healthy',
+  },
+  {
+    id: 'prog-3',
+    name: 'Summer Cut Challenge',
+    type: 'challenge',
+    currentWeek: 8,
+    totalWeeks: 10,
+    memberCount: 50,
+    onTrackPercent: 78,
+    flaggedCount: 7,
+    flaggedMembers: [
+      {
+        client: { 
+          id: 'prog-client-4', 
+          name: 'Group (7 members)', 
+          email: '',
+          status: 'active',
+          engagementType: 'program_only',
+          startDate: new Date(),
+          goals: ['weight_loss']
+        },
+        reason: 'Compliance dropping as challenge nears end',
+        urgency: 'attention'
+      },
+    ],
+    recentWins: [
+      { type: 'milestone', count: 12, description: '12 members hit 10+ lb loss goal' },
+    ],
+    status: 'needs_attention',
+  },
+];
+
+// Generate full V2 briefing
+export const generateDashboardBriefingV2 = (): DashboardBriefingV2 => {
+  const needsAttentionCount = 3; // From existing mock
+  
+  const smartGreeting = generateSmartGreeting(
+    mockInPersonToday,
+    mockOnlineThisWeek,
+    mockProgramHealth,
+    300, // Total clients
+    needsAttentionCount
+  );
+  
+  // Import existing mock data for backwards compatibility
+  const { mockDashboardBriefing } = require('./dashboard-briefing.mock');
+  
+  return {
+    ...mockDashboardBriefing,
+    smartGreeting,
+    inPersonToday: mockInPersonToday,
+    onlineThisWeek: mockOnlineThisWeek,
+    programHealth: mockProgramHealth,
+    clientSegmentation: {
+      inPerson: {
+        count: 20,
+        todayCount: mockInPersonToday.length,
+        clients: mockInPersonToday.map(s => s.client),
+      },
+      online1on1: {
+        count: 50,
+        thisWeekCount: mockOnlineThisWeek.length,
+        clients: mockOnlineThisWeek.map(s => s.client),
+      },
+      programOnly: {
+        count: 230,
+        activePrograms: mockProgramHealth.length,
+        clients: [],
+      },
+    },
+  };
+};
+
+export const getDashboardBriefingV2 = (): Promise<DashboardBriefingV2> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(generateDashboardBriefingV2());
+    }, 500);
+  });
+};
+```
+
+---
+
+## NEW DASHBOARD COMPONENTS
+
+### TASK 4: Smart Greeting Component (Updated)
+
+### File: `client/src/components/dashboard/smart-greeting.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { SmartGreeting } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+
+interface SmartGreetingProps {
+  greeting: SmartGreeting;
+  isLoading: boolean;
+}
+
+export function SmartGreetingComponent({ greeting, isLoading }: SmartGreetingProps) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-5 w-96" />
+        <Skeleton className="h-8 w-80" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Pat's Avatar and Greeting */}
+      <div className="flex items-start gap-4">
+        <div className="hidden sm:block">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <span className="material-symbols-outlined text-white text-2xl">smart_toy</span>
+          </div>
+        </div>
+        
+        <div className="flex-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+            {greeting.greeting}
+          </h1>
+          
+          <p className="text-slate-600 dark:text-slate-300 mt-1 text-base md:text-lg">
+            {greeting.contextLine}
+          </p>
+          
+          {/* Urgent context (e.g., "Your first session is in 2 hours") */}
+          {greeting.urgentContext && (
+            <p className="text-indigo-600 dark:text-indigo-400 mt-2 text-sm font-medium flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">schedule</span>
+              {greeting.urgentContext}
+            </p>
+          )}
+        </div>
+      </div>
+      
+      {/* Segment Pills */}
+      <div className="flex flex-wrap gap-2">
+        {/* In-Person */}
+        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+          <span className="material-symbols-outlined text-lg">fitness_center</span>
+          <span>In-Person: {greeting.segments.inPerson.count}</span>
+          {greeting.segments.inPerson.todayCount !== undefined && greeting.segments.inPerson.todayCount > 0 && (
+            <Badge variant="secondary" className="bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+              {greeting.segments.inPerson.todayCount} today
+            </Badge>
+          )}
+        </button>
+        
+        {/* Online 1:1 */}
+        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors">
+          <span className="material-symbols-outlined text-lg">videocam</span>
+          <span>Online 1:1: {greeting.segments.online.count}</span>
+          {greeting.segments.online.thisWeekCount !== undefined && greeting.segments.online.thisWeekCount > 0 && (
+            <Badge variant="secondary" className="bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200">
+              {greeting.segments.online.thisWeekCount} this week
+            </Badge>
+          )}
+        </button>
+        
+        {/* Programs */}
+        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors">
+          <span className="material-symbols-outlined text-lg">school</span>
+          <span>Programs: {greeting.segments.programs.groupCount}</span>
+          <Badge variant="secondary" className="bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200">
+            {greeting.segments.programs.memberCount} members
+          </Badge>
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### TASK 5: In-Person Sessions Component
+
+### File: `client/src/components/dashboard/in-person-sessions.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { WeeklySession } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+
+interface InPersonSessionsProps {
+  sessions: WeeklySession[];
+  onViewClient: (clientId: string) => void;
+  onExpandSession: (sessionId: string) => void;
+}
+
+export function InPersonSessions({ sessions, onViewClient, onExpandSession }: InPersonSessionsProps) {
+  if (sessions.length === 0) return null;
+  
+  // Group by venue
+  const venue = sessions[0]?.venue || 'In-Person';
+  
+  const getStatusBadge = (status: string, color: string) => {
+    const config = {
+      thriving: { icon: '🔥', label: 'Thriving', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+      steady: { icon: '👍', label: 'Steady', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+      struggling: { icon: '⚠️', label: 'Struggling', class: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+    };
+    const c = config[status as keyof typeof config] || config.steady;
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.class}`}>
+        {c.icon} {c.label}
+      </span>
+    );
+  };
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="material-symbols-outlined text-blue-500">fitness_center</span>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          Today's In-Person Sessions
+        </h2>
+        {venue && (
+          <Badge variant="outline" className="ml-2">
+            <span className="material-symbols-outlined text-sm mr-1">location_on</span>
+            {venue}
+          </Badge>
+        )}
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            {sessions.map((session) => (
+              <div 
+                key={session.id} 
+                className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                onClick={() => onExpandSession(session.id)}
+              >
+                <div className="flex items-center gap-4">
+                  {/* Time */}
+                  <div className="w-20 text-center">
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">
+                      {session.time.split(' ')[0]}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 block">
+                      {session.time.split(' ')[1]}
+                    </span>
+                  </div>
+                  
+                  {/* Divider */}
+                  <div className="w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
+                  
+                  {/* Client Info */}
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
+                      {session.client.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {session.client.name}
+                      </span>
+                      {getStatusBadge(session.clientStatus, session.statusColor)}
+                    </div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {session.sessionType}
+                    </p>
+                  </div>
+                  
+                  {/* Prep Warning */}
+                  {session.needsPrep && (
+                    <div className="hidden sm:flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                      <span className="material-symbols-outlined text-lg">warning</span>
+                      <span className="text-xs font-medium">Needs prep</span>
+                    </div>
+                  )}
+                  
+                  {/* Action */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewClient(session.client.id);
+                    }}
+                  >
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </Button>
+                </div>
+                
+                {/* Prep Note */}
+                {session.needsPrep && session.prepNote && (
+                  <div className="mt-3 ml-24 p-2 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                    <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">lightbulb</span>
+                      {session.prepNote}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+```
+
+---
+
+### TASK 6: Online Sessions This Week Component
+
+### File: `client/src/components/dashboard/online-sessions-week.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { WeeklySession } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+
+interface OnlineSessionsWeekProps {
+  sessions: WeeklySession[];
+  onViewClient: (clientId: string) => void;
+  onExpandSession: (sessionId: string) => void;
+}
+
+export function OnlineSessionsWeek({ sessions, onViewClient, onExpandSession }: OnlineSessionsWeekProps) {
+  if (sessions.length === 0) return null;
+  
+  // Group sessions by day
+  const groupedByDay = sessions.reduce((acc, session) => {
+    const day = session.dayLabel;
+    if (!acc[day]) acc[day] = [];
+    acc[day].push(session);
+    return acc;
+  }, {} as Record<string, WeeklySession[]>);
+  
+  const getStatusIcon = (status: string) => {
+    const icons = { thriving: '🔥', steady: '👍', struggling: '⚠️' };
+    return icons[status as keyof typeof icons] || '👍';
+  };
+  
+  const getLocationIcon = (location: string) => {
+    return location === 'zoom' ? 'videocam' : 'video_call';
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-purple-500">videocam</span>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            This Week's Online Check-ins
+          </h2>
+          <Badge variant="secondary">{sessions.length}</Badge>
+        </div>
+        <Button variant="ghost" size="sm">
+          View Calendar
+          <span className="material-symbols-outlined text-base ml-1">arrow_forward</span>
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            {Object.entries(groupedByDay).map(([day, daySessions]) => (
+              <div key={day}>
+                {/* Day Header */}
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base">
+                    {day === 'Today' ? 'today' : day === 'Tomorrow' ? 'event' : 'calendar_month'}
+                  </span>
+                  {day}
+                </h3>
+                
+                {/* Sessions for this day */}
+                <div className="space-y-2 ml-6">
+                  {daySessions.map((session) => (
+                    <div 
+                      key={session.id}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      onClick={() => onExpandSession(session.id)}
+                    >
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300 w-16">
+                        {session.time}
+                      </span>
+                      
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                          {session.client.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-900 dark:text-white text-sm">
+                            {session.client.name}
+                          </span>
+                          <span className="text-sm">{getStatusIcon(session.clientStatus)}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {session.sessionType}
+                        </p>
+                      </div>
+                      
+                      <span className="material-symbols-outlined text-slate-400 text-lg">
+                        {getLocationIcon(session.location)}
+                      </span>
+                      
+                      {session.needsPrep && (
+                        <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs">
+                          Prep
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+```
+
+---
+
+### TASK 7: Program Health Component
+
+### File: `client/src/components/dashboard/program-health.tsx`
+
+**CREATE** this new file:
+
+```tsx
+import { ProgramHealthSummary } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+
+interface ProgramHealthProps {
+  programs: ProgramHealthSummary[];
+  onViewProgram: (programId: string) => void;
+  onViewFlagged: (programId: string) => void;
+}
+
+export function ProgramHealth({ programs, onViewProgram, onViewFlagged }: ProgramHealthProps) {
+  if (programs.length === 0) return null;
+  
+  const totalMembers = programs.reduce((sum, p) => sum + p.memberCount, 0);
+  const totalFlagged = programs.reduce((sum, p) => sum + p.flaggedCount, 0);
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy': return 'bg-emerald-500';
+      case 'needs_attention': return 'bg-amber-500';
+      case 'at_risk': return 'bg-red-500';
+      default: return 'bg-slate-500';
+    }
+  };
+  
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'cohort': return 'groups';
+      case 'challenge': return 'emoji_events';
+      case 'course': return 'school';
+      default: return 'folder';
+    }
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-emerald-500">school</span>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            Your Programs
+          </h2>
+          <Badge variant="secondary">{totalMembers} members</Badge>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <span className="material-symbols-outlined text-indigo-500 text-lg">smart_toy</span>
+          <span>Pat's handling these • Only flags shown</span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {programs.map((program) => (
+          <Card 
+            key={program.id} 
+            className={`overflow-hidden transition-all hover:shadow-md cursor-pointer ${
+              program.status === 'at_risk' ? 'border-red-300 dark:border-red-800' :
+              program.status === 'needs_attention' ? 'border-amber-300 dark:border-amber-800' : ''
+            }`}
+            onClick={() => onViewProgram(program.id)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-4">
+                {/* Program Info */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="material-symbols-outlined text-slate-400">
+                      {getTypeIcon(program.type)}
+                    </span>
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
+                      {program.name}
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      Week {program.currentWeek}/{program.totalWeeks}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                    <span>{program.memberCount} members</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor(program.status)}`}></div>
+                      {program.onTrackPercent}% on track
+                    </span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="mt-2">
+                    <Progress value={program.onTrackPercent} className="h-1.5" />
+                  </div>
+                </div>
+                
+                {/* Flagged Count */}
+                <div className="text-right">
+                  {program.flaggedCount > 0 ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewFlagged(program.id);
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-base mr-1">flag</span>
+                      {program.flaggedCount} flagged
+                    </Button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
+                      <span className="material-symbols-outlined text-base">check_circle</span>
+                      All good
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Flagged Preview (if any) */}
+              {program.flaggedCount > 0 && program.flaggedMembers.length > 0 && (
+                <div className="mt-3 p-2 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="space-y-1">
+                    {program.flaggedMembers.slice(0, 2).map((flagged, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          flagged.urgency === 'urgent' ? 'bg-red-500' : 'bg-amber-500'
+                        }`}></span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                          {flagged.client.name}
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          - {flagged.reason}
+                        </span>
+                      </div>
+                    ))}
+                    {program.flaggedMembers.length > 2 && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 pl-3">
+                        + {program.flaggedMembers.length - 2} more
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Recent Wins */}
+              {program.recentWins.length > 0 && program.flaggedCount === 0 && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+                  <span>🎉</span>
+                  <span>{program.recentWins[0].description}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### TASK 8: Update Dashboard Index Exports
+
+### File: `client/src/components/dashboard/index.ts`
+
+**UPDATE** to include new components:
+
+```typescript
+// V2 Components (Smart Organization)
+export { SmartGreetingComponent } from './smart-greeting';
+export { InPersonSessions } from './in-person-sessions';
+export { OnlineSessionsWeek } from './online-sessions-week';
+export { ProgramHealth } from './program-health';
+
+// V1 Components (Keep for session detail cards)
+export { PatGreeting } from './pat-greeting';
+export { TodaysSessions } from './todays-sessions';
+export { NeedsAttention } from './needs-attention';
+export { Celebrations } from './celebrations';
+export { ActivitySummary } from './activity-summary';
+```
+
+---
+
+### TASK 9: Update Dashboard Page
+
+### File: `client/src/pages/dashboard.tsx`
+
+**REPLACE** with this updated version:
+
+```tsx
+import { useState, useEffect } from 'react';
+import { Header } from '@/components/header';
+import { ClientDrawer } from '@/components/client-drawer';
+import { useStore } from '@/store/useStore';
+import { useAskPat } from '@/App';
+import { 
+  SmartGreetingComponent,
+  InPersonSessions,
+  OnlineSessionsWeek,
+  ProgramHealth,
+  TodaysSessions,
+  NeedsAttention,
+  Celebrations,
+  ActivitySummary 
+} from '@/components/dashboard';
+import { DashboardBriefingV2 } from '@/types';
+import { getDashboardBriefingV2 } from '@/mocks/dashboard-briefing-v2.mock';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+export default function Dashboard() {
+  const { setSelectedClientId } = useStore();
+  const { openAskPat } = useAskPat();
+  const [briefing, setBriefing] = useState<DashboardBriefingV2 | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadBriefing = async () => {
+      setIsLoading(true);
+      const data = await getDashboardBriefingV2();
+      setBriefing(data);
+      setIsLoading(false);
+    };
+    loadBriefing();
+  }, []);
+
+  const handleViewClient = (clientId: string) => {
+    setSelectedClientId(clientId);
+  };
+
+  const handleMessageClient = (clientId: string) => {
+    setSelectedClientId(clientId);
+  };
+
+  const handleAdjustPlan = (clientId: string, type: 'macros' | 'workout') => {
+    setSelectedClientId(clientId);
+  };
+
+  const handleExpandSession = (sessionId: string) => {
+    setExpandedSessionId(expandedSessionId === sessionId ? null : sessionId);
+  };
+
+  const handleViewProgram = (programId: string) => {
+    // Navigate to group/program detail
+    window.location.href = `/groups/${programId}`;
+  };
+
+  const handleViewFlagged = (programId: string) => {
+    // Navigate to group with flagged filter
+    window.location.href = `/groups/${programId}?filter=flagged`;
+  };
+
+  if (!briefing) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header title="Dashboard" onAskPat={openAskPat} />
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="animate-pulse space-y-6">
+              <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+              <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+              <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Determine what sections to show based on context
+  const hasInPersonToday = briefing.inPersonToday.length > 0;
+  const hasOnlineThisWeek = briefing.onlineThisWeek.length > 0;
+  const hasPrograms = briefing.programHealth.length > 0;
+  const hasNeedsAttention = briefing.needsAttention.length > 0;
+  const hasCelebrations = briefing.celebrations.length > 0;
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header title="Dashboard" onAskPat={openAskPat} />
+
+      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+        <div className="max-w-5xl mx-auto space-y-6">
+          
+          {/* Smart Greeting */}
+          <SmartGreetingComponent 
+            greeting={briefing.smartGreeting}
+            isLoading={isLoading}
+          />
+
+          {/* Main Content - Organized by Priority */}
+          <div className="space-y-6">
+            
+            {/* TODAY'S IN-PERSON SESSIONS (if any) */}
+            {hasInPersonToday && (
+              <InPersonSessions 
+                sessions={briefing.inPersonToday}
+                onViewClient={handleViewClient}
+                onExpandSession={handleExpandSession}
+              />
+            )}
+
+            {/* Expanded Session Detail (when clicked) */}
+            {expandedSessionId && (
+              <TodaysSessions 
+                sessions={briefing.todaysSessions.filter(s => s.id === expandedSessionId)}
+                onViewClient={handleViewClient}
+                onAdjustPlan={handleAdjustPlan}
+                onMessageClient={handleMessageClient}
+              />
+            )}
+
+            {/* THIS WEEK'S ONLINE SESSIONS */}
+            {hasOnlineThisWeek && (
+              <OnlineSessionsWeek 
+                sessions={briefing.onlineThisWeek}
+                onViewClient={handleViewClient}
+                onExpandSession={handleExpandSession}
+              />
+            )}
+
+            {/* NEEDS ATTENTION (from all client types) */}
+            {hasNeedsAttention && (
+              <NeedsAttention 
+                items={briefing.needsAttention}
+                onViewClient={handleViewClient}
+                onMessageClient={handleMessageClient}
+                onAdjustPlan={handleAdjustPlan}
+              />
+            )}
+
+            {/* PROGRAMS SECTION */}
+            {hasPrograms && (
+              <ProgramHealth 
+                programs={briefing.programHealth}
+                onViewProgram={handleViewProgram}
+                onViewFlagged={handleViewFlagged}
+              />
+            )}
+
+            {/* CELEBRATIONS */}
+            {hasCelebrations && (
+              <Celebrations 
+                items={briefing.celebrations}
+                onViewClient={handleViewClient}
+                onCelebrate={handleMessageClient}
+              />
+            )}
+
+            {/* ACTIVITY SUMMARY (at bottom) */}
+            <ActivitySummary 
+              summary={briefing.activitySummary}
+            />
+
+          </div>
+        </div>
+      </main>
+
+      <ClientDrawer />
+    </div>
+  );
+}
+```
+
+---
+
+## VERIFICATION CHECKLIST
+
+After implementation, verify:
+
+1. ☐ Smart greeting shows context-aware message
+2. ☐ Segment pills show In-Person / Online 1:1 / Programs with counts
+3. ☐ In-Person sessions show as compact list with venue
+4. ☐ Sessions with prep needed show warning badge
+5. ☐ Online sessions grouped by day (Today, Tomorrow, Wednesday...)
+6. ☐ Programs show health percentage and flag counts
+7. ☐ Flagged members preview shown inline
+8. ☐ "Pat's handling these" message on Programs section
+9. ☐ Clicking a session expands to full detail card
+10. ☐ Clicking a program navigates to group detail
+
+---
+
+## VISUAL REFERENCE
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ 🤖 Good afternoon, Coach Alex.                                   │
+│    You have 4 in-person sessions today and 3 clients need       │
+│    attention.                                                    │
+│                                                                  │
+│ [🏋️ In-Person: 20 | 4 today]                                   │
+│ [💻 Online 1:1: 50 | 5 this week]                               │
+│ [📚 Programs: 3 | 230 members]                                  │
+├──────────────────────────────────────────────────────────────────┤
+│ 🏋️ TODAY'S IN-PERSON SESSIONS          📍 FitLife Downtown     │
+│ ┌────────────────────────────────────────────────────────────┐  │
+│ │ 10:00 AM │ Sarah Johnson    🔥 Thriving │ Upper Body       │  │
+│ │ 11:30 AM │ Marcus Williams  ⚠️ Steady   │ Legs   ⚠️ Prep   │  │
+│ │  2:00 PM │ Jennifer Lee     🔥 Thriving │ Full Body        │  │
+│ │  4:00 PM │ David Kim        👍 Steady   │ Push Day         │  │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ 💻 THIS WEEK'S ONLINE CHECK-INS                                 │
+│                                                                  │
+│ Tomorrow                                                         │
+│ • 9:00 AM - Michael Chen ⚠️ - Progress Check     [Zoom] Prep   │
+│ • 2:00 PM - Lisa Park 🔥 - Weekly Review         [Zoom]        │
+│                                                                  │
+│ Thursday                                                         │
+│ • 10:00 AM - James Wilson 👍 - Nutrition Review  [Meet] Prep   │
+│                                                                  │
+│ + 2 more this week                                              │
+├──────────────────────────────────────────────────────────────────┤
+│ 📚 YOUR PROGRAMS          🤖 Pat's handling these              │
+│ ┌────────────────────────────────────────────────────────────┐  │
+│ │ 📅 12-Week Shred (Week 6/12)         85 members    92%     │  │
+│ │    ████████████████████░░░░                                │  │
+│ │    └─ 🚩 3 flagged: Emily R., Tom S., Ana M. [Review]     │  │
+│ ├────────────────────────────────────────────────────────────┤  │
+│ │ 📚 Beginner Strength (Week 3/8)      95 members    88%     │  │
+│ │    ██████████████████░░░░░░                                │  │
+│ │    └─ ✅ No flags - Pat's got this                        │  │
+│ ├────────────────────────────────────────────────────────────┤  │
+│ │ 🏆 Summer Cut Challenge (Week 8/10)  50 members    78%     │  │
+│ │    ████████████████░░░░░░░░                                │  │
+│ │    └─ 🚩 7 flagged: Compliance dropping [Review Group]    │  │
+│ └────────────────────────────────────────────────────────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│ ⚠️ NEEDS YOUR ATTENTION                                         │
+│ [Same as Phase 1 - urgent/attention/monitor items]             │
+├──────────────────────────────────────────────────────────────────┤
+│ 🎉 WORTH CELEBRATING                                            │
+│ [Same as Phase 1 - PRs, streaks, milestones]                   │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## KEY PRINCIPLES
+
+1. **Time-Based Priority**
+   - In-Person → TODAY (immediate prep needed)
+   - Online 1:1 → THIS WEEK (plan ahead)
+   - Programs → EXCEPTIONS ONLY (Pat handles the rest)
+
+2. **Progressive Disclosure**
+   - Compact list view by default
+   - Click to expand for full briefing card
+   - Drill into programs for member details
+
+3. **Pat as Filter**
+   - Pat surfaces only what needs human attention
+   - 230 program members ≠ 230 items to review
+   - Mentor sees health % and flagged exceptions
+
+4. **Context-Aware Greeting**
+   - Morning with sessions: Focus on prep
+   - Evening no sessions: Focus on programs/flags
+   - Urgent context: "First session in 2 hours"
+
+---
+
+## FUTURE ENHANCEMENTS (Not This Phase)
+
+- Venue switching (multiple gym locations)
+- Drag-to-reschedule sessions
+- Bulk actions on flagged program members
+- Program cohort health trends over time
+- Voice: "Hey Pat, prep me for Michael's session"
+
+---
+
+*End of Phase 2 Instructions*

@@ -1,0 +1,1923 @@
+# HiPat Dashboard Phase 2.5: Client-Dashboard Integration
+
+## OVERVIEW
+
+The dashboard shows sessions organized by engagement type, but currently:
+- Clients don't have an engagement type field
+- Sessions aren't stored in client data
+- The dashboard uses mock data disconnected from real clients
+
+This phase connects everything so the dashboard pulls from actual client data.
+
+---
+
+## TASK 1: Update Client Type with Engagement Fields
+
+### File: `client/src/types/index.ts`
+
+**UPDATE** the Client interface to include engagement and session fields:
+
+```typescript
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  status: 'active' | 'inactive' | 'trial' | 'suspended';
+  startDate: Date;
+  goals: string[];
+  
+  // ============================================
+  // ENGAGEMENT & SESSION FIELDS (NEW)
+  // ============================================
+  
+  /** How this client primarily works with the mentor */
+  engagementType: 'in_person' | 'online_1on1' | 'program_only';
+  
+  /** For in-person clients: where they train */
+  primaryVenue?: string;
+  
+  /** For online clients: preferred video platform */
+  preferredPlatform?: 'zoom' | 'google_meet' | 'phone';
+  
+  /** How often they have sessions */
+  sessionFrequency?: 'daily' | '2x_week' | '3x_week' | 'weekly' | 'biweekly' | 'monthly' | 'as_needed';
+  
+  /** Preferred days for sessions (0=Sun, 1=Mon, etc.) */
+  preferredDays?: number[];
+  
+  /** Preferred time slot */
+  preferredTime?: string; // "morning" | "afternoon" | "evening" or specific time
+  
+  /** Programs/groups this client belongs to */
+  programIds?: string[];
+  
+  /** Next scheduled session */
+  nextSession?: ClientSession;
+  
+  /** Session history (recent) */
+  recentSessions?: ClientSession[];
+  
+  // ============================================
+  // PAT'S ANALYSIS FIELDS (NEW)
+  // ============================================
+  
+  /** Current status based on Pat's analysis */
+  patStatus: 'thriving' | 'steady' | 'struggling' | 'inactive';
+  
+  /** Color for visual indicators */
+  patStatusColor: 'green' | 'yellow' | 'red' | 'gray';
+  
+  /** Compliance percentage (0-100) */
+  compliancePercent: number;
+  
+  /** Days since last activity */
+  daysSinceActivity: number;
+  
+  /** Flags Pat has raised */
+  patFlags?: PatFlag[];
+  
+  /** Prep notes for next session (from Pat's analysis) */
+  sessionPrepNotes?: string[];
+  
+  // Existing fields...
+  metrics?: ClientMetrics;
+  macroGoals?: MacroGoals;
+}
+
+export interface ClientSession {
+  id: string;
+  clientId: string;
+  date: Date;
+  time: string;
+  type: string; // "Upper Body", "Progress Check-in", etc.
+  location: 'in_person' | 'zoom' | 'google_meet' | 'phone';
+  venue?: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  notes?: string;
+  prepNotes?: string[]; // Pat's prep suggestions
+}
+
+export interface PatFlag {
+  id: string;
+  type: 'urgent' | 'attention' | 'monitor' | 'positive';
+  category: 'compliance' | 'nutrition' | 'workout' | 'engagement' | 'milestone';
+  headline: string;
+  details: string;
+  clientSaid?: string;
+  patSuggestion: string;
+  createdAt: Date;
+  acknowledged: boolean;
+}
+
+export interface ClientMetrics {
+  tdee: number;
+  bmr: number;
+  hydration: number;
+  weight: number;
+  workoutScore: number;
+  nutritionScore: number;
+  sleepScore: number;
+}
+
+export interface MacroGoals {
+  protein: number;
+  carbs: number;
+  fat: number;
+  calories?: number;
+}
+```
+
+---
+
+## TASK 2: Update Mock Clients with Complete Data
+
+### File: `client/src/mocks/clients.mock.ts`
+
+**REPLACE** with comprehensive mock data:
+
+```typescript
+import { Client, ClientSession, PatFlag } from '@/types';
+
+// Helper to create dates relative to today
+const daysFromNow = (days: number): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const hoursFromNow = (hours: number): Date => {
+  const date = new Date();
+  date.setHours(date.getHours() + hours);
+  return date;
+};
+
+// ============================================
+// IN-PERSON CLIENTS (Train at gym with mentor)
+// ============================================
+
+export const sarahJohnson: Client = {
+  id: 'client-sarah-johnson',
+  name: 'Sarah Johnson',
+  email: 'sarah.johnson@email.com',
+  phone: '+1 555-0101',
+  status: 'active',
+  startDate: new Date('2024-06-15'),
+  goals: ['Build strength', 'Improve posture'],
+  
+  // Engagement
+  engagementType: 'in_person',
+  primaryVenue: 'FitLife Downtown',
+  sessionFrequency: '2x_week',
+  preferredDays: [1, 4], // Monday, Thursday
+  preferredTime: 'morning',
+  
+  // Pat's Analysis
+  patStatus: 'thriving',
+  patStatusColor: 'green',
+  compliancePercent: 92,
+  daysSinceActivity: 0,
+  patFlags: [
+    {
+      id: 'flag-sarah-1',
+      type: 'positive',
+      category: 'milestone',
+      headline: 'New PR! Bench Press 135 lbs',
+      details: 'Up 10 lbs from her previous best. She\'s been working toward this for 6 weeks.',
+      patSuggestion: 'Celebrate this win! She\'d love hearing from you.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [
+    'She\'s ready to push - consider progressive overload on compounds',
+    '7-day workout streak, momentum is high'
+  ],
+  
+  // Next Session
+  nextSession: {
+    id: 'session-sarah-1',
+    clientId: 'client-sarah-johnson',
+    date: new Date(new Date().setHours(10, 0, 0, 0)),
+    time: '10:00 AM',
+    type: 'Upper Body Strength',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    status: 'scheduled',
+    prepNotes: ['Consider testing overhead press progression', 'She mentioned wanting to try incline bench']
+  },
+  
+  // Metrics
+  metrics: {
+    tdee: 2200,
+    bmr: 1650,
+    hydration: 3200,
+    weight: 145,
+    workoutScore: 95,
+    nutritionScore: 88,
+    sleepScore: 82,
+  },
+  macroGoals: {
+    protein: 140,
+    carbs: 180,
+    fat: 65,
+  },
+  programIds: ['prog-12-week-shred'],
+};
+
+export const michaelChen: Client = {
+  id: 'client-michael-chen',
+  name: 'Michael Chen',
+  email: 'michael.chen@email.com',
+  phone: '+1 555-0102',
+  status: 'active',
+  startDate: new Date('2024-08-01'),
+  goals: ['Lose weight', 'Build muscle'],
+  
+  // Engagement
+  engagementType: 'in_person',
+  primaryVenue: 'FitLife Downtown',
+  sessionFrequency: '2x_week',
+  preferredDays: [2, 5], // Tuesday, Friday
+  preferredTime: 'afternoon',
+  
+  // Pat's Analysis
+  patStatus: 'steady',
+  patStatusColor: 'yellow',
+  compliancePercent: 68,
+  daysSinceActivity: 1,
+  patFlags: [
+    {
+      id: 'flag-michael-1',
+      type: 'attention',
+      category: 'compliance',
+      headline: 'Needs prep - check knee',
+      details: 'Mentioned discomfort in left knee during last session. May need exercise modifications.',
+      patSuggestion: 'Ask about knee before leg exercises. Have alternatives ready.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [
+    '⚠️ Check knee - mentioned discomfort last session',
+    'May need to modify leg exercises'
+  ],
+  
+  // Next Session
+  nextSession: {
+    id: 'session-michael-1',
+    clientId: 'client-michael-chen',
+    date: new Date(new Date().setHours(11, 30, 0, 0)),
+    time: '11:30 AM',
+    type: 'Legs & Core',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    status: 'scheduled',
+    prepNotes: ['Check knee before starting', 'Have leg press alternatives ready']
+  },
+  
+  metrics: {
+    tdee: 2800,
+    bmr: 1900,
+    hydration: 2800,
+    weight: 185,
+    workoutScore: 72,
+    nutritionScore: 65,
+    sleepScore: 70,
+  },
+  macroGoals: {
+    protein: 180,
+    carbs: 220,
+    fat: 75,
+  },
+};
+
+export const emilyRodriguez: Client = {
+  id: 'client-emily-rodriguez',
+  name: 'Emily Rodriguez',
+  email: 'emily.rodriguez@email.com',
+  phone: '+1 555-0103',
+  status: 'active',
+  startDate: new Date('2024-03-10'),
+  goals: ['Weight loss', 'Tone up'],
+  
+  // Engagement
+  engagementType: 'in_person',
+  primaryVenue: 'FitLife Downtown',
+  sessionFrequency: '2x_week',
+  preferredDays: [1, 3], // Monday, Wednesday
+  preferredTime: 'afternoon',
+  
+  // Pat's Analysis - STRUGGLING
+  patStatus: 'struggling',
+  patStatusColor: 'red',
+  compliancePercent: 23,
+  daysSinceActivity: 7,
+  patFlags: [
+    {
+      id: 'flag-emily-1',
+      type: 'urgent',
+      category: 'engagement',
+      headline: 'No activity in 7 days',
+      details: 'Emily hasn\'t logged a workout in 7 days. This is unusual - she typically misses 1-2 days maximum.',
+      clientSaid: '"I\'m feeling overwhelmed with work, might need to take a break"',
+      patSuggestion: 'A quick voice note or text might help. Something supportive, not pressuring. She responds well to understanding.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [],
+  
+  // No next session scheduled (she's inactive)
+  nextSession: undefined,
+  
+  metrics: {
+    tdee: 1800,
+    bmr: 1400,
+    hydration: 1500,
+    weight: 155,
+    workoutScore: 23,
+    nutritionScore: 45,
+    sleepScore: 55,
+  },
+  macroGoals: {
+    protein: 120,
+    carbs: 150,
+    fat: 55,
+  },
+  programIds: ['prog-12-week-shred'],
+};
+
+export const davidThompson: Client = {
+  id: 'client-david-thompson',
+  name: 'David Thompson',
+  email: 'david.thompson@email.com',
+  phone: '+1 555-0104',
+  status: 'trial',
+  startDate: new Date('2024-12-14'),
+  goals: ['Build muscle', 'Increase energy'],
+  
+  // Engagement
+  engagementType: 'in_person',
+  primaryVenue: 'FitLife Downtown',
+  sessionFrequency: '3x_week',
+  preferredDays: [1, 3, 5], // Mon, Wed, Fri
+  preferredTime: 'afternoon',
+  
+  // Pat's Analysis
+  patStatus: 'thriving',
+  patStatusColor: 'green',
+  compliancePercent: 90,
+  daysSinceActivity: 0,
+  patFlags: [
+    {
+      id: 'flag-david-1',
+      type: 'positive',
+      category: 'milestone',
+      headline: 'Lost 8 lbs this month!',
+      details: 'David is on track for his 20 lb weight loss goal. At this pace, he\'ll hit it in 5 weeks.',
+      patSuggestion: 'Send encouragement - he\'s doing great!',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [
+    'Great momentum - keep pushing',
+    'Consider increasing weights this week'
+  ],
+  
+  nextSession: {
+    id: 'session-david-1',
+    clientId: 'client-david-thompson',
+    date: new Date(new Date().setHours(16, 0, 0, 0)),
+    time: '4:00 PM',
+    type: 'Push Day',
+    location: 'in_person',
+    venue: 'FitLife Downtown',
+    status: 'scheduled',
+  },
+  
+  metrics: {
+    tdee: 3200,
+    bmr: 2100,
+    hydration: 4500,
+    weight: 165,
+    workoutScore: 90,
+    nutritionScore: 85,
+    sleepScore: 78,
+  },
+  macroGoals: {
+    protein: 160,
+    carbs: 400,
+    fat: 70,
+  },
+};
+
+// ============================================
+// ONLINE 1:1 CLIENTS (Weekly Zoom check-ins)
+// ============================================
+
+export const lisaPark: Client = {
+  id: 'client-lisa-park',
+  name: 'Lisa Park',
+  email: 'lisa.park@email.com',
+  phone: '+1 555-0201',
+  status: 'active',
+  startDate: new Date('2024-05-20'),
+  goals: ['Marathon training', 'Nutrition optimization'],
+  
+  // Engagement
+  engagementType: 'online_1on1',
+  preferredPlatform: 'google_meet',
+  sessionFrequency: 'weekly',
+  preferredDays: [6], // Saturday
+  preferredTime: 'morning',
+  
+  // Pat's Analysis
+  patStatus: 'thriving',
+  patStatusColor: 'green',
+  compliancePercent: 96,
+  daysSinceActivity: 0,
+  patFlags: [
+    {
+      id: 'flag-lisa-1',
+      type: 'positive',
+      category: 'milestone',
+      headline: '30-day workout streak! 🔥',
+      details: 'Lisa hasn\'t missed a single planned workout in a month. She\'s the most consistent client.',
+      patSuggestion: 'Acknowledge her incredible consistency!',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
+      acknowledged: false,
+    },
+    {
+      id: 'flag-lisa-2',
+      type: 'attention',
+      category: 'nutrition',
+      headline: 'Protein intake 40% below target',
+      details: 'Has been under protein target for 5 consecutive days. Logged 4 restaurant meals yesterday.',
+      patSuggestion: 'Consider lowering protein target to 150g - more achievable for her lifestyle.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [
+    'Prep macro adjustment proposal',
+    'Discuss protein-rich restaurant options'
+  ],
+  
+  nextSession: {
+    id: 'session-lisa-1',
+    clientId: 'client-lisa-park',
+    date: daysFromNow(2),
+    time: '10:00 AM',
+    type: 'Nutrition Review',
+    location: 'google_meet',
+    status: 'scheduled',
+    prepNotes: ['Review protein sources', 'Discuss restaurant strategies']
+  },
+  
+  metrics: {
+    tdee: 2100,
+    bmr: 1500,
+    hydration: 3800,
+    weight: 135,
+    workoutScore: 98,
+    nutritionScore: 72,
+    sleepScore: 88,
+  },
+  macroGoals: {
+    protein: 130,
+    carbs: 200,
+    fat: 60,
+  },
+  programIds: ['prog-12-week-shred'],
+};
+
+export const jamesWilson: Client = {
+  id: 'client-james-wilson',
+  name: 'James Wilson',
+  email: 'james.wilson@email.com',
+  phone: '+1 555-0202',
+  status: 'active',
+  startDate: new Date('2024-07-01'),
+  goals: ['Strength gains', 'Better sleep'],
+  
+  // Engagement
+  engagementType: 'online_1on1',
+  preferredPlatform: 'zoom',
+  sessionFrequency: 'weekly',
+  preferredDays: [0], // Sunday
+  preferredTime: 'morning',
+  
+  // Pat's Analysis
+  patStatus: 'steady',
+  patStatusColor: 'yellow',
+  compliancePercent: 58,
+  daysSinceActivity: 2,
+  patFlags: [],
+  sessionPrepNotes: [],
+  
+  nextSession: {
+    id: 'session-james-1',
+    clientId: 'client-james-wilson',
+    date: daysFromNow(3),
+    time: '11:00 AM',
+    type: 'Monthly Review',
+    location: 'zoom',
+    status: 'scheduled',
+  },
+  
+  metrics: {
+    tdee: 2600,
+    bmr: 1850,
+    hydration: 2500,
+    weight: 195,
+    workoutScore: 65,
+    nutritionScore: 58,
+    sleepScore: 62,
+  },
+  macroGoals: {
+    protein: 180,
+    carbs: 200,
+    fat: 80,
+  },
+};
+
+export const rachelKim: Client = {
+  id: 'client-rachel-kim',
+  name: 'Rachel Kim',
+  email: 'rachel.kim@email.com',
+  phone: '+1 555-0203',
+  status: 'active',
+  startDate: new Date('2024-09-15'),
+  goals: ['Post-pregnancy fitness', 'Core strength'],
+  
+  // Engagement
+  engagementType: 'online_1on1',
+  preferredPlatform: 'zoom',
+  sessionFrequency: 'biweekly',
+  preferredDays: [3], // Wednesday
+  preferredTime: 'evening',
+  
+  // Pat's Analysis
+  patStatus: 'struggling',
+  patStatusColor: 'red',
+  compliancePercent: 35,
+  daysSinceActivity: 5,
+  patFlags: [
+    {
+      id: 'flag-rachel-1',
+      type: 'attention',
+      category: 'engagement',
+      headline: 'Declining activity',
+      details: 'Rachel\'s activity has dropped significantly over the past 2 weeks. Sleep scores are very low.',
+      clientSaid: '"The baby isn\'t sleeping well, I\'m exhausted"',
+      patSuggestion: 'Consider a modified low-intensity program. She needs support, not pressure.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [
+    'Be understanding about baby sleep issues',
+    'Suggest 10-15 min micro workouts'
+  ],
+  
+  nextSession: {
+    id: 'session-rachel-1',
+    clientId: 'client-rachel-kim',
+    date: daysFromNow(1),
+    time: '9:00 AM',
+    type: 'Progress Check-in',
+    location: 'zoom',
+    status: 'scheduled',
+    prepNotes: ['Discuss modified program', 'Focus on recovery not intensity']
+  },
+  
+  metrics: {
+    tdee: 1900,
+    bmr: 1450,
+    hydration: 2000,
+    weight: 148,
+    workoutScore: 35,
+    nutritionScore: 50,
+    sleepScore: 28,
+  },
+  macroGoals: {
+    protein: 110,
+    carbs: 170,
+    fat: 55,
+  },
+};
+
+export const marcusThompson: Client = {
+  id: 'client-marcus-thompson',
+  name: 'Marcus Thompson',
+  email: 'marcus.thompson@email.com',
+  phone: '+1 555-0204',
+  status: 'active',
+  startDate: new Date('2024-04-01'),
+  goals: ['Athletic performance', 'Injury prevention'],
+  
+  // Engagement
+  engagementType: 'online_1on1',
+  preferredPlatform: 'zoom',
+  sessionFrequency: 'weekly',
+  preferredDays: [4], // Thursday
+  preferredTime: 'afternoon',
+  
+  // Pat's Analysis
+  patStatus: 'steady',
+  patStatusColor: 'yellow',
+  compliancePercent: 75,
+  daysSinceActivity: 1,
+  patFlags: [
+    {
+      id: 'flag-marcus-1',
+      type: 'monitor',
+      category: 'compliance',
+      headline: 'Declining readiness scores',
+      details: 'Marcus\'s readiness scores have dropped from 8 to 5 over the past week. Sleep quality is declining.',
+      patSuggestion: 'Worth checking in casually. Could be work stress or life changes.',
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+      acknowledged: false,
+    }
+  ],
+  sessionPrepNotes: [
+    'Check in about stress levels',
+    'Readiness declining - monitor recovery'
+  ],
+  
+  nextSession: {
+    id: 'session-marcus-1',
+    clientId: 'client-marcus-thompson',
+    date: daysFromNow(1),
+    time: '2:00 PM',
+    type: 'Weekly Review',
+    location: 'zoom',
+    status: 'scheduled',
+  },
+  
+  metrics: {
+    tdee: 3000,
+    bmr: 2000,
+    hydration: 4000,
+    weight: 180,
+    workoutScore: 78,
+    nutritionScore: 72,
+    sleepScore: 55,
+  },
+  macroGoals: {
+    protein: 170,
+    carbs: 280,
+    fat: 70,
+  },
+};
+
+// ============================================
+// PROGRAM-ONLY CLIENTS (No direct sessions)
+// ============================================
+
+export const programOnlyClients: Client[] = [
+  {
+    id: 'client-prog-1',
+    name: 'Alex Turner',
+    email: 'alex.turner@email.com',
+    status: 'active',
+    startDate: new Date('2024-11-01'),
+    goals: ['Complete 12-week program'],
+    engagementType: 'program_only',
+    patStatus: 'thriving',
+    patStatusColor: 'green',
+    compliancePercent: 88,
+    daysSinceActivity: 0,
+    programIds: ['prog-12-week-shred'],
+    metrics: { tdee: 2400, bmr: 1700, hydration: 3000, weight: 170, workoutScore: 88, nutritionScore: 82, sleepScore: 75 },
+    macroGoals: { protein: 150, carbs: 200, fat: 65 },
+  },
+  {
+    id: 'client-prog-2',
+    name: 'Tom Stevens',
+    email: 'tom.stevens@email.com',
+    status: 'active',
+    startDate: new Date('2024-11-01'),
+    goals: ['Weight loss'],
+    engagementType: 'program_only',
+    patStatus: 'struggling',
+    patStatusColor: 'red',
+    compliancePercent: 45,
+    daysSinceActivity: 4,
+    programIds: ['prog-12-week-shred'],
+    patFlags: [
+      {
+        id: 'flag-tom-1',
+        type: 'attention',
+        category: 'nutrition',
+        headline: 'Nutrition compliance dropped to 45%',
+        details: 'Consistently missing meal logs. Last 5 days were under 50% compliance.',
+        patSuggestion: 'May need simpler meal tracking approach.',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
+        acknowledged: false,
+      }
+    ],
+    metrics: { tdee: 2600, bmr: 1800, hydration: 2200, weight: 200, workoutScore: 55, nutritionScore: 45, sleepScore: 60 },
+    macroGoals: { protein: 160, carbs: 180, fat: 70 },
+  },
+  {
+    id: 'client-prog-3',
+    name: 'Ana Martinez',
+    email: 'ana.martinez@email.com',
+    status: 'active',
+    startDate: new Date('2024-11-01'),
+    goals: ['Tone up'],
+    engagementType: 'program_only',
+    patStatus: 'struggling',
+    patStatusColor: 'red',
+    compliancePercent: 30,
+    daysSinceActivity: 6,
+    programIds: ['prog-12-week-shred'],
+    patFlags: [
+      {
+        id: 'flag-ana-1',
+        type: 'urgent',
+        category: 'engagement',
+        headline: 'Asked Pat about quitting',
+        details: 'Ana asked Pat if she should quit the program. She\'s feeling discouraged.',
+        clientSaid: '"I don\'t think this is working for me. Should I just stop?"',
+        patSuggestion: 'Personal outreach could make the difference. She needs encouragement.',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6),
+        acknowledged: false,
+      }
+    ],
+    metrics: { tdee: 1700, bmr: 1350, hydration: 1800, weight: 140, workoutScore: 30, nutritionScore: 35, sleepScore: 50 },
+    macroGoals: { protein: 100, carbs: 140, fat: 50 },
+  },
+  // Add more program-only clients as needed...
+];
+
+// ============================================
+// AGGREGATED EXPORTS
+// ============================================
+
+export const inPersonClients: Client[] = [
+  sarahJohnson,
+  michaelChen,
+  emilyRodriguez,
+  davidThompson,
+];
+
+export const online1on1Clients: Client[] = [
+  lisaPark,
+  jamesWilson,
+  rachelKim,
+  marcusThompson,
+];
+
+export const allClients: Client[] = [
+  ...inPersonClients,
+  ...online1on1Clients,
+  ...programOnlyClients,
+];
+
+// For backwards compatibility
+export const mockClients = allClients;
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+export const getClientById = (id: string): Client | undefined => {
+  return allClients.find(c => c.id === id);
+};
+
+export const getClientsByEngagementType = (type: 'in_person' | 'online_1on1' | 'program_only'): Client[] => {
+  return allClients.filter(c => c.engagementType === type);
+};
+
+export const getClientsNeedingAttention = (): Client[] => {
+  return allClients.filter(c => 
+    c.patStatus === 'struggling' || 
+    (c.patFlags && c.patFlags.some(f => f.type === 'urgent' || f.type === 'attention'))
+  );
+};
+
+export const getTodaysInPersonSessions = (): Client[] => {
+  return inPersonClients.filter(c => c.nextSession && isToday(c.nextSession.date));
+};
+
+export const getThisWeeksOnlineSessions = (): Client[] => {
+  const oneWeekFromNow = new Date();
+  oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+  
+  return online1on1Clients.filter(c => 
+    c.nextSession && 
+    c.nextSession.date <= oneWeekFromNow
+  );
+};
+
+const isToday = (date: Date): boolean => {
+  const today = new Date();
+  return date.toDateString() === today.toDateString();
+};
+```
+
+---
+
+## TASK 3: Update Dashboard to Use Real Client Data
+
+### File: `client/src/mocks/dashboard-briefing-v2.mock.ts`
+
+**UPDATE** to pull from real client data:
+
+```typescript
+import { 
+  DashboardBriefingV2, 
+  SmartGreeting, 
+  WeeklySession, 
+  ProgramHealthSummary,
+  AttentionItem,
+  CelebrationItem,
+  Client
+} from '@/types';
+import { 
+  allClients,
+  inPersonClients,
+  online1on1Clients,
+  programOnlyClients,
+  getClientsNeedingAttention,
+} from './clients.mock';
+
+// ============================================
+// GENERATE DASHBOARD FROM REAL CLIENT DATA
+// ============================================
+
+const getTimeGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const getDayLabel = (date: Date): string => {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
+  
+  return date.toLocaleDateString('en-US', { weekday: 'long' });
+};
+
+const isToday = (date: Date): boolean => {
+  return date.toDateString() === new Date().toDateString();
+};
+
+const isThisWeek = (date: Date): boolean => {
+  const now = new Date();
+  const weekFromNow = new Date();
+  weekFromNow.setDate(weekFromNow.getDate() + 7);
+  return date >= now && date <= weekFromNow;
+};
+
+// Convert Client to WeeklySession format
+const clientToSession = (client: Client): WeeklySession | null => {
+  if (!client.nextSession) return null;
+  
+  return {
+    id: client.nextSession.id,
+    date: client.nextSession.date,
+    dayLabel: getDayLabel(client.nextSession.date),
+    time: client.nextSession.time,
+    client: client,
+    sessionType: client.nextSession.type,
+    location: client.nextSession.location,
+    venue: client.nextSession.venue || client.primaryVenue,
+    clientStatus: client.patStatus === 'inactive' ? 'struggling' : client.patStatus,
+    statusColor: client.patStatusColor,
+    needsPrep: (client.sessionPrepNotes && client.sessionPrepNotes.length > 0) || false,
+    prepNote: client.sessionPrepNotes?.[0],
+  };
+};
+
+// Convert Client flags to AttentionItem format
+const clientToAttentionItem = (client: Client, flag: any): AttentionItem => {
+  return {
+    id: flag.id,
+    client: client,
+    urgency: flag.type === 'positive' ? 'monitor' : flag.type,
+    urgencyColor: flag.type === 'urgent' ? 'red' : flag.type === 'attention' ? 'yellow' : 'blue',
+    headline: flag.headline,
+    observation: flag.details,
+    clientSaid: flag.clientSaid,
+    patSuggestion: flag.patSuggestion,
+    suggestedActions: [
+      { label: 'Message', action: 'message', primary: true },
+      { label: 'View Profile', action: 'view' },
+      flag.category === 'nutrition' ? { label: 'Adjust Macros', action: 'adjust_macros' } : { label: 'Adjust Plan', action: 'adjust_workout' },
+    ],
+    daysInactive: client.daysSinceActivity,
+    compliancePercent: client.compliancePercent,
+  };
+};
+
+// Convert positive flags to CelebrationItem
+const clientToCelebration = (client: Client, flag: any): CelebrationItem => {
+  const iconMap: Record<string, string> = {
+    milestone: '🏆',
+    streak: '🔥',
+    completion: '✅',
+  };
+  
+  return {
+    id: flag.id,
+    client: client,
+    type: flag.category === 'milestone' ? 'pr' : 'streak',
+    icon: iconMap[flag.category] || '🎉',
+    headline: flag.headline,
+    details: flag.details,
+    patAlreadyDid: 'I sent a celebration message',
+    timestamp: flag.createdAt,
+  };
+};
+
+// Generate program health from program-only clients
+const generateProgramHealth = (): ProgramHealthSummary[] => {
+  // Group program clients by programId
+  const shredClients = programOnlyClients.filter(c => c.programIds?.includes('prog-12-week-shred'));
+  const flaggedShred = shredClients.filter(c => c.patStatus === 'struggling');
+  
+  return [
+    {
+      id: 'prog-12-week-shred',
+      name: '12-Week Shred',
+      type: 'cohort',
+      currentWeek: 6,
+      totalWeeks: 12,
+      memberCount: 85, // Mock total (includes clients not in our mock data)
+      onTrackPercent: 92,
+      flaggedCount: flaggedShred.length,
+      flaggedMembers: flaggedShred.map(c => ({
+        client: c,
+        reason: c.patFlags?.[0]?.headline || 'Needs attention',
+        urgency: c.patFlags?.[0]?.type === 'urgent' ? 'urgent' : 'attention' as const,
+      })),
+      recentWins: [
+        { type: 'milestone', count: 15, description: '15 members completed Week 6' },
+      ],
+      status: flaggedShred.length > 2 ? 'needs_attention' : 'healthy',
+    },
+    {
+      id: 'prog-beginner-strength',
+      name: 'Beginner Strength',
+      type: 'course',
+      currentWeek: 3,
+      totalWeeks: 8,
+      memberCount: 95,
+      onTrackPercent: 88,
+      flaggedCount: 0,
+      flaggedMembers: [],
+      recentWins: [
+        { type: 'completion', count: 92, description: '92 members completed Week 2' },
+      ],
+      status: 'healthy',
+    },
+    {
+      id: 'prog-summer-cut',
+      name: 'Summer Cut Challenge',
+      type: 'challenge',
+      currentWeek: 8,
+      totalWeeks: 10,
+      memberCount: 50,
+      onTrackPercent: 78,
+      flaggedCount: 7,
+      flaggedMembers: [],
+      recentWins: [
+        { type: 'milestone', count: 12, description: '12 members hit 10+ lb loss goal' },
+      ],
+      status: 'needs_attention',
+    },
+  ];
+};
+
+// Main function to generate dashboard briefing
+export const generateDashboardBriefingV2 = (): DashboardBriefingV2 => {
+  // Get today's in-person sessions
+  const todayInPerson = inPersonClients
+    .filter(c => c.nextSession && isToday(c.nextSession.date))
+    .map(clientToSession)
+    .filter((s): s is WeeklySession => s !== null)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+  
+  // Get this week's online sessions
+  const thisWeekOnline = online1on1Clients
+    .filter(c => c.nextSession && isThisWeek(c.nextSession.date))
+    .map(clientToSession)
+    .filter((s): s is WeeklySession => s !== null)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+  
+  // Get attention items (urgent and attention flags)
+  const attentionClients = getClientsNeedingAttention();
+  const needsAttention: AttentionItem[] = [];
+  
+  attentionClients.forEach(client => {
+    if (client.patFlags) {
+      client.patFlags
+        .filter(f => f.type === 'urgent' || f.type === 'attention')
+        .forEach(flag => {
+          needsAttention.push(clientToAttentionItem(client, flag));
+        });
+    }
+  });
+  
+  // Sort by urgency
+  needsAttention.sort((a, b) => {
+    const urgencyOrder = { urgent: 0, attention: 1, monitor: 2 };
+    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+  });
+  
+  // Get celebrations (positive flags)
+  const celebrations: CelebrationItem[] = [];
+  allClients.forEach(client => {
+    if (client.patFlags) {
+      client.patFlags
+        .filter(f => f.type === 'positive')
+        .forEach(flag => {
+          celebrations.push(clientToCelebration(client, flag));
+        });
+    }
+  });
+  
+  // Sort by recency
+  celebrations.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  
+  // Generate program health
+  const programHealth = generateProgramHealth();
+  const totalProgramMembers = programHealth.reduce((sum, p) => sum + p.memberCount, 0);
+  
+  // Generate smart greeting
+  const greeting = `${getTimeGreeting()}, Coach Alex.`;
+  let contextLine = '';
+  
+  if (todayInPerson.length > 0) {
+    contextLine = `You have ${todayInPerson.length} in-person session${todayInPerson.length > 1 ? 's' : ''} today`;
+    if (needsAttention.length > 0) {
+      contextLine += ` and ${needsAttention.length} client${needsAttention.length > 1 ? 's' : ''} need${needsAttention.length === 1 ? 's' : ''} attention.`;
+    } else {
+      contextLine += '.';
+    }
+  } else if (thisWeekOnline.length > 0) {
+    contextLine = `No in-person sessions today. You have ${thisWeekOnline.length} online check-in${thisWeekOnline.length > 1 ? 's' : ''} this week.`;
+  } else {
+    contextLine = `You have ${inPersonClients.length + online1on1Clients.length} 1:1 clients and ${totalProgramMembers} in programs.`;
+  }
+  
+  // Urgent context
+  let urgentContext: string | undefined;
+  if (todayInPerson.length > 0) {
+    const nextSession = todayInPerson[0];
+    const now = new Date();
+    const sessionTime = nextSession.date;
+    const hoursUntil = Math.round((sessionTime.getTime() - now.getTime()) / (1000 * 60 * 60));
+    
+    if (hoursUntil > 0 && hoursUntil <= 3) {
+      urgentContext = `Your session with ${nextSession.client.name} starts ${hoursUntil === 1 ? 'in 1 hour' : `in ${hoursUntil} hours`}.`;
+    } else if (hoursUntil <= 0) {
+      urgentContext = `Your session with ${nextSession.client.name} starts soon.`;
+    }
+  }
+  
+  return {
+    greeting: greeting,
+    subGreeting: contextLine,
+    clientSummary: {
+      total: allClients.length,
+      healthy: allClients.filter(c => c.patStatus === 'thriving' || c.patStatus === 'steady').length,
+      needsAttention: needsAttention.length,
+    },
+    smartGreeting: {
+      greeting,
+      contextLine,
+      urgentContext,
+      segments: {
+        inPerson: {
+          label: 'In-Person',
+          count: inPersonClients.length,
+          todayCount: todayInPerson.length,
+        },
+        online: {
+          label: 'Online 1:1',
+          count: online1on1Clients.length,
+          thisWeekCount: thisWeekOnline.length,
+        },
+        programs: {
+          label: 'Programs',
+          groupCount: programHealth.length,
+          memberCount: totalProgramMembers,
+        },
+      },
+    },
+    todaysSessions: todayInPerson.map(session => ({
+      id: session.id,
+      time: session.time,
+      client: session.client,
+      sessionType: session.sessionType,
+      location: session.location,
+      clientStatus: session.clientStatus,
+      statusColor: session.statusColor,
+      recentHighlights: session.clientStatus === 'thriving' ? 
+        session.client.sessionPrepNotes || [] : [],
+      concerns: session.clientStatus === 'struggling' ? 
+        session.client.sessionPrepNotes : undefined,
+      patSuggestions: session.client.patFlags
+        ?.filter(f => f.type !== 'positive')
+        .map(f => f.patSuggestion) || [],
+      todaysWorkout: undefined, // Would come from workout service
+    })),
+    inPersonToday: todayInPerson,
+    onlineThisWeek: thisWeekOnline,
+    programHealth,
+    needsAttention,
+    celebrations,
+    activitySummary: {
+      workouts: {
+        completed: 12,
+        remaining: 6,
+        skipped: 3,
+      },
+      nutrition: {
+        logged: 28,
+        expected: allClients.length,
+        onTarget: 24,
+      },
+      recentActivity: [
+        {
+          clientId: 'client-sarah-johnson',
+          clientName: 'Sarah Johnson',
+          action: 'completed "Upper Body Strength"',
+          timestamp: new Date(Date.now() - 1000 * 60 * 45),
+        },
+        {
+          clientId: 'client-michael-chen',
+          clientName: 'Michael Chen',
+          action: 'logged breakfast (520 cal)',
+          timestamp: new Date(Date.now() - 1000 * 60 * 120),
+        },
+        {
+          clientId: 'client-lisa-park',
+          clientName: 'Lisa Park',
+          action: 'hit 30-day workout streak! 🔥',
+          timestamp: new Date(Date.now() - 1000 * 60 * 180),
+        },
+      ],
+    },
+    clientSegmentation: {
+      inPerson: {
+        count: inPersonClients.length,
+        todayCount: todayInPerson.length,
+        clients: inPersonClients,
+      },
+      online1on1: {
+        count: online1on1Clients.length,
+        thisWeekCount: thisWeekOnline.length,
+        clients: online1on1Clients,
+      },
+      programOnly: {
+        count: programOnlyClients.length,
+        activePrograms: programHealth.length,
+        clients: programOnlyClients,
+      },
+    },
+    generatedAt: new Date(),
+  };
+};
+
+export const getDashboardBriefingV2 = (): Promise<DashboardBriefingV2> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(generateDashboardBriefingV2());
+    }, 300);
+  });
+};
+
+// Keep for backwards compatibility
+export const mockDashboardBriefing = generateDashboardBriefingV2();
+```
+
+---
+
+## TASK 4: Add Engagement Section to Client Drawer Overview
+
+### File: `client/src/components/client-drawer/overview-tab.tsx`
+
+**ADD** this section at the TOP of the Overview tab, before Domain Handlers:
+
+```tsx
+{/* ENGAGEMENT & SESSIONS SECTION */}
+<div className="space-y-4 mb-6">
+  <div className="flex items-center justify-between">
+    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+      Engagement
+    </h3>
+    <Button variant="ghost" size="sm">
+      <span className="material-symbols-outlined text-sm mr-1">edit</span>
+      Edit
+    </Button>
+  </div>
+  
+  {/* Engagement Type Pills */}
+  <div className="flex gap-2">
+    <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+      client.engagementType === 'in_person' 
+        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
+        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+    }`}>
+      🏋️ In-Person
+    </span>
+    <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+      client.engagementType === 'online_1on1' 
+        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' 
+        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+    }`}>
+      💻 Online 1:1
+    </span>
+    <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+      client.engagementType === 'program_only' 
+        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+    }`}>
+      📚 Program Only
+    </span>
+  </div>
+  
+  {/* Session Details */}
+  {client.engagementType !== 'program_only' && (
+    <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+      {client.engagementType === 'in_person' && client.primaryVenue && (
+        <div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Venue</p>
+          <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">location_on</span>
+            {client.primaryVenue}
+          </p>
+        </div>
+      )}
+      
+      {client.engagementType === 'online_1on1' && client.preferredPlatform && (
+        <div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Platform</p>
+          <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">videocam</span>
+            {client.preferredPlatform === 'zoom' ? 'Zoom' : 'Google Meet'}
+          </p>
+        </div>
+      )}
+      
+      {client.sessionFrequency && (
+        <div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Frequency</p>
+          <p className="text-sm font-medium text-slate-900 dark:text-white">
+            {client.sessionFrequency.replace('_', ' ')}
+          </p>
+        </div>
+      )}
+    </div>
+  )}
+  
+  {/* Next Session */}
+  {client.nextSession && (
+    <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Next Session</p>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" className="h-7 px-2">
+            <span className="material-symbols-outlined text-sm">edit_calendar</span>
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-red-500">
+            <span className="material-symbols-outlined text-sm">cancel</span>
+          </Button>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
+          <span className="text-xs font-bold text-primary">
+            {new Date(client.nextSession.date).toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+          </span>
+          <span className="text-lg font-bold text-primary">
+            {new Date(client.nextSession.date).getDate()}
+          </span>
+        </div>
+        
+        <div>
+          <p className="font-medium text-slate-900 dark:text-white">
+            {client.nextSession.type}
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {client.nextSession.time} • {
+              client.nextSession.location === 'in_person' ? client.nextSession.venue :
+              client.nextSession.location === 'zoom' ? 'Zoom' : 'Google Meet'
+            }
+          </p>
+        </div>
+      </div>
+      
+      {/* Prep Notes from Pat */}
+      {client.sessionPrepNotes && client.sessionPrepNotes.length > 0 && (
+        <div className="mt-3 p-2 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1 mb-1">
+            <span className="material-symbols-outlined text-sm">lightbulb</span>
+            Pat's Prep Notes
+          </p>
+          <ul className="text-xs text-amber-600 dark:text-amber-500 space-y-0.5">
+            {client.sessionPrepNotes.map((note, i) => (
+              <li key={i}>• {note}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )}
+  
+  {/* No Session Scheduled (for program-only or inactive) */}
+  {!client.nextSession && client.engagementType !== 'program_only' && (
+    <div className="p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-center">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">No session scheduled</p>
+      <Button variant="outline" size="sm">
+        <span className="material-symbols-outlined text-sm mr-1">add</span>
+        Schedule Session
+      </Button>
+    </div>
+  )}
+</div>
+
+<Separator className="my-6" />
+
+{/* Rest of existing Overview tab content... */}
+```
+
+---
+
+## TASK 5: Complete Clients Page Update
+
+### File: `client/src/pages/clients.tsx`
+
+**COMPLETE UPDATE** - Add engagement badges, status indicators, filters, and bulk actions:
+
+### 5A: Add State Variables
+
+```tsx
+// Add these state variables at the top of the component
+const [searchQuery, setSearchQuery] = useState('');
+const [engagementFilter, setEngagementFilter] = useState<string>('all');
+const [statusFilter, setStatusFilter] = useState<string>('all');
+const [sortBy, setSortBy] = useState<string>('name');
+const [selectedClients, setSelectedClients] = useState<string[]>([]);
+```
+
+### 5B: Add Filter Bar
+
+```tsx
+{/* Filter Bar */}
+<div className="flex flex-wrap items-center gap-3 mb-4">
+  {/* Search */}
+  <div className="relative flex-1 min-w-[200px]">
+    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+    <Input 
+      placeholder="Search clients..." 
+      className="pl-10"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
+  
+  {/* Engagement Type Filter */}
+  <Select value={engagementFilter} onValueChange={setEngagementFilter}>
+    <SelectTrigger className="w-40">
+      <SelectValue placeholder="All Types" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">All Types</SelectItem>
+      <SelectItem value="in_person">
+        <span className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm text-blue-500">fitness_center</span>
+          In-Person
+        </span>
+      </SelectItem>
+      <SelectItem value="online_1on1">
+        <span className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm text-purple-500">videocam</span>
+          Online 1:1
+        </span>
+      </SelectItem>
+      <SelectItem value="program_only">
+        <span className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm text-emerald-500">school</span>
+          Program Only
+        </span>
+      </SelectItem>
+    </SelectContent>
+  </Select>
+  
+  {/* Status Filter */}
+  <Select value={statusFilter} onValueChange={setStatusFilter}>
+    <SelectTrigger className="w-36">
+      <SelectValue placeholder="All Status" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">All Status</SelectItem>
+      <SelectItem value="thriving">🔥 Thriving</SelectItem>
+      <SelectItem value="steady">👍 Steady</SelectItem>
+      <SelectItem value="struggling">⚠️ Struggling</SelectItem>
+      <SelectItem value="inactive">💤 Inactive</SelectItem>
+    </SelectContent>
+  </Select>
+  
+  {/* Sort */}
+  <Select value={sortBy} onValueChange={setSortBy}>
+    <SelectTrigger className="w-32">
+      <SelectValue placeholder="Sort by" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="name">Name</SelectItem>
+      <SelectItem value="nextSession">Next Session</SelectItem>
+      <SelectItem value="compliance">Compliance</SelectItem>
+      <SelectItem value="status">Status</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+
+{/* Bulk Actions (when clients selected) */}
+{selectedClients.length > 0 && (
+  <div className="flex items-center gap-3 p-3 mb-4 rounded-lg bg-slate-100 dark:bg-slate-800">
+    <span className="text-sm font-medium">{selectedClients.length} selected</span>
+    
+    <Select onValueChange={(value) => handleBulkEngagementChange(value)}>
+      <SelectTrigger className="w-44">
+        <SelectValue placeholder="Set Engagement..." />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="in_person">Set as In-Person</SelectItem>
+        <SelectItem value="online_1on1">Set as Online 1:1</SelectItem>
+        <SelectItem value="program_only">Set as Program Only</SelectItem>
+      </SelectContent>
+    </Select>
+    
+    <Button variant="ghost" size="sm" onClick={() => setSelectedClients([])}>
+      Clear
+    </Button>
+  </div>
+)}
+```
+
+### 5C: Add Filter Logic
+
+```tsx
+// Helper function for day labels
+const getDayLabel = (date: Date): string => {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
+  
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+};
+
+// Filter and sort logic
+const filteredClients = useMemo(() => {
+  let result = [...clients];
+  
+  // Search filter
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    result = result.filter(c => 
+      c.name.toLowerCase().includes(query) ||
+      c.email.toLowerCase().includes(query)
+    );
+  }
+  
+  // Engagement type filter
+  if (engagementFilter !== 'all') {
+    result = result.filter(c => c.engagementType === engagementFilter);
+  }
+  
+  // Status filter
+  if (statusFilter !== 'all') {
+    result = result.filter(c => c.patStatus === statusFilter);
+  }
+  
+  // Sort
+  result.sort((a, b) => {
+    switch (sortBy) {
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'nextSession':
+        if (!a.nextSession && !b.nextSession) return 0;
+        if (!a.nextSession) return 1;
+        if (!b.nextSession) return -1;
+        return new Date(a.nextSession.date).getTime() - new Date(b.nextSession.date).getTime();
+      case 'compliance':
+        return b.compliancePercent - a.compliancePercent;
+      case 'status':
+        const statusOrder = { thriving: 0, steady: 1, struggling: 2, inactive: 3 };
+        return statusOrder[a.patStatus] - statusOrder[b.patStatus];
+      default:
+        return 0;
+    }
+  });
+  
+  return result;
+}, [clients, searchQuery, engagementFilter, statusFilter, sortBy]);
+
+// Bulk action handler
+const handleBulkEngagementChange = (engagementType: string) => {
+  // In production, this would call an API
+  console.log(`Setting ${selectedClients.length} clients to ${engagementType}`);
+  setSelectedClients([]);
+};
+
+// Toggle client selection
+const toggleClientSelection = (clientId: string) => {
+  setSelectedClients(prev => 
+    prev.includes(clientId) 
+      ? prev.filter(id => id !== clientId)
+      : [...prev, clientId]
+  );
+};
+
+// Select all visible
+const toggleSelectAll = () => {
+  if (selectedClients.length === filteredClients.length) {
+    setSelectedClients([]);
+  } else {
+    setSelectedClients(filteredClients.map(c => c.id));
+  }
+};
+```
+
+### 5D: Update Table Headers
+
+```tsx
+<Table>
+  <TableHeader>
+    <TableRow>
+      <TableHead className="w-12">
+        <Checkbox 
+          checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
+          onCheckedChange={toggleSelectAll}
+        />
+      </TableHead>
+      <TableHead>Client</TableHead>
+      <TableHead>Type</TableHead>
+      <TableHead>Status</TableHead>
+      <TableHead>Next Session</TableHead>
+      <TableHead>Compliance</TableHead>
+      <TableHead className="w-12"></TableHead>
+    </TableRow>
+  </TableHeader>
+  <TableBody>
+    {filteredClients.map(client => (
+      // ... row content below
+    ))}
+  </TableBody>
+</Table>
+```
+
+### 5E: Update Table Rows with Engagement & Status
+
+```tsx
+{filteredClients.map(client => (
+  <TableRow 
+    key={client.id}
+    className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+      selectedClients.includes(client.id) ? 'bg-slate-100 dark:bg-slate-800' : ''
+    }`}
+  >
+    {/* Checkbox */}
+    <TableCell onClick={(e) => e.stopPropagation()}>
+      <Checkbox 
+        checked={selectedClients.includes(client.id)}
+        onCheckedChange={() => toggleClientSelection(client.id)}
+      />
+    </TableCell>
+    
+    {/* Avatar + Name */}
+    <TableCell onClick={() => setSelectedClientId(client.id)}>
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+            {client.name.split(' ').map(n => n[0]).join('')}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <p className="font-medium text-slate-900 dark:text-white">{client.name}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{client.email}</p>
+        </div>
+      </div>
+    </TableCell>
+    
+    {/* Engagement Type Badge */}
+    <TableCell>
+      {client.engagementType === 'in_person' && (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+          <span className="material-symbols-outlined text-sm">fitness_center</span>
+          In-Person
+        </span>
+      )}
+      {client.engagementType === 'online_1on1' && (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+          <span className="material-symbols-outlined text-sm">videocam</span>
+          Online
+        </span>
+      )}
+      {client.engagementType === 'program_only' && (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <span className="material-symbols-outlined text-sm">school</span>
+          Program
+        </span>
+      )}
+    </TableCell>
+    
+    {/* Pat Status */}
+    <TableCell>
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+        client.patStatus === 'thriving' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+        client.patStatus === 'steady' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+        client.patStatus === 'struggling' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+        'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+      }`}>
+        {client.patStatus === 'thriving' && '🔥'}
+        {client.patStatus === 'steady' && '👍'}
+        {client.patStatus === 'struggling' && '⚠️'}
+        {client.patStatus === 'inactive' && '💤'}
+        <span className="ml-0.5">{client.patStatus.charAt(0).toUpperCase() + client.patStatus.slice(1)}</span>
+      </span>
+    </TableCell>
+    
+    {/* Next Session */}
+    <TableCell>
+      {client.nextSession ? (
+        <div className="text-sm">
+          <p className="font-medium text-slate-900 dark:text-white">
+            {getDayLabel(new Date(client.nextSession.date))}
+          </p>
+          <p className="text-slate-500 dark:text-slate-400">{client.nextSession.time}</p>
+        </div>
+      ) : (
+        <span className="text-sm text-slate-400 dark:text-slate-500">—</span>
+      )}
+    </TableCell>
+    
+    {/* Compliance */}
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <Progress 
+          value={client.compliancePercent} 
+          className={`w-16 h-2 ${
+            client.compliancePercent >= 80 ? '[&>div]:bg-emerald-500' :
+            client.compliancePercent >= 50 ? '[&>div]:bg-amber-500' :
+            '[&>div]:bg-red-500'
+          }`}
+        />
+        <span className={`text-sm font-medium ${
+          client.compliancePercent >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
+          client.compliancePercent >= 50 ? 'text-amber-600 dark:text-amber-400' :
+          'text-red-600 dark:text-red-400'
+        }`}>
+          {client.compliancePercent}%
+        </span>
+      </div>
+    </TableCell>
+    
+    {/* Action */}
+    <TableCell>
+      <Button 
+        variant="ghost" 
+        size="sm"
+        onClick={() => setSelectedClientId(client.id)}
+      >
+        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+      </Button>
+    </TableCell>
+  </TableRow>
+))}
+```
+
+### 5F: Add Empty State
+
+```tsx
+{filteredClients.length === 0 && (
+  <TableRow>
+    <TableCell colSpan={7} className="h-32 text-center">
+      <div className="flex flex-col items-center justify-center text-slate-500">
+        <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
+        <p className="font-medium">No clients found</p>
+        <p className="text-sm">Try adjusting your filters</p>
+      </div>
+    </TableCell>
+  </TableRow>
+)}
+```
+
+---
+
+## VISUAL REFERENCE - Complete Clients Page
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  Clients                                                        [+ Add Client]  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  🔍 Search clients...     [All Types ▾]  [All Status ▾]  [Sort: Name ▾]        │
+│                                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ Client              │ Type           │ Status        │ Next     │ Compl  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ SJ  Sarah Johnson   │ 🏋️ In-Person   │ 🔥 Thriving   │ Today    │ ████ 92%│
+│     │     sarah@email.com │                │               │ 10:00 AM │        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ MC  Michael Chen    │ 🏋️ In-Person   │ 👍 Steady     │ Today    │ ███░ 68%│
+│     │     michael@email   │                │               │ 11:30 AM │        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ ER  Emily Rodriguez │ 🏋️ In-Person   │ ⚠️ Struggling │ —        │ █░░░ 23%│
+│     │     emily@email.com │                │               │          │        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ LP  Lisa Park       │ 💻 Online      │ 🔥 Thriving   │ Sat      │ ████ 96%│
+│     │     lisa@email.com  │                │               │ 10:00 AM │        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ JW  James Wilson    │ 💻 Online      │ 👍 Steady     │ Sun      │ ██░░ 58%│
+│     │     james@email.com │                │               │ 11:00 AM │        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ AT  Alex Turner     │ 📚 Program     │ 🔥 Thriving   │ —        │ ████ 88%│
+│     │     alex@email.com  │                │               │          │        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ☐  │ TS  Tom Stevens     │ 📚 Program     │ ⚠️ Struggling │ —        │ ██░░ 45%│
+│     │     tom@email.com   │                │               │          │        │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+When clients are selected:
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────────────────────────────────────────────────────────┐   │
+│  │ 3 selected    [Set Engagement... ▾]    [Clear]                          │   │
+│  └─────────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## TASK 6: Add Venue Management to Settings
+
+### File: `client/src/pages/settings.tsx`
+
+**ADD** a "Venues" section to the Settings page:
+
+```tsx
+// In the Settings page, add a new section or tab for Venues
+
+<Card>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <span className="material-symbols-outlined">location_on</span>
+      Training Venues
+    </CardTitle>
+    <CardDescription>
+      Manage locations where you train in-person clients
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-3">
+      {venues.map(venue => (
+        <div key={venue.id} className="flex items-center justify-between p-3 rounded-lg border">
+          <div>
+            <p className="font-medium">{venue.name}</p>
+            <p className="text-sm text-slate-500">{venue.address}</p>
+          </div>
+          <Button variant="ghost" size="sm">
+            <span className="material-symbols-outlined">edit</span>
+          </Button>
+        </div>
+      ))}
+      
+      <Button variant="outline" className="w-full">
+        <span className="material-symbols-outlined mr-2">add</span>
+        Add Venue
+      </Button>
+    </div>
+  </CardContent>
+</Card>
+```
+
+---
+
+## VERIFICATION CHECKLIST
+
+After implementation:
+
+**Client Data Model:**
+1. ☐ Client type includes all new engagement fields
+2. ☐ Mock clients have realistic engagement data
+3. ☐ Each client has engagementType, patStatus, compliancePercent
+
+**Dashboard Integration:**
+4. ☐ Dashboard pulls from real client data (not separate mock)
+5. ☐ Today's In-Person shows clients with today's sessions
+6. ☐ This Week's Online shows clients with upcoming sessions
+7. ☐ Needs Attention comes from client.patFlags
+8. ☐ Celebrations come from positive patFlags
+9. ☐ Clicking client on dashboard opens their drawer
+
+**Client Drawer:**
+10. ☐ Client Drawer Overview shows engagement section at top
+11. ☐ Engagement type pills (In-Person / Online / Program) visible
+12. ☐ Venue or Platform shown based on engagement type
+13. ☐ Next session displays with date, time, type
+14. ☐ Pat's prep notes shown if any exist
+15. ☐ "Schedule Session" button for clients without next session
+
+**Clients Page:**
+16. ☐ Filter bar shows: Search, Type filter, Status filter, Sort
+17. ☐ Type filter options: All, In-Person, Online 1:1, Program Only
+18. ☐ Status filter options: All, Thriving, Steady, Struggling, Inactive
+19. ☐ Table shows columns: Client, Type, Status, Next Session, Compliance
+20. ☐ Type column shows engagement badge with icon
+21. ☐ Status column shows Pat status with emoji
+22. ☐ Compliance shows colored progress bar + percentage
+23. ☐ Checkbox selection works on all rows
+24. ☐ Bulk actions bar appears when clients selected
+25. ☐ "Set Engagement..." dropdown works for bulk updates
+26. ☐ Empty state shows when no clients match filters
+27. ☐ Clicking row opens client drawer
+
+---
+
+## DATA FLOW SUMMARY
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT DATA                              │
+│  (clients.mock.ts - single source of truth)                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Client {                                                       │
+│    engagementType: 'in_person' | 'online_1on1' | 'program_only'│
+│    primaryVenue: 'FitLife Downtown'                            │
+│    nextSession: { date, time, type, location }                 │
+│    patStatus: 'thriving' | 'steady' | 'struggling'             │
+│    patFlags: [{ type, headline, patSuggestion }]               │
+│    sessionPrepNotes: ['Check knee', 'Consider progression']    │
+│  }                                                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     DASHBOARD GENERATOR                         │
+│  (dashboard-briefing-v2.mock.ts)                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  generateDashboardBriefingV2() {                               │
+│    // Filter clients by engagement type + session date         │
+│    inPersonToday = clients.filter(inPerson + hasSessionToday)  │
+│    onlineThisWeek = clients.filter(online + hasSessionThisWeek)│
+│                                                                 │
+│    // Convert patFlags to dashboard format                      │
+│    needsAttention = clients.flatMap(c => c.patFlags.urgent)    │
+│    celebrations = clients.flatMap(c => c.patFlags.positive)    │
+│  }                                                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        DASHBOARD UI                             │
+│  (pages/dashboard.tsx)                                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  SmartGreeting ─────────────────▶ briefing.smartGreeting       │
+│  InPersonSessions ──────────────▶ briefing.inPersonToday       │
+│  OnlineSessionsWeek ────────────▶ briefing.onlineThisWeek      │
+│  NeedsAttention ────────────────▶ briefing.needsAttention      │
+│  ProgramHealth ─────────────────▶ briefing.programHealth       │
+│  Celebrations ──────────────────▶ briefing.celebrations        │
+│                                                                 │
+│  Click any client ──────────────▶ Opens ClientDrawer           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## WHAT THIS ACHIEVES
+
+1. **Single Source of Truth**: All client data in one place
+2. **Dashboard = View of Client Data**: Not separate mock data
+3. **Pat's Analysis on Client**: patStatus, patFlags, sessionPrepNotes
+4. **Engagement Determines Dashboard Position**: in_person → Today, online → This Week
+5. **Prep Notes Flow Through**: Client.sessionPrepNotes → Session.needsPrep
+6. **Client Drawer Shows Full Picture**: Engagement + Next Session + Prep Notes
+
+---
+
+*End of Phase 2.5 Instructions*
