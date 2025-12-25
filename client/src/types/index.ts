@@ -19,6 +19,9 @@ export interface MentorProfile {
   createdAt: Date;
 }
 
+// Client Engagement Types
+export type ClientEngagementType = 'in_person' | 'online_1on1' | 'program_only';
+
 export interface Client {
   id: string;
   name: string;
@@ -35,6 +38,12 @@ export interface Client {
   metrics?: ClientMetrics;
   orgId?: string;
   groups?: string[];
+  // V2: Client segmentation fields
+  engagementType?: ClientEngagementType;
+  primaryVenue?: string;
+  programIds?: string[];
+  sessionFrequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'program_only';
+  preferredSessionDay?: number;
 }
 
 export interface ClientMetrics {
@@ -585,4 +594,82 @@ export interface DashboardActivitySummary {
     action: string;
     timestamp: Date;
   }[];
+}
+
+// ============================================
+// V2: SMART CLIENT ORGANIZATION TYPES
+// ============================================
+
+export interface ClientSegmentation {
+  inPerson: {
+    count: number;
+    todayCount: number;
+    clients: Client[];
+  };
+  online1on1: {
+    count: number;
+    thisWeekCount: number;
+    clients: Client[];
+  };
+  programOnly: {
+    count: number;
+    activePrograms: number;
+    clients: Client[];
+  };
+}
+
+export interface ProgramHealthSummary {
+  id: string;
+  name: string;
+  type: 'cohort' | 'challenge' | 'course';
+  currentWeek: number;
+  totalWeeks: number;
+  memberCount: number;
+  onTrackPercent: number;
+  flaggedCount: number;
+  flaggedMembers: {
+    client: Client;
+    reason: string;
+    urgency: 'urgent' | 'attention' | 'monitor';
+  }[];
+  recentWins: {
+    type: 'milestone' | 'completion' | 'streak';
+    count: number;
+    description: string;
+  }[];
+  status: 'healthy' | 'needs_attention' | 'at_risk';
+}
+
+export interface WeeklySession {
+  id: string;
+  date: Date;
+  dayLabel: string;
+  time: string;
+  client: Client;
+  sessionType: string;
+  location: 'in_person' | 'zoom' | 'google_meet';
+  venue?: string;
+  clientStatus: 'thriving' | 'steady' | 'struggling';
+  statusColor: 'green' | 'yellow' | 'red';
+  needsPrep: boolean;
+  prepNote?: string;
+}
+
+export interface SmartGreeting {
+  greeting: string;
+  contextLine: string;
+  urgentContext?: string;
+  segments: {
+    inPerson: { label: string; count: number; todayCount?: number };
+    online: { label: string; count: number; thisWeekCount?: number };
+    programs: { label: string; groupCount: number; memberCount: number };
+  };
+}
+
+export interface DashboardBriefingV2 extends DashboardBriefing {
+  smartGreeting: SmartGreeting;
+  inPersonToday: WeeklySession[];
+  onlineThisWeek: WeeklySession[];
+  programHealth: ProgramHealthSummary[];
+  clientSegmentation: ClientSegmentation;
 }

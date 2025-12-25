@@ -15,6 +15,10 @@ export const mockClients: Client[] = [
     goals: ['Lose 10 lbs', 'Build muscle', 'Improve sleep'],
     orgId: undefined,
     groups: ['12-Week Shred - Cohort 1'],
+    engagementType: 'in_person',
+    primaryVenue: 'FitLife Downtown',
+    sessionFrequency: 'weekly',
+    preferredSessionDay: 1,
     metrics: {
       tdee: 2100,
       bmr: 1650,
@@ -39,6 +43,9 @@ export const mockClients: Client[] = [
     goals: ['Gain muscle mass', 'Increase strength'],
     orgId: 'org-1',
     groups: ['Morning Warriors', '12-Week Shred - Cohort 1'],
+    engagementType: 'online_1on1',
+    sessionFrequency: 'weekly',
+    preferredSessionDay: 2,
     metrics: {
       tdee: 2800,
       bmr: 1950,
@@ -62,6 +69,9 @@ export const mockClients: Client[] = [
     goals: ['Get back on track', 'Establish routine'],
     orgId: 'org-1',
     groups: [],
+    engagementType: 'program_only',
+    programIds: ['prog-1'],
+    sessionFrequency: 'program_only',
   },
   {
     id: 'client-4',
@@ -76,6 +86,10 @@ export const mockClients: Client[] = [
     goals: ['Train for marathon', 'Optimize nutrition'],
     orgId: undefined,
     groups: ['Marathon Prep 2025'],
+    engagementType: 'in_person',
+    primaryVenue: 'FitLife Downtown',
+    sessionFrequency: 'biweekly',
+    preferredSessionDay: 4,
     metrics: {
       tdee: 3200,
       bmr: 2100,
@@ -99,6 +113,9 @@ export const mockClients: Client[] = [
     goals: ['Maintain fitness', 'Work-life balance'],
     orgId: 'org-1',
     groups: ['Morning Warriors', 'Corporate Wellness'],
+    engagementType: 'online_1on1',
+    sessionFrequency: 'weekly',
+    preferredSessionDay: 3,
     metrics: {
       tdee: 1900,
       bmr: 1450,
@@ -122,6 +139,8 @@ export const mockClients: Client[] = [
     joinedAt: new Date('2024-01-20'),
     orgId: 'org-1',
     groups: [],
+    engagementType: 'online_1on1',
+    sessionFrequency: 'monthly',
   }
 ];
 

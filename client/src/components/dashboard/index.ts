@@ -1,3 +1,10 @@
+// V2 Components (Smart Organization)
+export { SmartGreetingComponent } from './smart-greeting';
+export { InPersonSessions } from './in-person-sessions';
+export { OnlineSessionsWeek } from './online-sessions-week';
+export { ProgramHealth } from './program-health';
+
+// V1 Components (Keep for session detail cards and existing features)
 export { PatGreeting } from './pat-greeting';
 export { TodaysSessions } from './todays-sessions';
 export { NeedsAttention } from './needs-attention';
