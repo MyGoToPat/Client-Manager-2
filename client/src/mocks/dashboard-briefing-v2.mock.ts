@@ -6,7 +6,7 @@ import {
   ClientSegmentation,
   Client
 } from '@/types';
-import { mockClients } from './clients.mock';
+import { mockClients, inPersonClients, online1on1Clients, programOnlyClients } from './clients.mock';
 import { mockDashboardBriefing } from './dashboard-briefing.mock';
 
 const getTimeGreeting = (): string => {
@@ -88,12 +88,12 @@ export const generateSmartGreeting = (
     segments: {
       inPerson: { 
         label: 'In-Person', 
-        count: 20,
+        count: inPersonClients.length,
         todayCount: inPersonToday.length 
       },
       online: { 
         label: 'Online 1:1', 
-        count: 50,
+        count: online1on1Clients.length,
         thisWeekCount: onlineThisWeek.length 
       },
       programs: { 
@@ -105,157 +105,56 @@ export const generateSmartGreeting = (
   };
 };
 
-export const mockInPersonToday: WeeklySession[] = [
-  {
-    id: 'ip-1',
-    date: new Date(new Date().setHours(10, 0, 0, 0)),
-    dayLabel: 'Today',
-    time: '10:00 AM',
-    client: {
-      ...mockClients[0],
-      engagementType: 'in_person',
-      primaryVenue: 'FitLife Downtown'
-    },
-    sessionType: 'Upper Body Strength',
-    location: 'in_person',
-    venue: 'FitLife Downtown',
-    clientStatus: 'thriving',
-    statusColor: 'green',
-    needsPrep: false,
-  },
-  {
-    id: 'ip-2',
-    date: new Date(new Date().setHours(11, 30, 0, 0)),
-    dayLabel: 'Today',
-    time: '11:30 AM',
-    client: {
-      ...mockClients[1],
-      engagementType: 'in_person',
-      primaryVenue: 'FitLife Downtown'
-    },
-    sessionType: 'Legs & Core',
-    location: 'in_person',
-    venue: 'FitLife Downtown',
-    clientStatus: 'steady',
-    statusColor: 'yellow',
-    needsPrep: true,
-    prepNote: 'Check knee - mentioned discomfort last session',
-  },
-  {
-    id: 'ip-3',
-    date: new Date(new Date().setHours(14, 0, 0, 0)),
-    dayLabel: 'Today',
-    time: '2:00 PM',
-    client: {
-      ...mockClients[2],
-      engagementType: 'in_person',
-      primaryVenue: 'FitLife Downtown'
-    },
-    sessionType: 'Full Body',
-    location: 'in_person',
-    venue: 'FitLife Downtown',
-    clientStatus: 'thriving',
-    statusColor: 'green',
-    needsPrep: false,
-  },
-  {
-    id: 'ip-4',
-    date: new Date(new Date().setHours(16, 0, 0, 0)),
-    dayLabel: 'Today',
-    time: '4:00 PM',
-    client: {
-      ...mockClients[3] || mockClients[0],
-      engagementType: 'in_person',
-      primaryVenue: 'FitLife Downtown'
-    },
-    sessionType: 'Push Day',
-    location: 'in_person',
-    venue: 'FitLife Downtown',
-    clientStatus: 'thriving',
-    statusColor: 'green',
-    needsPrep: false,
-  },
-];
+const mapPatStatusToSessionStatus = (status?: string): 'thriving' | 'steady' | 'struggling' => {
+  if (status === 'thriving') return 'thriving';
+  if (status === 'struggling' || status === 'inactive') return 'struggling';
+  return 'steady';
+};
 
-export const mockOnlineThisWeek: WeeklySession[] = [
-  {
-    id: 'ol-1',
-    date: new Date(new Date().setDate(new Date().getDate() + 1)),
-    dayLabel: 'Tomorrow',
-    time: '9:00 AM',
-    client: {
-      ...mockClients[1],
-      engagementType: 'online_1on1',
-    },
-    sessionType: 'Progress Check-in',
-    location: 'zoom',
-    clientStatus: 'struggling',
-    statusColor: 'red',
-    needsPrep: true,
-    prepNote: 'Review nutrition logs - protein consistently low',
-  },
-  {
-    id: 'ol-2',
-    date: new Date(new Date().setDate(new Date().getDate() + 1)),
-    dayLabel: 'Tomorrow',
-    time: '2:00 PM',
-    client: {
-      ...mockClients[3] || mockClients[0],
-      engagementType: 'online_1on1',
-    },
-    sessionType: 'Weekly Review',
-    location: 'zoom',
-    clientStatus: 'thriving',
-    statusColor: 'green',
-    needsPrep: false,
-  },
-  {
-    id: 'ol-3',
-    date: new Date(new Date().setDate(new Date().getDate() + 2)),
-    dayLabel: getDayLabel(new Date(new Date().setDate(new Date().getDate() + 2))),
-    time: '10:00 AM',
-    client: {
-      ...mockClients[4] || mockClients[1],
-      engagementType: 'online_1on1',
-    },
-    sessionType: 'Nutrition Review',
-    location: 'google_meet',
-    clientStatus: 'steady',
-    statusColor: 'yellow',
-    needsPrep: true,
-    prepNote: 'Prep macro adjustment proposal',
-  },
-  {
-    id: 'ol-4',
-    date: new Date(new Date().setDate(new Date().getDate() + 3)),
-    dayLabel: getDayLabel(new Date(new Date().setDate(new Date().getDate() + 3))),
-    time: '11:00 AM',
-    client: {
-      ...mockClients[5] || mockClients[2],
-      engagementType: 'online_1on1',
-    },
-    sessionType: 'Monthly Review',
-    location: 'zoom',
-    clientStatus: 'thriving',
-    statusColor: 'green',
-    needsPrep: false,
-  },
-  {
-    id: 'ol-5',
-    date: new Date(new Date().setDate(new Date().getDate() + 4)),
-    dayLabel: getDayLabel(new Date(new Date().setDate(new Date().getDate() + 4))),
-    time: '3:00 PM',
-    client: {
-      ...mockClients[0],
-      engagementType: 'online_1on1',
-    },
-    sessionType: 'Goal Setting',
-    location: 'zoom',
-    clientStatus: 'steady',
-    statusColor: 'yellow',
-    needsPrep: false,
-  },
-];
+const mapPatStatusColorToSessionColor = (color?: string): 'green' | 'yellow' | 'red' => {
+  if (color === 'green') return 'green';
+  if (color === 'red' || color === 'gray') return 'red';
+  return 'yellow';
+};
+
+const clientToWeeklySession = (client: Client): WeeklySession | null => {
+  if (!client.nextSession) return null;
+  
+  const session = client.nextSession;
+  const hasAttentionFlags = client.patFlags?.some(f => 
+    f.type === 'urgent' || f.type === 'attention'
+  ) ?? false;
+  
+  return {
+    id: session.id,
+    date: session.date,
+    dayLabel: getDayLabel(session.date),
+    time: session.time,
+    client,
+    sessionType: session.type,
+    location: session.location === 'phone' ? 'zoom' : session.location,
+    venue: session.venue,
+    clientStatus: mapPatStatusToSessionStatus(client.patStatus),
+    statusColor: mapPatStatusColorToSessionColor(client.patStatusColor),
+    needsPrep: hasAttentionFlags || (client.sessionPrepNotes?.length ?? 0) > 0,
+    prepNote: client.sessionPrepNotes?.[0],
+  };
+};
+
+const getNeedsAttentionCount = (): number => {
+  return mockClients.filter(c => 
+    c.patStatus === 'struggling' || 
+    c.patFlags?.some(f => f.type === 'urgent' || f.type === 'attention')
+  ).length;
+};
+
+export const mockInPersonToday: WeeklySession[] = inPersonClients
+  .map(clientToWeeklySession)
+  .filter((s): s is WeeklySession => s !== null && s.dayLabel === 'Today');
+
+export const mockOnlineThisWeek: WeeklySession[] = online1on1Clients
+  .map(clientToWeeklySession)
+  .filter((s): s is WeeklySession => s !== null);
 
 const createProgramClient = (id: string, name: string, email: string): Client => ({
   id,
@@ -343,17 +242,16 @@ export const mockProgramHealth: ProgramHealthSummary[] = [
 ];
 
 export const generateDashboardBriefingV2 = (): DashboardBriefingV2 => {
-  const needsAttentionCount = 3;
+  const needsAttentionCount = getNeedsAttentionCount();
+  const totalProgramMembers = mockProgramHealth.reduce((sum, p) => sum + p.memberCount, 0);
   
   const smartGreeting = generateSmartGreeting(
     mockInPersonToday,
     mockOnlineThisWeek,
     mockProgramHealth,
-    300,
+    mockClients.length + totalProgramMembers,
     needsAttentionCount
   );
-  
-  const totalProgramMembers = mockProgramHealth.reduce((sum, p) => sum + p.memberCount, 0);
   
   return {
     ...mockDashboardBriefing,
@@ -363,19 +261,19 @@ export const generateDashboardBriefingV2 = (): DashboardBriefingV2 => {
     programHealth: mockProgramHealth,
     clientSegmentation: {
       inPerson: {
-        count: 20,
+        count: inPersonClients.length,
         todayCount: mockInPersonToday.length,
-        clients: mockInPersonToday.map(s => s.client),
+        clients: inPersonClients,
       },
       online1on1: {
-        count: 50,
+        count: online1on1Clients.length,
         thisWeekCount: mockOnlineThisWeek.length,
-        clients: mockOnlineThisWeek.map(s => s.client),
+        clients: online1on1Clients,
       },
       programOnly: {
-        count: 230,
+        count: programOnlyClients.length + totalProgramMembers,
         activePrograms: mockProgramHealth.length,
-        clients: [],
+        clients: programOnlyClients,
       },
     },
   };
