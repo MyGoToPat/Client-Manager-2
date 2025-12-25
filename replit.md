@@ -76,7 +76,12 @@ client/src/
 ## Features
 
 ### Implemented
-- **Dashboard:** Summary metrics, client list with filtering, search
+- **Dashboard (Pat as Co-Pilot):** AI briefing-style dashboard where Pat provides:
+  - Personalized greeting with client health summary (healthy vs. needs attention)
+  - Today's sessions with client status, highlights/concerns, and Pat's suggestions
+  - Needs Attention items with urgency levels, patterns noticed, and suggested actions
+  - Celebrations section for client wins (PRs, streaks, milestones)
+  - Activity summary with workout/nutrition progress
 - **Client Drawer:** 6-tab slide-over panel (Overview, Progress, AI Summary, Directives, Workouts, Permissions)
 - **PT Directives:** Full management page with filters
 - **Groups:** Comprehensive group management system with 4 group types:
