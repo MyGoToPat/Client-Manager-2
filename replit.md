@@ -39,7 +39,8 @@ client/src/
 │   ├── clients.mock.ts
 │   ├── directives.mock.ts
 │   ├── mentors.mock.ts
-│   └── groups.mock.ts
+│   ├── groups.mock.ts
+│   └── dashboard-briefing-v2.mock.ts
 ├── types/              # TypeScript interfaces
 │   └── index.ts
 ├── store/              # Zustand state
@@ -76,12 +77,15 @@ client/src/
 ## Features
 
 ### Implemented
-- **Dashboard (Pat as Co-Pilot):** AI briefing-style dashboard where Pat provides:
-  - Personalized greeting with client health summary (healthy vs. needs attention)
-  - Today's sessions with client status, highlights/concerns, and Pat's suggestions
+- **Dashboard (Pat as Co-Pilot V2 - Smart Client Organization):** AI briefing-style dashboard organizing clients by engagement type:
+  - **Smart Greeting:** Context-aware greeting with segment pills (In-Person, Online 1:1, Programs) showing counts
+  - **In-Person Sessions (Today):** Compact session rows for TODAY's in-person clients with venue, time, status, and prep notes
+  - **Online Sessions (This Week):** Weekly grouped sessions for online 1:1 clients organized by day (Today, Tomorrow, etc.)
+  - **Program Health:** Program cards showing health %, flagged members, and recent wins - "Pat's handling these" philosophy
   - Needs Attention items with urgency levels, patterns noticed, and suggested actions
   - Celebrations section for client wins (PRs, streaks, milestones)
   - Activity summary with workout/nutrition progress
+  - Components: SmartGreetingComponent, InPersonSessions, OnlineSessionsWeek, ProgramHealth (V2), plus V1 components for detail views
 - **Client Drawer:** 6-tab slide-over panel (Overview, Progress, AI Summary, Directives, Workouts, Permissions)
 - **PT Directives:** Full management page with filters
 - **Groups:** Comprehensive group management system with 4 group types:
