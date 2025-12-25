@@ -21,6 +21,13 @@ A web-based Client Management Tool for personal trainers and mentors to manage c
 - **Icon Pattern:** `<span className="material-symbols-outlined text-base">icon_name</span>`
 - See `design_guidelines.md` for complete design documentation
 
+## Pat's Analysis System (Phase 2.5)
+- **patStatus:** 'thriving' | 'steady' | 'struggling' | 'inactive' - Pat's assessment of client engagement
+- **patFlags:** Array of flags with types 'urgent' | 'attention' | 'monitor' | 'positive'
+- **sessionPrepNotes:** Pat's suggestions for upcoming sessions
+- **compliancePercent:** Workout and nutrition compliance tracking
+- **Dashboard derives data from enriched clients** - no hardcoded mock session data
+
 ## Architecture
 
 ### Service Layer Pattern
