@@ -1,0 +1,444 @@
+# HiPat UI Fixes: Based on Latest Codebase (Dec 25, 2025)
+
+## CURRENT STATUS
+
+Phase 2 Dashboard is **IMPLEMENTED**:
+- SmartGreeting, InPersonSessions, OnlineSessionsWeek, ProgramHealth ✅
+- NeedsAttention, Celebrations, ActivitySummary ✅
+- Client types have engagement fields ✅
+- Mock clients have engagement data (patStatus, patFlags, etc.) ✅
+
+## REMAINING ISSUES TO FIX
+
+1. **Edit button does nothing** - No onClick handler
+2. **Dark mode badge styling broken** - White text on light background
+3. **Overview tab missing Engagement section** - No UI for engagement/sessions
+4. **Clients page missing filters/badges** - No engagement type filter
+
+---
+
+## FIX 1: Edit Button Has No Handler
+
+### File: `client/src/components/client-drawer.tsx`
+
+**Line 161 currently:**
+```tsx
+<Button variant="outline" size="icon" data-testid="button-edit-client">
+  <span className="material-symbols-outlined text-base">edit</span>
+</Button>
+```
+
+### Solution: Add State, Handler, and Modal
+
+**Step 1: Add import and state (around line 1-20):**
+
+```tsx
+// Add to imports
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Add state inside ClientDrawer function (around line 58)
+const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+const [editForm, setEditForm] = useState({
+  name: '',
+  email: '',
+  phone: '',
+  status: 'active' as Client['status'],
+  engagementType: 'in_person' as 'in_person' | 'online_1on1' | 'program_only',
+  primaryVenue: '',
+  preferredPlatform: 'zoom' as 'zoom' | 'google_meet' | 'phone',
+});
+```
+
+**Step 2: Add useEffect to sync form with client (after other useEffects):**
+
+```tsx
+useEffect(() => {
+  if (client) {
+    setEditForm({
+      name: client.name,
+      email: client.email,
+      phone: client.phone || '',
+      status: client.status,
+      engagementType: client.engagementType || 'in_person',
+      primaryVenue: client.primaryVenue || '',
+      preferredPlatform: client.preferredPlatform || 'zoom',
+    });
+  }
+}, [client]);
+```
+
+**Step 3: Add save handler (after handleDirectiveToggle):**
+
+```tsx
+const handleSaveEdit = () => {
+  // In production, call API to save
+  console.log('Saving client edits:', editForm);
+  // Optimistically update local state
+  if (client) {
+    setClient({
+      ...client,
+      ...editForm,
+    });
+  }
+  setIsEditModalOpen(false);
+};
+```
+
+**Step 4: Update edit button (line 161) to add onClick:**
+
+```tsx
+<Button 
+  variant="outline" 
+  size="icon" 
+  onClick={() => setIsEditModalOpen(true)}
+  data-testid="button-edit-client"
+>
+  <span className="material-symbols-outlined text-base">edit</span>
+</Button>
+```
+
+**Step 5: Add Edit Modal before closing `</Sheet>` (around line 249):**
+
+```tsx
+{/* Edit Client Modal */}
+<Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Edit Client</DialogTitle>
+    </DialogHeader>
+
+    <div className="space-y-4 py-4">
+      {/* Name */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-name">Name</Label>
+        <Input
+          id="edit-name"
+          value={editForm.name}
+          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+        />
+      </div>
+
+      {/* Email */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-email">Email</Label>
+        <Input
+          id="edit-email"
+          type="email"
+          value={editForm.email}
+          onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+        />
+      </div>
+
+      {/* Phone */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-phone">Phone</Label>
+        <Input
+          id="edit-phone"
+          type="tel"
+          value={editForm.phone}
+          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+        />
+      </div>
+
+      {/* Status */}
+      <div className="space-y-2">
+        <Label>Status</Label>
+        <Select
+          value={editForm.status}
+          onValueChange={(value: Client['status']) => setEditForm({ ...editForm, status: value })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="trial">Trial</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Engagement Type */}
+      <div className="space-y-2">
+        <Label>Engagement Type</Label>
+        <Select
+          value={editForm.engagementType}
+          onValueChange={(value: 'in_person' | 'online_1on1' | 'program_only') => 
+            setEditForm({ ...editForm, engagementType: value })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="in_person">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">fitness_center</span>
+                In-Person Training
+              </span>
+            </SelectItem>
+            <SelectItem value="online_1on1">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">videocam</span>
+                Online 1:1 Coaching
+              </span>
+            </SelectItem>
+            <SelectItem value="program_only">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">school</span>
+                Program Only
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Venue (for in-person) */}
+      {editForm.engagementType === 'in_person' && (
+        <div className="space-y-2">
+          <Label htmlFor="edit-venue">Primary Venue</Label>
+          <Input
+            id="edit-venue"
+            value={editForm.primaryVenue}
+            onChange={(e) => setEditForm({ ...editForm, primaryVenue: e.target.value })}
+            placeholder="e.g., FitLife Downtown"
+          />
+        </div>
+      )}
+
+      {/* Platform (for online) */}
+      {editForm.engagementType === 'online_1on1' && (
+        <div className="space-y-2">
+          <Label>Preferred Platform</Label>
+          <Select
+            value={editForm.preferredPlatform}
+            onValueChange={(value: 'zoom' | 'google_meet' | 'phone') => 
+              setEditForm({ ...editForm, preferredPlatform: value })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="zoom">Zoom</SelectItem>
+              <SelectItem value="google_meet">Google Meet</SelectItem>
+              <SelectItem value="phone">Phone Call</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </div>
+
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+        Cancel
+      </Button>
+      <Button onClick={handleSaveEdit}>
+        Save Changes
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+---
+
+## FIX 2: Dark Mode Badge Styling
+
+### File: `client/src/index.css`
+
+**Lines 106-107 in `.dark` section currently:**
+```css
+--secondary: 218 32% 68%;
+--secondary-foreground: 0 0% 100%;
+```
+
+The issue: `68%` lightness is too LIGHT for a dark mode background. White text (100%) on this light background has poor contrast.
+
+**REPLACE with:**
+```css
+--secondary: 218 30% 30%;
+--secondary-foreground: 210 40% 90%;
+```
+
+This gives:
+- **Background**: 30% lightness (properly dark)
+- **Text**: 90% lightness (light text that contrasts well)
+
+---
+
+## FIX 3: Add Engagement Section to Overview Tab
+
+### File: `client/src/components/client-drawer/overview-tab.tsx`
+
+The Overview tab shows Domain Handlers, Goals, Progress, and Metrics but **doesn't show Engagement Type or Next Session**.
+
+**ADD this section AFTER the "Joined" date line (around line 19) and BEFORE DomainAssignmentCard:**
+
+```tsx
+{/* Engagement & Sessions Section */}
+<div className="space-y-4 p-4 rounded-lg bg-muted/50">
+  <div className="flex items-center justify-between">
+    <h3 className="font-medium flex items-center gap-2">
+      <span className="material-symbols-outlined text-base text-muted-foreground">calendar_today</span>
+      Engagement
+    </h3>
+  </div>
+  
+  {/* Engagement Type Pills */}
+  <div className="flex gap-2">
+    <Badge 
+      variant={client.engagementType === 'in_person' ? 'default' : 'outline'}
+      className="gap-1"
+    >
+      <span className="material-symbols-outlined text-sm">fitness_center</span>
+      In-Person
+    </Badge>
+    <Badge 
+      variant={client.engagementType === 'online_1on1' ? 'default' : 'outline'}
+      className="gap-1"
+    >
+      <span className="material-symbols-outlined text-sm">videocam</span>
+      Online
+    </Badge>
+    <Badge 
+      variant={client.engagementType === 'program_only' ? 'default' : 'outline'}
+      className="gap-1"
+    >
+      <span className="material-symbols-outlined text-sm">school</span>
+      Program
+    </Badge>
+  </div>
+  
+  {/* Session Details */}
+  {client.engagementType === 'in_person' && client.primaryVenue && (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <span className="material-symbols-outlined text-base">location_on</span>
+      {client.primaryVenue}
+    </div>
+  )}
+  
+  {client.engagementType === 'online_1on1' && client.preferredPlatform && (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <span className="material-symbols-outlined text-base">videocam</span>
+      {client.preferredPlatform === 'zoom' ? 'Zoom' : 
+       client.preferredPlatform === 'google_meet' ? 'Google Meet' : 'Phone'}
+    </div>
+  )}
+  
+  {/* Next Session */}
+  {client.nextSession && (
+    <Card className="mt-3">
+      <CardContent className="p-3">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+            <span className="text-xs font-bold text-primary uppercase">
+              {new Date(client.nextSession.date).toLocaleDateString('en-US', { weekday: 'short' })}
+            </span>
+            <span className="text-lg font-bold text-primary">
+              {new Date(client.nextSession.date).getDate()}
+            </span>
+          </div>
+          <div className="flex-1">
+            <p className="font-medium">{client.nextSession.type}</p>
+            <p className="text-sm text-muted-foreground">
+              {client.nextSession.time} • {client.nextSession.venue || 
+                (client.nextSession.location === 'zoom' ? 'Zoom' : 
+                 client.nextSession.location === 'google_meet' ? 'Google Meet' : 'Phone')}
+            </p>
+          </div>
+        </div>
+        
+        {/* Prep Notes */}
+        {client.sessionPrepNotes && client.sessionPrepNotes.length > 0 && (
+          <div className="mt-3 p-2 rounded-md bg-chart-3/10 border border-chart-3/20">
+            <p className="text-xs font-medium text-chart-3 flex items-center gap-1 mb-1">
+              <span className="material-symbols-outlined text-sm">lightbulb</span>
+              Pat's Prep Notes
+            </p>
+            <ul className="text-xs text-muted-foreground space-y-0.5">
+              {client.sessionPrepNotes.slice(0, 2).map((note, i) => (
+                <li key={i}>• {note}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )}
+  
+  {/* No Session for program-only */}
+  {client.engagementType === 'program_only' && (
+    <p className="text-sm text-muted-foreground italic">
+      Program member • Pat handles day-to-day coaching
+    </p>
+  )}
+  
+  {/* No Session Scheduled (for 1:1 clients without upcoming session) */}
+  {client.engagementType !== 'program_only' && !client.nextSession && (
+    <div className="p-3 rounded-lg border border-dashed border-muted-foreground/30 text-center">
+      <p className="text-sm text-muted-foreground">No session scheduled</p>
+    </div>
+  )}
+</div>
+```
+
+---
+
+## FIX 4: Clients Page Filters (Optional - Lower Priority)
+
+The Clients page currently doesn't filter by engagement type. This is a **nice to have** after the above fixes are done.
+
+If desired, add these to `client/src/pages/clients.tsx`:
+
+1. Add filter state: `const [engagementFilter, setEngagementFilter] = useState('all');`
+2. Add filter dropdown in the filter bar
+3. Filter clients by `client.engagementType`
+
+---
+
+## VERIFICATION CHECKLIST
+
+After implementing:
+
+1. ☐ Edit button opens modal when clicked
+2. ☐ Edit modal shows client name, email, phone, status
+3. ☐ Edit modal shows engagement type selector
+4. ☐ Venue field appears when In-Person selected
+5. ☐ Platform field appears when Online selected
+6. ☐ Save button updates client data
+7. ☐ Badge text is visible in dark mode (good contrast)
+8. ☐ Overview tab shows Engagement section
+9. ☐ Engagement type pills show correct active state
+10. ☐ Next Session card displays for clients with sessions
+11. ☐ Pat's Prep Notes show in amber box
+12. ☐ Program-only clients show appropriate message
+
+---
+
+## FILE CHANGES SUMMARY
+
+| File | Change |
+|------|--------|
+| `client/src/index.css` | Line 106-107: Fix dark mode `--secondary` color |
+| `client/src/components/client-drawer.tsx` | Add edit modal state, handler, and Dialog component |
+| `client/src/components/client-drawer/overview-tab.tsx` | Add Engagement & Sessions section |
+
+---
+
+*End of UI Fixes Document*

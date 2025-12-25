@@ -12,6 +12,7 @@ interface AppState {
   selectedClientId: string | null;
   setClients: (clients: Client[]) => void;
   setSelectedClientId: (id: string | null) => void;
+  updateClient: (clientId: string, updates: Partial<Client>) => void;
   
   sidebarOpen: boolean;
   clientDrawerOpen: boolean;
@@ -33,6 +34,9 @@ export const useStore = create<AppState>((set) => ({
   selectedClientId: null,
   setClients: (clients) => set({ clients }),
   setSelectedClientId: (selectedClientId) => set({ selectedClientId, clientDrawerOpen: !!selectedClientId }),
+  updateClient: (clientId, updates) => set((state) => ({
+    clients: state.clients.map(c => c.id === clientId ? { ...c, ...updates } : c)
+  })),
   
   sidebarOpen: true,
   clientDrawerOpen: false,

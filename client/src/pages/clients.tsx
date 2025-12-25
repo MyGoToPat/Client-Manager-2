@@ -146,6 +146,7 @@ const ClientsPage = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [aiTagFilter, setAiTagFilter] = useState<string>('all');
+  const [engagementFilter, setEngagementFilter] = useState<string>('all');
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -172,6 +173,7 @@ const ClientsPage = () => {
       client.email.toLowerCase().includes(search.toLowerCase()) ||
       client.status.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+    const matchesEngagement = engagementFilter === 'all' || client.engagementType === engagementFilter;
     
     if (aiTagFilter !== 'all') {
       const clientTags = mockAITags[client.id] || [];
@@ -179,7 +181,7 @@ const ClientsPage = () => {
       if (!hasTag) return false;
     }
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesEngagement;
   });
 
   filteredClients = [...filteredClients].sort((a, b) => {
@@ -366,6 +368,38 @@ const ClientsPage = () => {
                     <DropdownMenuTrigger asChild>
                       <button 
                         className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-[#111722] rounded-lg border border-slate-200 dark:border-[#324467] hover:bg-slate-100 dark:hover:bg-[#232f48] transition-colors whitespace-nowrap"
+                        data-testid="button-engagement-filter"
+                      >
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                          Engagement: {engagementFilter === 'all' ? 'All' : 
+                            engagementFilter === 'in_person' ? 'In-Person' :
+                            engagementFilter === 'online_1on1' ? 'Online 1:1' : 'Program Only'}
+                        </span>
+                        <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => setEngagementFilter('all')}>All Types</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setEngagementFilter('in_person')}>
+                        <span className="material-symbols-outlined text-sm mr-2">fitness_center</span>
+                        In-Person
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEngagementFilter('online_1on1')}>
+                        <span className="material-symbols-outlined text-sm mr-2">videocam</span>
+                        Online 1:1
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEngagementFilter('program_only')}>
+                        <span className="material-symbols-outlined text-sm mr-2">school</span>
+                        Program Only
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button 
+                        className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-[#111722] rounded-lg border border-slate-200 dark:border-[#324467] hover:bg-slate-100 dark:hover:bg-[#232f48] transition-colors whitespace-nowrap"
                         data-testid="button-ai-tags-filter"
                       >
                         <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
@@ -387,14 +421,6 @@ const ClientsPage = () => {
                       <DropdownMenuItem onClick={() => setAiTagFilter('goal_met')}>Goal Met</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-
-                  <button 
-                    className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-[#111722] rounded-lg border border-slate-200 dark:border-[#324467] hover:bg-slate-100 dark:hover:bg-[#232f48] transition-colors whitespace-nowrap"
-                    data-testid="button-more-filters"
-                  >
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">More Filters</span>
-                    <span className="material-symbols-outlined text-slate-400 text-lg">tune</span>
-                  </button>
                 </div>
               </div>
 

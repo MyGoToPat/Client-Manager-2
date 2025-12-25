@@ -6,6 +6,22 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useStore } from '../store/useStore';
 import { clientsService, directivesService } from '../services';
 import type { Client, AIInsight, ProgressData, ClientPermission, MentorDirective, WorkoutPlan } from '../types';
@@ -47,7 +63,7 @@ function getAvatarColor(name: string): string {
 }
 
 export function ClientDrawer() {
-  const { selectedClientId, clientDrawerOpen, setClientDrawerOpen, setSelectedClientId } = useStore();
+  const { selectedClientId, clientDrawerOpen, setClientDrawerOpen, setSelectedClientId, updateClient } = useStore();
   const [client, setClient] = useState<Client | null>(null);
   const [progress, setProgress] = useState<ProgressData[]>([]);
   const [insights, setInsights] = useState<AIInsight[]>([]);
@@ -56,6 +72,16 @@ export function ClientDrawer() {
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: 'active' as Client['status'],
+    engagementType: 'in_person' as 'in_person' | 'online_1on1' | 'program_only',
+    primaryVenue: '',
+    preferredPlatform: 'zoom' as 'zoom' | 'google_meet' | 'phone',
+  });
 
   useEffect(() => {
     if (selectedClientId && clientDrawerOpen) {
@@ -101,6 +127,37 @@ export function ClientDrawer() {
     } catch (error) {
       console.error('Failed to toggle directive:', error);
     }
+  };
+
+  useEffect(() => {
+    if (client) {
+      setEditForm({
+        name: client.name,
+        email: client.email,
+        phone: client.phone || '',
+        status: client.status,
+        engagementType: client.engagementType || 'in_person',
+        primaryVenue: client.primaryVenue || '',
+        preferredPlatform: client.preferredPlatform || 'zoom',
+      });
+    }
+  }, [client]);
+
+  const handleSaveEdit = () => {
+    if (client) {
+      const updates = {
+        name: editForm.name,
+        email: editForm.email,
+        phone: editForm.phone,
+        status: editForm.status,
+        engagementType: editForm.engagementType,
+        primaryVenue: editForm.primaryVenue,
+        preferredPlatform: editForm.preferredPlatform,
+      };
+      setClient({ ...client, ...updates });
+      updateClient(client.id, updates);
+    }
+    setIsEditModalOpen(false);
   };
 
   if (!clientDrawerOpen) return null;
@@ -158,7 +215,12 @@ export function ClientDrawer() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" data-testid="button-edit-client">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => setIsEditModalOpen(true)}
+                    data-testid="button-edit-client"
+                  >
                     <span className="material-symbols-outlined text-base">edit</span>
                   </Button>
                   <Button variant="ghost" size="icon" onClick={handleClose} data-testid="button-close-drawer">
@@ -247,6 +309,142 @@ export function ClientDrawer() {
           </div>
         )}
       </SheetContent>
+
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Client</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                data-testid="input-edit-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                data-testid="input-edit-email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Phone</Label>
+              <Input
+                id="edit-phone"
+                type="tel"
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                data-testid="input-edit-phone"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select
+                value={editForm.status}
+                onValueChange={(value: Client['status']) => setEditForm({ ...editForm, status: value })}
+              >
+                <SelectTrigger data-testid="select-edit-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Engagement Type</Label>
+              <Select
+                value={editForm.engagementType}
+                onValueChange={(value: 'in_person' | 'online_1on1' | 'program_only') => 
+                  setEditForm({ ...editForm, engagementType: value })}
+              >
+                <SelectTrigger data-testid="select-edit-engagement">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in_person">
+                    <span className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">fitness_center</span>
+                      In-Person Training
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="online_1on1">
+                    <span className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">videocam</span>
+                      Online 1:1 Coaching
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="program_only">
+                    <span className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">school</span>
+                      Program Only
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editForm.engagementType === 'in_person' && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-venue">Primary Venue</Label>
+                <Input
+                  id="edit-venue"
+                  value={editForm.primaryVenue}
+                  onChange={(e) => setEditForm({ ...editForm, primaryVenue: e.target.value })}
+                  placeholder="e.g., FitLife Downtown"
+                  data-testid="input-edit-venue"
+                />
+              </div>
+            )}
+
+            {editForm.engagementType === 'online_1on1' && (
+              <div className="space-y-2">
+                <Label>Preferred Platform</Label>
+                <Select
+                  value={editForm.preferredPlatform}
+                  onValueChange={(value: 'zoom' | 'google_meet' | 'phone') => 
+                    setEditForm({ ...editForm, preferredPlatform: value })}
+                >
+                  <SelectTrigger data-testid="select-edit-platform">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="zoom">Zoom</SelectItem>
+                    <SelectItem value="google_meet">Google Meet</SelectItem>
+                    <SelectItem value="phone">Phone Call</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)} data-testid="button-cancel-edit">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} data-testid="button-save-edit">
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }

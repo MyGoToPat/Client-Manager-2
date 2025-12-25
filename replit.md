@@ -94,6 +94,9 @@ client/src/
   - Activity summary with workout/nutrition progress
   - Components: SmartGreetingComponent, InPersonSessions, OnlineSessionsWeek, ProgramHealth (V2), plus V1 components for detail views
 - **Client Drawer:** 6-tab slide-over panel (Overview, Progress, AI Summary, Directives, Workouts, Permissions)
+  - **Edit Modal:** Opens from drawer header, edits name/email/phone/status/engagement type
+  - **Global State Persistence:** Edits update Zustand store via updateClient() function
+  - **Engagement Section (Overview Tab):** Type pills (In-Person/Online/Program), venue/platform info, next session card with Pat's Prep Notes
 - **PT Directives:** Full management page with filters
 - **Groups:** Comprehensive group management system with 4 group types:
   - Program Cohorts: Structured programs with start dates, duration, and week tracking
@@ -109,7 +112,8 @@ client/src/
 - **Analytics:** Charts showing client and directive stats
 - **Settings:** Profile, notifications, referrals, security tabs
 - **Auth:** Mock login/signup with localStorage persistence (demo: info@hipat.app / admin123)
-- **Dark Mode:** Theme toggle with localStorage persistence
+- **Dark Mode:** Theme toggle with localStorage persistence (secondary colors fixed for proper contrast)
+- **Client Filters:** Status, Engagement Type, and AI Tags filters on Clients page
 
 ### Authentication
 Mock auth - any email/password works for login. User state is stored in localStorage under `hipat_user` key.
