@@ -6,7 +6,12 @@ import {
   ClientSegmentation,
   Client
 } from '@/types';
-import { mockClients, inPersonClients, online1on1Clients, programOnlyClients } from './clients.mock';
+import { 
+  mockClients, 
+  todaySessionClients,
+  thisWeekSessionClients,
+  asyncOnlyClients 
+} from './clients.mock';
 import { mockDashboardBriefing } from './dashboard-briefing.mock';
 
 const getTimeGreeting = (): string => {
@@ -87,13 +92,13 @@ export const generateSmartGreeting = (
     urgentContext: getNextSessionContext([...inPersonToday, ...onlineThisWeek]),
     segments: {
       inPerson: { 
-        label: 'In-Person', 
-        count: inPersonClients.length,
+        label: 'Today', 
+        count: todaySessionClients.length,
         todayCount: inPersonToday.length 
       },
       online: { 
-        label: 'Online 1:1', 
-        count: online1on1Clients.length,
+        label: 'This Week', 
+        count: thisWeekSessionClients.length,
         thisWeekCount: onlineThisWeek.length 
       },
       programs: { 
@@ -148,11 +153,11 @@ const getNeedsAttentionCount = (): number => {
   ).length;
 };
 
-export const mockInPersonToday: WeeklySession[] = inPersonClients
+export const mockInPersonToday: WeeklySession[] = todaySessionClients
   .map(clientToWeeklySession)
   .filter((s): s is WeeklySession => s !== null && s.dayLabel === 'Today');
 
-export const mockOnlineThisWeek: WeeklySession[] = online1on1Clients
+export const mockOnlineThisWeek: WeeklySession[] = thisWeekSessionClients
   .map(clientToWeeklySession)
   .filter((s): s is WeeklySession => s !== null);
 
@@ -261,19 +266,19 @@ export const generateDashboardBriefingV2 = (): DashboardBriefingV2 => {
     programHealth: mockProgramHealth,
     clientSegmentation: {
       inPerson: {
-        count: inPersonClients.length,
+        count: todaySessionClients.length,
         todayCount: mockInPersonToday.length,
-        clients: inPersonClients,
+        clients: todaySessionClients,
       },
       online1on1: {
-        count: online1on1Clients.length,
+        count: thisWeekSessionClients.length,
         thisWeekCount: mockOnlineThisWeek.length,
-        clients: online1on1Clients,
+        clients: thisWeekSessionClients,
       },
       programOnly: {
-        count: programOnlyClients.length + totalProgramMembers,
+        count: asyncOnlyClients.length + totalProgramMembers,
         activePrograms: mockProgramHealth.length,
-        clients: programOnlyClients,
+        clients: asyncOnlyClients,
       },
     },
   };

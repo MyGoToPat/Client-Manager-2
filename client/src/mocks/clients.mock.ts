@@ -538,3 +538,26 @@ export const mockWorkoutPlans: WorkoutPlan[] = [
 export const inPersonClients = mockClients.filter(c => c.engagementType === 'in_person');
 export const online1on1Clients = mockClients.filter(c => c.engagementType === 'online_1on1');
 export const programOnlyClients = mockClients.filter(c => c.engagementType === 'program_only');
+
+import { defaultEngagementTypes, exampleCustomTypes } from './engagement-types.mock';
+
+const allEngagementTypes = [...defaultEngagementTypes, ...exampleCustomTypes];
+
+const getClientDashboardBehavior = (client: Client): 'today' | 'this_week' | 'async_only' => {
+  const typeId = client.engagementTypeId;
+  if (typeId) {
+    const engType = allEngagementTypes.find(t => t.id === typeId);
+    if (engType) return engType.dashboardBehavior;
+  }
+  if (client.engagementType === 'in_person') return 'today';
+  if (client.engagementType === 'online_1on1') return 'this_week';
+  return 'async_only';
+};
+
+export const getClientsByDashboardBehavior = (behavior: 'today' | 'this_week' | 'async_only') => {
+  return mockClients.filter(c => getClientDashboardBehavior(c) === behavior);
+};
+
+export const todaySessionClients = mockClients.filter(c => getClientDashboardBehavior(c) === 'today');
+export const thisWeekSessionClients = mockClients.filter(c => getClientDashboardBehavior(c) === 'this_week');
+export const asyncOnlyClients = mockClients.filter(c => getClientDashboardBehavior(c) === 'async_only');

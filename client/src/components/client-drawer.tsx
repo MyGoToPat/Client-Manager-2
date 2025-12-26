@@ -23,8 +23,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStore } from '../store/useStore';
-import { clientsService, directivesService } from '../services';
-import type { Client, AIInsight, ProgressData, ClientPermission, MentorDirective, WorkoutPlan } from '../types';
+import { clientsService, directivesService, engagementTypesService } from '../services';
+import type { Client, AIInsight, ProgressData, ClientPermission, MentorDirective, WorkoutPlan, EngagementType } from '../types';
+import { getEngagementTypeIdFromLegacy } from '../mocks/engagement-types.mock';
 import { ClientOverviewTab } from './client-drawer/overview-tab';
 import { ClientProgressTab } from './client-drawer/progress-tab';
 import { ClientInsightsTab } from './client-drawer/insights-tab';
@@ -73,15 +74,18 @@ export function ClientDrawer() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [engagementTypes, setEngagementTypes] = useState<EngagementType[]>([]);
   const [editForm, setEditForm] = useState({
     name: '',
     email: '',
     phone: '',
     status: 'active' as Client['status'],
-    engagementType: 'in_person' as 'in_person' | 'online_1on1' | 'program_only',
+    engagementTypeId: 'et-in-person',
     primaryVenue: '',
     preferredPlatform: 'zoom' as 'zoom' | 'google_meet' | 'phone',
   });
+
+  const selectedEngagementType = engagementTypes.find(t => t.id === editForm.engagementTypeId);
 
   useEffect(() => {
     if (selectedClientId && clientDrawerOpen) {
@@ -93,13 +97,14 @@ export function ClientDrawer() {
     if (!selectedClientId) return;
     setIsLoading(true);
     try {
-      const [clientData, progressData, insightsData, permissionsData, directivesData, workoutPlansData] = await Promise.all([
+      const [clientData, progressData, insightsData, permissionsData, directivesData, workoutPlansData, types] = await Promise.all([
         clientsService.getClient(selectedClientId),
         clientsService.getClientProgress(selectedClientId, 28),
         clientsService.getClientInsights(selectedClientId),
         clientsService.getClientPermissions(selectedClientId, 'mentor-1'),
         directivesService.getDirectivesByClient(selectedClientId),
         clientsService.getWorkoutPlans(selectedClientId),
+        engagementTypesService.getEngagementTypes('mentor-1'),
       ]);
       setClient(clientData);
       setProgress(progressData);
@@ -107,6 +112,7 @@ export function ClientDrawer() {
       setPermissions(permissionsData);
       setDirectives(directivesData);
       setWorkoutPlans(workoutPlansData);
+      setEngagementTypes(types);
     } catch (error) {
       console.error('Failed to load client data:', error);
     } finally {
@@ -131,12 +137,14 @@ export function ClientDrawer() {
 
   useEffect(() => {
     if (client) {
+      const typeId = client.engagementTypeId || 
+        (client.engagementType ? getEngagementTypeIdFromLegacy(client.engagementType) : 'et-in-person');
       setEditForm({
         name: client.name,
         email: client.email,
         phone: client.phone || '',
         status: client.status,
-        engagementType: client.engagementType || 'in_person',
+        engagementTypeId: typeId,
         primaryVenue: client.primaryVenue || '',
         preferredPlatform: client.preferredPlatform || 'zoom',
       });
@@ -150,7 +158,7 @@ export function ClientDrawer() {
         email: editForm.email,
         phone: editForm.phone,
         status: editForm.status,
-        engagementType: editForm.engagementType,
+        engagementTypeId: editForm.engagementTypeId,
         primaryVenue: editForm.primaryVenue,
         preferredPlatform: editForm.preferredPlatform,
       };
@@ -371,37 +379,27 @@ export function ClientDrawer() {
             <div className="space-y-2">
               <Label>Engagement Type</Label>
               <Select
-                value={editForm.engagementType}
-                onValueChange={(value: 'in_person' | 'online_1on1' | 'program_only') => 
-                  setEditForm({ ...editForm, engagementType: value })}
+                value={editForm.engagementTypeId}
+                onValueChange={(value: string) => 
+                  setEditForm({ ...editForm, engagementTypeId: value })}
               >
                 <SelectTrigger data-testid="select-edit-engagement">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="in_person">
-                    <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm">fitness_center</span>
-                      In-Person Training
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="online_1on1">
-                    <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm">videocam</span>
-                      Online 1:1 Coaching
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="program_only">
-                    <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm">school</span>
-                      Program Only
-                    </span>
-                  </SelectItem>
+                  {engagementTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">{type.icon}</span>
+                        {type.name}
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {editForm.engagementType === 'in_person' && (
+            {selectedEngagementType?.requiresVenue && (
               <div className="space-y-2">
                 <Label htmlFor="edit-venue">Primary Venue</Label>
                 <Input
@@ -414,7 +412,7 @@ export function ClientDrawer() {
               </div>
             )}
 
-            {editForm.engagementType === 'online_1on1' && (
+            {selectedEngagementType?.requiresPlatform && (
               <div className="space-y-2">
                 <Label>Preferred Platform</Label>
                 <Select

@@ -28,6 +28,17 @@ A web-based Client Management Tool for personal trainers and mentors to manage c
 - **compliancePercent:** Workout and nutrition compliance tracking
 - **Dashboard derives data from enriched clients** - no hardcoded mock session data
 
+## Custom Engagement Types (Phase 3)
+- **EngagementType interface:** id, name, icon, dashboardBehavior, requiresVenue, requiresPlatform, requiresScheduling, isDefault, isActive
+- **dashboardBehavior:** 'today' | 'this_week' | 'async_only' - determines dashboard grouping
+  - 'today': Clients appear in "In-Person Sessions Today" section
+  - 'this_week': Clients appear in "Online Sessions This Week" section
+  - 'async_only': Clients handled asynchronously in Program Health
+- **Default types:** In-Person Training (et-in-person), Online 1:1 Coaching (et-online), Program Only (et-program)
+- **Custom types:** Mentors can create custom types like Macro Coaching, Mindset Coaching, etc.
+- **Settings UI:** Engagement Types tab in Settings page for CRUD operations
+- **Client interface:** Uses engagementTypeId field (with backward compatibility for legacy engagementType)
+
 ## Architecture
 
 ### Service Layer Pattern
@@ -41,12 +52,14 @@ client/src/
 │   ├── directives.service.ts
 │   ├── bookings.service.ts
 │   ├── referrals.service.ts
-│   └── groups.service.ts
+│   ├── groups.service.ts
+│   └── engagement-types.service.ts
 ├── mocks/              # Mock data
 │   ├── clients.mock.ts
 │   ├── directives.mock.ts
 │   ├── mentors.mock.ts
 │   ├── groups.mock.ts
+│   ├── engagement-types.mock.ts
 │   └── dashboard-briefing-v2.mock.ts
 ├── types/              # TypeScript interfaces
 │   └── index.ts
@@ -110,7 +123,7 @@ client/src/
 - **Calendar:** Week view with booking display, enhanced availability editing with multiple time slots per day
 - **Public Booking:** Client-facing booking page at /book/:mentorSlug (no auth required)
 - **Analytics:** Charts showing client and directive stats
-- **Settings:** Profile, notifications, referrals, security tabs
+- **Settings:** Profile, notifications, referrals, security, engagement types tabs
 - **Auth:** Mock login/signup with localStorage persistence (demo: info@hipat.app / admin123)
 - **Dark Mode:** Theme toggle with localStorage persistence (secondary colors fixed for proper contrast)
 - **Client Filters:** Status, Engagement Type, and AI Tags filters on Clients page

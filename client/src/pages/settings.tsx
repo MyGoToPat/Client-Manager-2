@@ -10,10 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useStore } from '../store/useStore';
-import { authService, referralsService } from '../services';
-import type { MentorProfile, ReferralLink } from '../types';
+import { authService, referralsService, engagementTypesService } from '../services';
+import { availableIcons } from '../mocks/engagement-types.mock';
+import type { MentorProfile, ReferralLink, EngagementType } from '../types';
 
 export default function Settings() {
   const { toast } = useToast();
@@ -22,6 +25,17 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
   const [referral, setReferral] = useState<ReferralLink | null>(null);
   const [copied, setCopied] = useState(false);
+  const [engagementTypes, setEngagementTypes] = useState<EngagementType[]>([]);
+  const [showEngagementModal, setShowEngagementModal] = useState(false);
+  const [editingType, setEditingType] = useState<EngagementType | null>(null);
+  const [engagementForm, setEngagementForm] = useState({
+    name: '',
+    icon: 'fitness_center',
+    dashboardBehavior: 'this_week' as 'today' | 'this_week' | 'async_only',
+    requiresVenue: false,
+    requiresPlatform: true,
+    requiresScheduling: true,
+  });
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -38,9 +52,10 @@ export default function Settings() {
   const loadData = async () => {
     try {
       if (user) {
-        const [profile, referralData] = await Promise.all([
+        const [profile, referralData, types] = await Promise.all([
           authService.getMentorProfile(user.id),
           referralsService.getReferralLink('mentor-1'),
+          engagementTypesService.getEngagementTypes('mentor-1'),
         ]);
         if (profile) {
           setMentorProfile(profile);
@@ -53,11 +68,124 @@ export default function Settings() {
           });
         }
         setReferral(referralData);
+        setEngagementTypes(types);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const resetEngagementForm = () => {
+    setEngagementForm({
+      name: '',
+      icon: 'fitness_center',
+      dashboardBehavior: 'this_week',
+      requiresVenue: false,
+      requiresPlatform: true,
+      requiresScheduling: true,
+    });
+    setEditingType(null);
+  };
+
+  const handleOpenEngagementModal = (type?: EngagementType) => {
+    if (type) {
+      setEditingType(type);
+      setEngagementForm({
+        name: type.name,
+        icon: type.icon,
+        dashboardBehavior: type.dashboardBehavior,
+        requiresVenue: type.requiresVenue,
+        requiresPlatform: type.requiresPlatform,
+        requiresScheduling: type.requiresScheduling,
+      });
+    } else {
+      resetEngagementForm();
+    }
+    setShowEngagementModal(true);
+  };
+
+  const handleSaveEngagementType = async () => {
+    if (!engagementForm.name.trim()) {
+      toast({
+        title: 'Name required',
+        description: 'Please enter a name for this engagement type.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (editingType) {
+        const updated = await engagementTypesService.updateEngagementType(editingType.id, {
+          name: engagementForm.name,
+          icon: engagementForm.icon,
+          dashboardBehavior: engagementForm.dashboardBehavior,
+          requiresVenue: engagementForm.requiresVenue,
+          requiresPlatform: engagementForm.requiresPlatform,
+          requiresScheduling: engagementForm.requiresScheduling,
+        });
+        setEngagementTypes(types => types.map(t => t.id === editingType.id ? updated : t));
+        toast({
+          title: 'Type updated',
+          description: 'Engagement type has been updated.',
+        });
+      } else {
+        const created = await engagementTypesService.createEngagementType({
+          mentorId: 'mentor-1',
+          name: engagementForm.name,
+          icon: engagementForm.icon,
+          dashboardBehavior: engagementForm.dashboardBehavior,
+          requiresVenue: engagementForm.requiresVenue,
+          requiresPlatform: engagementForm.requiresPlatform,
+          requiresScheduling: engagementForm.requiresScheduling,
+          isDefault: false,
+          isActive: true,
+        });
+        setEngagementTypes(types => [...types, created]);
+        toast({
+          title: 'Type created',
+          description: 'New engagement type has been created.',
+        });
+      }
+      setShowEngagementModal(false);
+      resetEngagementForm();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save engagement type.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteEngagementType = async (id: string) => {
+    try {
+      await engagementTypesService.deleteEngagementType(id);
+      setEngagementTypes(types => types.filter(t => t.id !== id));
+      toast({
+        title: 'Type deleted',
+        description: 'Engagement type has been removed.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Cannot delete',
+        description: 'Default types cannot be deleted.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getDashboardBehaviorLabel = (behavior: string) => {
+    switch (behavior) {
+      case 'today': return 'Today\'s Sessions';
+      case 'this_week': return 'This Week';
+      case 'async_only': return 'Async Only';
+      default: return behavior;
     }
   };
 
@@ -132,6 +260,10 @@ export default function Settings() {
             <TabsTrigger value="security" data-testid="tab-security">
               <span className="material-symbols-outlined text-base mr-2">shield</span>
               Security
+            </TabsTrigger>
+            <TabsTrigger value="engagement" data-testid="tab-engagement">
+              <span className="material-symbols-outlined text-base mr-2">category</span>
+              Engagement Types
             </TabsTrigger>
           </TabsList>
 
@@ -400,8 +532,233 @@ export default function Settings() {
               </Card>
             </div>
           </TabsContent>
+
+          <TabsContent value="engagement">
+            <div className="space-y-6 max-w-3xl">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-4">
+                  <div>
+                    <CardTitle>Engagement Types</CardTitle>
+                    <CardDescription>Customize how you categorize different client engagement models</CardDescription>
+                  </div>
+                  <Button onClick={() => handleOpenEngagementModal()} data-testid="button-add-engagement-type">
+                    <span className="material-symbols-outlined text-base mr-2">add</span>
+                    Add Type
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {engagementTypes.map((type) => (
+                    <div
+                      key={type.id}
+                      className="flex items-center justify-between gap-4 p-4 rounded-md bg-muted/50 hover-elevate"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-lg text-primary">{type.icon}</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{type.name}</p>
+                            {type.isDefault && (
+                              <Badge variant="secondary" className="text-xs">Default</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-xs">calendar_today</span>
+                              {getDashboardBehaviorLabel(type.dashboardBehavior)}
+                            </span>
+                            {type.requiresVenue && (
+                              <span className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-xs">location_on</span>
+                                Venue
+                              </span>
+                            )}
+                            {type.requiresPlatform && (
+                              <span className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-xs">videocam</span>
+                                Platform
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEngagementModal(type)}
+                          data-testid={`button-edit-type-${type.id}`}
+                        >
+                          <span className="material-symbols-outlined text-base">edit</span>
+                        </Button>
+                        {!type.isDefault && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteEngagementType(type.id)}
+                            data-testid={`button-delete-type-${type.id}`}
+                          >
+                            <span className="material-symbols-outlined text-base text-destructive">delete</span>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dashboard Behavior</CardTitle>
+                  <CardDescription>How engagement types affect your dashboard view</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-base text-green-500 mt-0.5">today</span>
+                    <div>
+                      <p className="font-medium text-foreground">Today's Sessions</p>
+                      <p>Clients appear in the "In-Person Sessions Today" section of your dashboard</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-base text-blue-500 mt-0.5">date_range</span>
+                    <div>
+                      <p className="font-medium text-foreground">This Week</p>
+                      <p>Clients appear in the "Online Sessions This Week" section, grouped by day</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-base text-gray-500 mt-0.5">schedule</span>
+                    <div>
+                      <p className="font-medium text-foreground">Async Only</p>
+                      <p>Clients are handled asynchronously and appear in Program Health section</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={showEngagementModal} onOpenChange={(open) => {
+        setShowEngagementModal(open);
+        if (!open) resetEngagementForm();
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingType ? 'Edit Engagement Type' : 'Create Engagement Type'}</DialogTitle>
+            <DialogDescription>
+              Define how clients with this engagement type appear on your dashboard
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="type-name">Name</Label>
+              <Input
+                id="type-name"
+                value={engagementForm.name}
+                onChange={(e) => setEngagementForm({ ...engagementForm, name: e.target.value })}
+                placeholder="e.g., Macro Coaching"
+                data-testid="input-engagement-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-1">
+                {availableIcons.map((icon) => (
+                  <button
+                    key={icon.name}
+                    type="button"
+                    onClick={() => setEngagementForm({ ...engagementForm, icon: icon.name })}
+                    className={`w-10 h-10 rounded-md flex items-center justify-center transition-colors ${
+                      engagementForm.icon === icon.name
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover-elevate'
+                    }`}
+                    title={icon.label}
+                    data-testid={`icon-${icon.name}`}
+                  >
+                    <span className="material-symbols-outlined text-lg">{icon.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dashboard-behavior">Dashboard Behavior</Label>
+              <Select
+                value={engagementForm.dashboardBehavior}
+                onValueChange={(value: 'today' | 'this_week' | 'async_only') =>
+                  setEngagementForm({ ...engagementForm, dashboardBehavior: value })
+                }
+              >
+                <SelectTrigger data-testid="select-dashboard-behavior">
+                  <SelectValue placeholder="Select behavior" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">Today's Sessions</SelectItem>
+                  <SelectItem value="this_week">This Week</SelectItem>
+                  <SelectItem value="async_only">Async Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Requirements</Label>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Requires Venue</p>
+                    <p className="text-xs text-muted-foreground">Client needs a physical location</p>
+                  </div>
+                  <Switch
+                    checked={engagementForm.requiresVenue}
+                    onCheckedChange={(checked) => setEngagementForm({ ...engagementForm, requiresVenue: checked })}
+                    data-testid="switch-requires-venue"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Requires Platform</p>
+                    <p className="text-xs text-muted-foreground">Needs video call platform (Zoom, Meet)</p>
+                  </div>
+                  <Switch
+                    checked={engagementForm.requiresPlatform}
+                    onCheckedChange={(checked) => setEngagementForm({ ...engagementForm, requiresPlatform: checked })}
+                    data-testid="switch-requires-platform"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Requires Scheduling</p>
+                    <p className="text-xs text-muted-foreground">Regular scheduled sessions</p>
+                  </div>
+                  <Switch
+                    checked={engagementForm.requiresScheduling}
+                    onCheckedChange={(checked) => setEngagementForm({ ...engagementForm, requiresScheduling: checked })}
+                    data-testid="switch-requires-scheduling"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEngagementModal(false)} data-testid="button-cancel-engagement-type">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEngagementType} disabled={isSaving} data-testid="button-save-engagement-type">
+              {isSaving ? 'Saving...' : editingType ? 'Save Changes' : 'Create Type'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
