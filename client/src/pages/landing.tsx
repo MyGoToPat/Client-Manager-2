@@ -77,7 +77,8 @@ const mentorPlans = [
       'Analytics',
       'Lead Gen Tools',
     ],
-    note: 'Clients pay for their own seat ($9/$29/$49)',
+    note: 'You get the tools. Your clients hire Pat directly - they pay their own seat cost.',
+    bestFor: 'Mentors who want clients to pay for their own Pat access',
   },
   {
     name: 'Growth',
@@ -91,7 +92,8 @@ const mentorPlans = [
       '20 seats included',
       'Priority support',
     ],
-    note: 'You pay $7/seat, client gets $9 worth of tokens',
+    note: 'You pay $7 to hire Pat for each client. Pat gives them $9 worth of AI access. You save $2/seat.',
+    bestFor: 'Mentors scaling to 20-50 clients who want to provide Pat as part of their service',
   },
   {
     name: 'Pro',
@@ -106,7 +108,8 @@ const mentorPlans = [
       'White-glove onboarding',
       'API access',
     ],
-    note: 'You pay $5/seat, client gets $9 worth of tokens',
+    note: 'You pay $5 to hire Pat for each client. Pat gives them $9 worth of AI access. You save $4/seat.',
+    bestFor: 'Established mentors with 50-200+ clients running programs at scale',
   },
   {
     name: 'Enterprise',
@@ -122,6 +125,7 @@ const mentorPlans = [
       'Custom features',
     ],
     note: 'Custom pricing for large organizations',
+    bestFor: 'Large organizations with custom requirements',
   },
 ];
 
@@ -168,8 +172,12 @@ const clientPlans = [
 
 const faqs = [
   {
-    question: 'Do my clients have to pay?',
-    answer: 'Depends on your plan. On Starter, clients pay for their own Pat subscription ($9+). On Growth and Pro, you fund their initial tokens ($7 or $5 per seat), and they top up when empty.',
+    question: 'Do I take a cut of what mentors charge their clients?',
+    answer: 'No. You keep 100% of your coaching revenue. You\'re hiring Pat as your assistant - you pay Pat\'s "salary" (the seat cost), and your client fees are your business.',
+  },
+  {
+    question: 'What\'s the difference between Starter and Growth/Pro?',
+    answer: 'On Starter, your clients hire Pat themselves (they pay $9+). On Growth/Pro, YOU hire Pat for your clients ($7 or $5/seat) - it\'s included as part of your service to them.',
   },
   {
     question: 'What happens when a client\'s tokens run out?',
@@ -185,7 +193,7 @@ const faqs = [
   },
   {
     question: 'What\'s included in a "seat"?',
-    answer: 'On Growth/Pro, each seat gives your client $9 worth of AI tokens. You pay $7 (Growth) or $5 (Pro) per seat - you\'re saving $2-$4 per client while funding their access.',
+    answer: 'A seat is hiring Pat to serve one client. On Growth/Pro, you pay $7 or $5 to hire Pat, and Pat gives your client $9 worth of AI access. It\'s like getting a discount on your assistant\'s services.',
   },
 ];
 
@@ -334,11 +342,10 @@ export default function Landing() {
         <section className="py-20 px-4">
           <div className="container mx-auto text-center max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-              Manage Your Fitness Clients with AI
+              Hire Pat as Your 24/7 AI Assistant
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              HiPat gives your clients a 24/7 AI assistant that extends your expertise. 
-              Pat handles check-ins, tracks progress, and keeps clients engaged between sessions.
+              Hire Pat as your 24/7 AI assistant. Pat handles check-ins, tracks progress, and keeps clients engaged between sessions - while you keep 100% of your coaching revenue.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Button size="lg" className="gap-2" onClick={handleGetStarted} data-testid="button-hero-cta">
@@ -391,9 +398,9 @@ export default function Landing() {
         <section id="pricing" className="py-16 px-4 bg-muted/30">
           <div className="container mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-2xl font-bold mb-4">Mentor Pricing</h2>
+              <h2 className="text-2xl font-bold mb-4">Hire Pat for Your Practice</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Choose the plan that fits your practice. All plans include full access to the HiPat dashboard and Pat AI.
+                You pay for the tools ($99/$199/$599) and hire Pat per client ($9/$7/$5/seat). You keep 100% of what you charge - Pat doesn't take a cut.
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -443,9 +450,14 @@ export default function Landing() {
                         </li>
                       ))}
                     </ul>
-                    <p className="text-xs text-muted-foreground text-center border-t border-border pt-4">
-                      {plan.note}
-                    </p>
+                    <div className="border-t border-border pt-4 space-y-2">
+                      <p className="text-xs text-muted-foreground text-center">
+                        {plan.note}
+                      </p>
+                      <p className="text-xs text-center font-medium">
+                        Best for: {plan.bestFor}
+                      </p>
+                    </div>
                   </CardContent>
                   <CardFooter>
                     <Button 
@@ -466,9 +478,9 @@ export default function Landing() {
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
             <div className="text-center mb-12">
-              <h2 className="text-2xl font-bold mb-4">How Client Access Works</h2>
+              <h2 className="text-2xl font-bold mb-4">How Hiring Pat Works</h2>
               <p className="text-muted-foreground">
-                Understanding how your clients get access to Pat based on your plan.
+                Two ways to get Pat working for your clients - you choose who hires Pat.
               </p>
             </div>
             <div className="grid md:grid-cols-2 gap-8">
@@ -476,27 +488,27 @@ export default function Landing() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-2xl text-muted-foreground">person</span>
-                    Starter Plan
+                    Starter Plan - Client Hires Pat
                   </CardTitle>
-                  <CardDescription>Client pays for their own subscription</CardDescription>
+                  <CardDescription>Your clients pay for their own Pat access</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ol className="space-y-4">
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm font-semibold flex-shrink-0">1</span>
-                      <span className="text-sm">Client joins on FREE tier</span>
+                      <span className="text-sm">You get the HiPat tools for $99/month</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm font-semibold flex-shrink-0">2</span>
-                      <span className="text-sm">Client sees: "To join [Mentor]'s program, upgrade to a paid plan"</span>
+                      <span className="text-sm">Client joins your program</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm font-semibold flex-shrink-0">3</span>
-                      <span className="text-sm">Client chooses and pays: $9 (reloadable) / $29/mo / $49/mo</span>
+                      <span className="text-sm">Client hires Pat themselves (pays $9/$29/$49)</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-muted text-sm font-semibold flex-shrink-0">4</span>
-                      <span className="text-sm">Client joins your mentor program</span>
+                      <span className="text-sm">You keep 100% of what you charge for coaching</span>
                     </li>
                   </ol>
                 </CardContent>
@@ -506,27 +518,31 @@ export default function Landing() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-2xl text-primary">groups</span>
-                    Growth & Pro Plans
+                    Growth & Pro - You Hire Pat for Clients
                   </CardTitle>
-                  <CardDescription>You fund initial tokens for clients</CardDescription>
+                  <CardDescription>You hire Pat to serve each client</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ol className="space-y-4">
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">1</span>
-                      <span className="text-sm">Client joins on FREE tier</span>
+                      <span className="text-sm">You get the HiPat tools + included seats</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">2</span>
-                      <span className="text-sm">Client automatically gets $9 worth of tokens (funded by you)</span>
+                      <span className="text-sm">Client joins your program</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">3</span>
-                      <span className="text-sm">Client uses tokens for "Ask Pat" AI queries</span>
+                      <span className="text-sm">You hire Pat for them ($7 or $5/seat) - they get $9 in AI tokens</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">4</span>
-                      <span className="text-sm">When tokens run out, client tops up: $9 reload / $29 unlimited / $49 Circle</span>
+                      <span className="text-sm">When tokens run out, client can top up or you can reload for them</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">5</span>
+                      <span className="text-sm">You keep 100% of what you charge for coaching</span>
                     </li>
                   </ol>
                 </CardContent>
@@ -620,6 +636,34 @@ export default function Landing() {
         </section>
 
         <section className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-3xl text-center mb-12">
+            <h2 className="text-2xl font-bold mb-4">Keep 100% of Your Coaching Revenue</h2>
+            <p className="text-muted-foreground mb-8">
+              When you join HiPat, you're hiring Pat as your employee - not giving us a cut of your business. You set your prices, you keep it all, Pat works for you.
+            </p>
+            <Card className="border-0 bg-background" data-testid="card-profit-example">
+              <CardContent className="p-6">
+                <div className="text-left max-w-xs mx-auto space-y-2 font-mono text-sm">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Your coaching program:</span>
+                    <span className="font-semibold">$200/month</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Your cost to hire Pat:</span>
+                    <span className="text-muted-foreground">-$7/seat</span>
+                  </div>
+                  <div className="border-t border-border pt-2 flex justify-between gap-4">
+                    <span className="font-semibold">Your profit per client:</span>
+                    <span className="font-bold text-primary">$193/month</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Pat handles the 24/7 check-ins, progress tracking, and AI support. You focus on coaching and growing your business.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="container mx-auto max-w-4xl">
             <Card className="border-0 bg-background" data-testid="card-summary-table">
               <CardContent className="p-8">
@@ -628,39 +672,42 @@ export default function Landing() {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left py-3 pr-4 font-semibold">Mentor Plan</th>
-                        <th className="text-center py-3 px-4 font-semibold">You Pay/Seat</th>
+                        <th className="text-center py-3 px-4 font-semibold">You Pay to Hire Pat</th>
                         <th className="text-center py-3 px-4 font-semibold">Client Gets</th>
-                        <th className="text-center py-3 pl-4 font-semibold">Client Top-Up</th>
+                        <th className="text-center py-3 pl-4 font-semibold">Your Revenue</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-border/50">
                         <td className="py-3 pr-4">Starter $99</td>
-                        <td className="text-center py-3 px-4 text-muted-foreground">$0 (client pays)</td>
+                        <td className="text-center py-3 px-4 text-muted-foreground">$0 (client hires Pat)</td>
                         <td className="text-center py-3 px-4 text-muted-foreground">-</td>
-                        <td className="text-center py-3 pl-4 text-muted-foreground">$9/$29/$49 from start</td>
+                        <td className="text-center py-3 pl-4 font-medium">Keep 100% of your fees</td>
                       </tr>
                       <tr className="border-b border-border/50">
                         <td className="py-3 pr-4">Growth $199</td>
-                        <td className="text-center py-3 px-4">$7</td>
-                        <td className="text-center py-3 px-4">$9 tokens</td>
-                        <td className="text-center py-3 pl-4 text-muted-foreground">When empty</td>
+                        <td className="text-center py-3 px-4">$7/seat</td>
+                        <td className="text-center py-3 px-4">$9 in AI tokens</td>
+                        <td className="text-center py-3 pl-4 font-medium">Keep 100% of your fees</td>
                       </tr>
                       <tr className="border-b border-border/50">
                         <td className="py-3 pr-4">Pro $599</td>
-                        <td className="text-center py-3 px-4">$5</td>
-                        <td className="text-center py-3 px-4">$9 tokens</td>
-                        <td className="text-center py-3 pl-4 text-muted-foreground">When empty</td>
+                        <td className="text-center py-3 px-4">$5/seat</td>
+                        <td className="text-center py-3 px-4">$9 in AI tokens</td>
+                        <td className="text-center py-3 pl-4 font-medium">Keep 100% of your fees</td>
                       </tr>
                       <tr>
                         <td className="py-3 pr-4">Enterprise</td>
                         <td className="text-center py-3 px-4">Custom</td>
-                        <td className="text-center py-3 px-4">$9 tokens</td>
-                        <td className="text-center py-3 pl-4 text-muted-foreground">When empty</td>
+                        <td className="text-center py-3 px-4">$9 in AI tokens</td>
+                        <td className="text-center py-3 pl-4 font-medium">Keep 100% of your fees</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Remember: Whatever you charge your clients for coaching, programs, or training is YOUR money. You're just paying Pat's "salary" to work for you.
+                </p>
               </CardContent>
             </Card>
           </div>
