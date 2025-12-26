@@ -26,6 +26,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Client } from "@/types";
 import { ClientDrawer } from "@/components/client-drawer";
+import { AddClientModal } from "@/components/add-client-modal";
 
 type SortField = 'name' | 'status' | 'lastActive';
 type SortDirection = 'asc' | 'desc';
@@ -151,6 +152,7 @@ const ClientsPage = () => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [showInsightsBanner, setShowInsightsBanner] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -290,7 +292,11 @@ const ClientsPage = () => {
                     Manage your roster and view AI-driven insights from Pat.
                   </p>
                 </div>
-                <Button className="shadow-lg shadow-primary/20" data-testid="button-add-client">
+                <Button 
+                  className="shadow-lg shadow-primary/20" 
+                  data-testid="button-add-client"
+                  onClick={() => setShowAddModal(true)}
+                >
                   <span className="material-symbols-outlined text-[20px] mr-2">add</span>
                   Add New Client
                 </Button>
@@ -627,6 +633,11 @@ const ClientsPage = () => {
       </main>
 
       <ClientDrawer />
+
+      <AddClientModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+      />
     </div>
   );
 };

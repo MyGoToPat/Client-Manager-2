@@ -53,14 +53,16 @@ client/src/
 │   ├── bookings.service.ts
 │   ├── referrals.service.ts
 │   ├── groups.service.ts
-│   └── engagement-types.service.ts
+│   ├── engagement-types.service.ts
+│   └── lead-gen-tools.service.ts
 ├── mocks/              # Mock data
 │   ├── clients.mock.ts
 │   ├── directives.mock.ts
 │   ├── mentors.mock.ts
 │   ├── groups.mock.ts
 │   ├── engagement-types.mock.ts
-│   └── dashboard-briefing-v2.mock.ts
+│   ├── dashboard-briefing-v2.mock.ts
+│   └── lead-gen-tools.mock.ts
 ├── types/              # TypeScript interfaces
 │   └── index.ts
 ├── store/              # Zustand state
@@ -127,6 +129,14 @@ client/src/
 - **Auth:** Mock login/signup with localStorage persistence (demo: info@hipat.app / admin123)
 - **Dark Mode:** Theme toggle with localStorage persistence (secondary colors fixed for proper contrast)
 - **Client Filters:** Status, Engagement Type, and AI Tags filters on Clients page
+- **Lead Generation System:** Pluggable external tool framework for client onboarding
+  - **Pluggable Tools:** External proprietary tools (TDEE Calculator, Workout Assessment, etc.) loaded via iframe
+  - **PostMessage API:** Tools communicate results via `{type: 'TOOL_COMPLETE', clientData, results}` messages
+  - **Tool Configuration:** Mentors configure external tool URLs in Settings > Lead Generation tab
+  - **Add Client Modal:** Three-section layout with Quick Add, Lead Generation Tools, and Direct Entry
+  - **Security:** iframe sandbox, postMessage source validation, URL protocol validation (http/https only)
+  - **Components:** AddClientModal, ToolLoaderModal, ToolCompletionModal
+  - **Service:** leadGenToolsService with tool CRUD, URL sanitization, stats tracking
 
 ### Authentication
 Mock auth - any email/password works for login. User state is stored in localStorage under `hipat_user` key.
