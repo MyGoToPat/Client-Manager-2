@@ -11,6 +11,7 @@ export interface ClientsService {
   inviteClient(email: string, mentorId: string): Promise<{ inviteLink: string }>;
   updateClientStatus(clientId: string, status: Client['status']): Promise<Client>;
   getWorkoutPlans(clientId: string): Promise<WorkoutPlan[]>;
+  createClient(client: Partial<Client>): Promise<Client>;
 }
 
 let clientsData = [...mockClients];
@@ -64,5 +65,29 @@ export const clientsService: ClientsService = {
   async getWorkoutPlans(_clientId: string): Promise<WorkoutPlan[]> {
     await new Promise(r => setTimeout(r, 300));
     return mockWorkoutPlans;
+  },
+
+  async createClient(clientData: Partial<Client>): Promise<Client> {
+    await new Promise(r => setTimeout(r, 400));
+    const newClient: Client = {
+      id: `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: clientData.name || 'New Client',
+      email: clientData.email || '',
+      phone: clientData.phone,
+      avatarUrl: clientData.avatarUrl,
+      status: clientData.status || 'pending',
+      role: clientData.role || 'client',
+      progress: clientData.progress || 0,
+      lastLogin: clientData.lastLogin || new Date().toISOString(),
+      lastActive: clientData.lastActive || new Date().toISOString(),
+      joinedAt: clientData.joinedAt || new Date(),
+      goals: clientData.goals,
+      metrics: clientData.metrics,
+      engagementTypeId: clientData.engagementTypeId,
+      patStatus: 'steady',
+      compliancePercent: 0,
+    };
+    clientsData.push(newClient);
+    return newClient;
   }
 };

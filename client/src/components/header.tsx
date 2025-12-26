@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { InviteClientDialog } from './invite-client-dialog';
+import { AddClientModal } from './add-client-modal';
 
 interface HeaderProps {
   title: string;
@@ -61,9 +61,9 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange,
         )}
 
         {showInvite && (
-          <Button onClick={() => setInviteOpen(true)} data-testid="button-invite-client" className="gap-2">
+          <Button onClick={() => setInviteOpen(true)} data-testid="button-add-client" className="gap-2">
             <span className="material-symbols-outlined text-lg">person_add</span>
-            Invite Client
+            Add Client
           </Button>
         )}
 
@@ -114,7 +114,7 @@ export function Header({ title, showInvite = false, searchValue, onSearchChange,
         </Button>
       </div>
 
-      <InviteClientDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <AddClientModal open={inviteOpen} onOpenChange={setInviteOpen} />
     </header>
   );
 }

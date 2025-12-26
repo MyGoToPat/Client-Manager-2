@@ -6,6 +6,7 @@ export { referralsService } from './referrals.service';
 export { organizationsService } from './organizations.service';
 export { groupsService } from './groups.service';
 export { engagementTypesService } from './engagement-types.service';
+export { leadGenToolsService } from './lead-gen-tools.service';
 
 export type { AuthService } from './auth.service';
 export type { ClientsService } from './clients.service';

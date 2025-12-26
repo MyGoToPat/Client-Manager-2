@@ -9,6 +9,22 @@ function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+function isValidToolUrl(url: string | undefined): boolean {
+  if (!url || url.trim() === '') return true;
+  try {
+    const parsed = new URL(url);
+    return ['https:', 'http:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeToolUrl(url: string | undefined): string | undefined {
+  if (!url || url.trim() === '') return undefined;
+  if (!isValidToolUrl(url)) return undefined;
+  return url.trim();
+}
+
 export const leadGenToolsService = {
   async getTools(): Promise<LeadGenTool[]> {
     return tools;
@@ -38,13 +54,25 @@ export const leadGenToolsService = {
     return newTool;
   },
 
-  async updateTool(id: string, updates: Partial<LeadGenTool>): Promise<LeadGenTool | undefined> {
+  async updateTool(id: string, updates: Partial<LeadGenTool>): Promise<LeadGenTool> {
     const index = tools.findIndex(t => t.id === id);
-    if (index === -1) return undefined;
+    if (index === -1) throw new Error('Tool not found');
+    
+    const sanitizedLiveUrl = sanitizeToolUrl(updates.liveUrl);
+    const sanitizedSelfServiceUrl = sanitizeToolUrl(updates.selfServiceUrl);
+    
+    if (updates.liveUrl !== undefined && !isValidToolUrl(updates.liveUrl)) {
+      throw new Error('Invalid Live URL. Only http:// and https:// URLs are allowed.');
+    }
+    if (updates.selfServiceUrl !== undefined && !isValidToolUrl(updates.selfServiceUrl)) {
+      throw new Error('Invalid Self-Service URL. Only http:// and https:// URLs are allowed.');
+    }
     
     tools[index] = {
       ...tools[index],
       ...updates,
+      liveUrl: updates.liveUrl !== undefined ? sanitizedLiveUrl : tools[index].liveUrl,
+      selfServiceUrl: updates.selfServiceUrl !== undefined ? sanitizedSelfServiceUrl : tools[index].selfServiceUrl,
       updatedAt: new Date(),
     };
     return tools[index];
@@ -58,15 +86,25 @@ export const leadGenToolsService = {
     return true;
   },
 
-  async configureTool(id: string, liveUrl: string, selfServiceUrl?: string): Promise<LeadGenTool | undefined> {
+  async configureTool(id: string, liveUrl: string, selfServiceUrl?: string): Promise<LeadGenTool> {
     const index = tools.findIndex(t => t.id === id);
-    if (index === -1) return undefined;
+    if (index === -1) throw new Error('Tool not found');
     
-    const isConfigured = Boolean(liveUrl && liveUrl.trim().length > 0);
+    if (liveUrl && !isValidToolUrl(liveUrl)) {
+      throw new Error('Invalid Live URL. Only http:// and https:// URLs are allowed.');
+    }
+    if (selfServiceUrl && !isValidToolUrl(selfServiceUrl)) {
+      throw new Error('Invalid Self-Service URL. Only http:// and https:// URLs are allowed.');
+    }
+    
+    const sanitizedLiveUrl = sanitizeToolUrl(liveUrl);
+    const sanitizedSelfServiceUrl = sanitizeToolUrl(selfServiceUrl);
+    
+    const isConfigured = Boolean(sanitizedLiveUrl);
     tools[index] = {
       ...tools[index],
-      liveUrl,
-      selfServiceUrl: selfServiceUrl || '',
+      liveUrl: sanitizedLiveUrl,
+      selfServiceUrl: sanitizedSelfServiceUrl,
       isConfigured,
       updatedAt: new Date(),
     };
@@ -172,8 +210,15 @@ export const leadGenToolsService = {
     mode: 'live' | 'self-service',
     theme: 'light' | 'dark' = 'light'
   ): string {
+    if (!baseUrl) return '';
+    
     try {
       const url = new URL(baseUrl);
+      
+      if (!['https:', 'http:'].includes(url.protocol)) {
+        return '';
+      }
+      
       url.searchParams.set('mentorId', mentorId);
       url.searchParams.set('mentorName', mentorName);
       url.searchParams.set('mode', mode);
@@ -181,7 +226,7 @@ export const leadGenToolsService = {
       url.searchParams.set('theme', theme);
       return url.toString();
     } catch {
-      return baseUrl;
+      return '';
     }
   },
 };

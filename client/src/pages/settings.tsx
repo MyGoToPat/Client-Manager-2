@@ -14,9 +14,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useStore } from '../store/useStore';
-import { authService, referralsService, engagementTypesService } from '../services';
+import { authService, referralsService, engagementTypesService, leadGenToolsService } from '../services';
 import { availableIcons } from '../mocks/engagement-types.mock';
-import type { MentorProfile, ReferralLink, EngagementType } from '../types';
+import type { MentorProfile, ReferralLink, EngagementType, LeadGenTool } from '../types';
 
 export default function Settings() {
   const { toast } = useToast();
@@ -26,7 +26,16 @@ export default function Settings() {
   const [referral, setReferral] = useState<ReferralLink | null>(null);
   const [copied, setCopied] = useState(false);
   const [engagementTypes, setEngagementTypes] = useState<EngagementType[]>([]);
+  const [leadGenTools, setLeadGenTools] = useState<LeadGenTool[]>([]);
   const [showEngagementModal, setShowEngagementModal] = useState(false);
+  const [showToolConfigModal, setShowToolConfigModal] = useState(false);
+  const [editingTool, setEditingTool] = useState<LeadGenTool | null>(null);
+  const [toolForm, setToolForm] = useState({
+    liveUrl: '',
+    selfServiceUrl: '',
+    isActive: true,
+    isConfigured: false,
+  });
   const [editingType, setEditingType] = useState<EngagementType | null>(null);
   const [engagementForm, setEngagementForm] = useState({
     name: '',
@@ -52,10 +61,11 @@ export default function Settings() {
   const loadData = async () => {
     try {
       if (user) {
-        const [profile, referralData, types] = await Promise.all([
+        const [profile, referralData, types, tools] = await Promise.all([
           authService.getMentorProfile(user.id),
           referralsService.getReferralLink('mentor-1'),
           engagementTypesService.getEngagementTypes('mentor-1'),
+          leadGenToolsService.getTools(),
         ]);
         if (profile) {
           setMentorProfile(profile);
@@ -69,6 +79,7 @@ export default function Settings() {
         }
         setReferral(referralData);
         setEngagementTypes(types);
+        setLeadGenTools(tools);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -238,6 +249,70 @@ export default function Settings() {
     }
   };
 
+  const handleOpenToolConfig = (tool: LeadGenTool) => {
+    setEditingTool(tool);
+    setToolForm({
+      liveUrl: tool.liveUrl || '',
+      selfServiceUrl: tool.selfServiceUrl || '',
+      isActive: tool.isActive,
+      isConfigured: tool.isConfigured,
+    });
+    setShowToolConfigModal(true);
+  };
+
+  const handleSaveToolConfig = async () => {
+    if (!editingTool) return;
+
+    const hasUrls = toolForm.liveUrl.trim() || toolForm.selfServiceUrl.trim();
+
+    setIsSaving(true);
+    try {
+      const updated = await leadGenToolsService.updateTool(editingTool.id, {
+        liveUrl: toolForm.liveUrl.trim() || undefined,
+        selfServiceUrl: toolForm.selfServiceUrl.trim() || undefined,
+        isActive: toolForm.isActive,
+        isConfigured: hasUrls,
+      });
+      setLeadGenTools((prev) =>
+        prev.map((t) => (t.id === updated.id ? updated : t))
+      );
+      setShowToolConfigModal(false);
+      toast({
+        title: 'Tool updated',
+        description: `${editingTool.name} configuration saved.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save tool configuration.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleToggleToolActive = async (tool: LeadGenTool) => {
+    try {
+      const updated = await leadGenToolsService.updateTool(tool.id, {
+        isActive: !tool.isActive,
+      });
+      setLeadGenTools((prev) =>
+        prev.map((t) => (t.id === updated.id ? updated : t))
+      );
+      toast({
+        title: updated.isActive ? 'Tool enabled' : 'Tool disabled',
+        description: `${tool.name} is now ${updated.isActive ? 'active' : 'inactive'}.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update tool.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header title="Settings" />
@@ -264,6 +339,10 @@ export default function Settings() {
             <TabsTrigger value="engagement" data-testid="tab-engagement">
               <span className="material-symbols-outlined text-base mr-2">category</span>
               Engagement Types
+            </TabsTrigger>
+            <TabsTrigger value="lead-gen" data-testid="tab-lead-gen">
+              <span className="material-symbols-outlined text-base mr-2">rocket_launch</span>
+              Lead Generation
             </TabsTrigger>
           </TabsList>
 
@@ -641,6 +720,111 @@ export default function Settings() {
               </Card>
             </div>
           </TabsContent>
+
+          <TabsContent value="lead-gen">
+            <div className="space-y-6 max-w-3xl">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">rocket_launch</span>
+                    Onboarding Tools
+                  </CardTitle>
+                  <CardDescription>
+                    Configure external assessment tools. These tools are loaded via iframe and send results back using the postMessage API.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isLoading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3].map(i => (
+                        <Skeleton key={i} className="h-20" />
+                      ))}
+                    </div>
+                  ) : leadGenTools.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No tools available.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {leadGenTools.map(tool => (
+                        <div
+                          key={tool.id}
+                          className="flex items-center justify-between gap-4 p-4 border rounded-md"
+                          data-testid={`tool-config-${tool.id}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-md flex items-center justify-center ${tool.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                              <span className="material-symbols-outlined text-lg">{tool.icon}</span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium text-sm">{tool.name}</h4>
+                                {tool.isDefault && (
+                                  <Badge variant="secondary" className="text-xs">Default</Badge>
+                                )}
+                                {tool.isActive && !tool.isConfigured && (
+                                  <Badge variant="destructive" className="text-xs">Not Configured</Badge>
+                                )}
+                                {tool.isActive && tool.isConfigured && (
+                                  <Badge variant="outline" className="text-xs border-green-500 text-green-600 dark:text-green-400">Configured</Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">{tool.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={tool.isActive}
+                              onCheckedChange={() => handleToggleToolActive(tool)}
+                              data-testid={`switch-tool-active-${tool.id}`}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenToolConfig(tool)}
+                              data-testid={`button-configure-${tool.id}`}
+                            >
+                              <span className="material-symbols-outlined text-base">settings</span>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>How It Works</CardTitle>
+                  <CardDescription>Understanding the lead generation flow</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-base text-primary mt-0.5">looks_one</span>
+                    <div>
+                      <p className="font-medium text-foreground">Configure Your Tool URLs</p>
+                      <p>Enter the URLs for your external assessment tools. These can be TDEE calculators, workout assessments, or any custom tool.</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-base text-primary mt-0.5">looks_two</span>
+                    <div>
+                      <p className="font-medium text-foreground">Run Live or Share Links</p>
+                      <p>Use "Start Live" in client sessions or share self-service links for prospects to complete on their own.</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-base text-primary mt-0.5">looks_3</span>
+                    <div>
+                      <p className="font-medium text-foreground">Automatic Client Creation</p>
+                      <p>When tools complete, Pat captures the results and helps you convert leads into clients.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -755,6 +939,78 @@ export default function Settings() {
             </Button>
             <Button onClick={handleSaveEngagementType} disabled={isSaving} data-testid="button-save-engagement-type">
               {isSaving ? 'Saving...' : editingType ? 'Save Changes' : 'Create Type'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showToolConfigModal} onOpenChange={(open) => {
+        setShowToolConfigModal(open);
+        if (!open) setEditingTool(null);
+      }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">{editingTool?.icon || 'settings'}</span>
+              Configure {editingTool?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Enter the URLs for your external tool. The tool should send results via postMessage API.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="live-url">Live Session URL</Label>
+              <Input
+                id="live-url"
+                value={toolForm.liveUrl}
+                onChange={(e) => setToolForm({ ...toolForm, liveUrl: e.target.value })}
+                placeholder="https://your-tool.com/assessment"
+                data-testid="input-live-url"
+              />
+              <p className="text-xs text-muted-foreground">
+                URL opened when running "Start Live" with a client. Parameters like mentorId and mode will be appended.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="self-service-url">Self-Service URL</Label>
+              <Input
+                id="self-service-url"
+                value={toolForm.selfServiceUrl}
+                onChange={(e) => setToolForm({ ...toolForm, selfServiceUrl: e.target.value })}
+                placeholder="https://your-tool.com/self-service"
+                data-testid="input-self-service-url"
+              />
+              <p className="text-xs text-muted-foreground">
+                URL shared via "Get Link" for prospects to complete on their own.
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">postMessage API Requirements</h4>
+              <div className="bg-muted/50 rounded-md p-3 text-xs font-mono">
+                <p className="text-muted-foreground mb-1">// Tool should send on completion:</p>
+                <pre className="text-foreground">
+{`window.parent.postMessage({
+  type: 'TOOL_COMPLETE',
+  clientData: { name, email, phone },
+  results: { ... }
+}, '*');`}
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowToolConfigModal(false)} data-testid="button-cancel-tool-config">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveToolConfig} disabled={isSaving} data-testid="button-save-tool-config">
+              {isSaving ? 'Saving...' : 'Save Configuration'}
             </Button>
           </DialogFooter>
         </DialogContent>
