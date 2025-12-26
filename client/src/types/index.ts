@@ -755,3 +755,116 @@ export interface DashboardBriefingV2 extends DashboardBriefing {
   programHealth: ProgramHealthSummary[];
   clientSegmentation: ClientSegmentation;
 }
+
+// ============================================
+// LEAD GENERATION FRAMEWORK (PLUGGABLE)
+// ============================================
+
+export type LeadGenToolType = 'iframe' | 'redirect' | 'component';
+export type LeadGenCallbackMethod = 'postMessage' | 'webhook' | 'redirect';
+
+export interface LeadGenTool {
+  id: string;
+  
+  // Display
+  name: string;
+  description: string;
+  icon: string;
+  color?: string;
+  
+  // Integration type
+  type: LeadGenToolType;
+  
+  // URLs for different modes
+  liveUrl?: string;
+  selfServiceUrl?: string;
+  embedUrl?: string;
+  
+  // For component integrations (future)
+  componentName?: string;
+  
+  // Data contract (optional schemas)
+  inputSchema?: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+  
+  // Callbacks
+  callbackMethod: LeadGenCallbackMethod;
+  webhookUrl?: string;
+  redirectParam?: string;
+  
+  // Status
+  isActive: boolean;
+  isConfigured: boolean;
+  
+  // Mentor-specific overrides
+  mentorOverrides?: {
+    [mentorId: string]: {
+      liveUrl?: string;
+      selfServiceUrl?: string;
+      customParams?: Record<string, string>;
+    }
+  };
+  
+  // Custom tool (created by mentor)
+  isCustom?: boolean;
+  createdBy?: string;
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MentorToolConfig {
+  id: string;
+  mentorId: string;
+  toolId: string;
+  
+  // Override URLs (if mentor has own hosted version)
+  liveUrlOverride?: string;
+  selfServiceUrlOverride?: string;
+  
+  // Customization for self-service page
+  headline?: string;
+  subheadline?: string;
+  showMentorProfile: boolean;
+  showWorkWithMeCTA: boolean;
+  
+  // Tracking
+  isEnabled: boolean;
+  viewCount: number;
+  completionCount: number;
+  signupCount: number;
+  
+  createdAt: Date;
+}
+
+export type ToolSubmissionStatus = 'submitted' | 'invited' | 'signed_up' | 'became_client';
+
+export interface ToolSubmissionClientData {
+  name?: string;
+  email: string;
+  phone?: string;
+}
+
+export interface ToolSubmission {
+  id: string;
+  toolId: string;
+  mentorId: string;
+  
+  // Client info (from tool)
+  clientData: ToolSubmissionClientData;
+  
+  // Tool-specific results (flexible JSON)
+  results: Record<string, unknown>;
+  
+  // Conversion tracking
+  status: ToolSubmissionStatus;
+  
+  // Created entities
+  clientId?: string;
+  patUserId?: string;
+  
+  // Timestamps
+  submittedAt: Date;
+  invitedAt?: Date;
+  signedUpAt?: Date;
+}

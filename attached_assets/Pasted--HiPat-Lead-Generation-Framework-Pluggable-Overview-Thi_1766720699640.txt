@@ -1,0 +1,863 @@
+# HiPat Lead Generation Framework (Pluggable)
+
+## Overview
+
+This document specifies a **pluggable framework** for lead generation tools. HiPat provides the structure, UI shell, and data handling - but the actual tools (TDEE Calculator, Workout Assessment, etc.) are **external integrations** that can be swapped in.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         HiPat App                               │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │                   Add Client Modal                         │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │ │
+│  │  │ Tool Card   │  │ Tool Card   │  │ Tool Card   │        │ │
+│  │  │ TDEE Calc   │  │ Workout     │  │ Future Tool │        │ │
+│  │  └──────┬──────┘  └──────┬──────┘  └─────────────┘        │ │
+│  └─────────┼────────────────┼────────────────────────────────┘ │
+│            │                │                                   │
+│            ▼                ▼                                   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                  Tool Loader Component                   │   │
+│  │         (iframe / redirect / embedded component)         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│            │                │                                   │
+└────────────┼────────────────┼───────────────────────────────────┘
+             │                │
+             ▼                ▼
+    ┌─────────────────┐  ┌─────────────────┐
+    │  External Tool  │  │  External Tool  │
+    │  (Your TDEE)    │  │  (Your Workout) │
+    │                 │  │                 │
+    │  Hosted at:     │  │  Hosted at:     │
+    │  tdee.your.com  │  │  workout.your.co│
+    └────────┬────────┘  └────────┬────────┘
+             │                    │
+             ▼                    ▼
+    ┌─────────────────────────────────────────┐
+    │     postMessage / webhook callback      │
+    │     Returns: client data + results      │
+    └─────────────────────────────────────────┘
+             │
+             ▼
+    ┌─────────────────────────────────────────┐
+    │           HiPat receives data           │
+    │     → Creates client in roster          │
+    │     → Stores metrics                    │
+    │     → Triggers invite flow              │
+    └─────────────────────────────────────────┘
+```
+
+---
+
+## Data Model
+
+### LeadGenTool Configuration
+
+```typescript
+interface LeadGenTool {
+  id: string;
+  
+  // Display
+  name: string;                    // "TDEE Calculator"
+  description: string;             // "Nutrition focused assessment"
+  icon: string;                    // Material symbol name
+  color?: string;                  // Brand color
+  
+  // Integration
+  type: 'iframe' | 'redirect' | 'component';
+  
+  // URLs for different modes
+  liveUrl?: string;                // URL for "Start Live" mode
+  selfServiceUrl?: string;         // URL for "Get Link" mode (shareable)
+  
+  // For iframe/redirect integrations
+  embedUrl?: string;               // Base URL to embed/open
+  
+  // For component integrations (future - React component)
+  componentName?: string;          // Registered component name
+  
+  // Data contract
+  inputSchema?: object;            // What data to send TO the tool
+  outputSchema?: object;           // What data to expect FROM the tool
+  
+  // Callbacks
+  callbackMethod: 'postMessage' | 'webhook' | 'redirect';
+  webhookUrl?: string;             // If using webhook callback
+  redirectParam?: string;          // URL param name for redirect callback
+  
+  // Status
+  isActive: boolean;
+  isConfigured: boolean;           // Has valid URLs set
+  
+  // Mentor-specific overrides
+  mentorOverrides?: {
+    [mentorId: string]: {
+      liveUrl?: string;
+      selfServiceUrl?: string;
+      customParams?: Record<string, string>;
+    }
+  };
+  
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Tool Instance (Per Mentor)
+
+```typescript
+interface MentorToolConfig {
+  id: string;
+  mentorId: string;
+  toolId: string;
+  
+  // Override URLs (if mentor has own hosted version)
+  liveUrlOverride?: string;
+  selfServiceUrlOverride?: string;
+  
+  // Customization for self-service page
+  headline?: string;
+  subheadline?: string;
+  showMentorProfile: boolean;
+  showWorkWithMeCTA: boolean;
+  
+  // Tracking
+  isEnabled: boolean;
+  viewCount: number;
+  completionCount: number;
+  signupCount: number;
+  
+  createdAt: Date;
+}
+```
+
+### Tool Submission (Results from external tool)
+
+```typescript
+interface ToolSubmission {
+  id: string;
+  toolId: string;
+  mentorId: string;
+  
+  // Client info (from tool)
+  clientData: {
+    name?: string;
+    email: string;
+    phone?: string;
+  };
+  
+  // Tool-specific results (flexible JSON)
+  results: Record<string, any>;
+  
+  // Example TDEE results:
+  // {
+  //   bmr: 1842,
+  //   tdee: 2856,
+  //   dailyTarget: 3056,
+  //   macros: { protein: 185, carbs: 340, fat: 85 },
+  //   goal: 'build_muscle',
+  //   activityLevel: 'moderate'
+  // }
+  
+  // Example Workout results:
+  // {
+  //   experienceLevel: 'intermediate',
+  //   daysPerWeek: 4,
+  //   goal: 'strength',
+  //   recommendedProgram: 'upper_lower_4day',
+  //   currentLifts: { squat: 185, bench: 135, deadlift: 225 }
+  // }
+  
+  // Conversion tracking
+  status: 'submitted' | 'invited' | 'signed_up' | 'became_client';
+  
+  // Created entities
+  clientId?: string;               // If added to roster
+  patUserId?: string;              // If signed up for Pat
+  
+  // Timestamps
+  submittedAt: Date;
+  invitedAt?: Date;
+  signedUpAt?: Date;
+}
+```
+
+---
+
+## Default Tool Configurations
+
+### Seed Data
+
+```typescript
+export const defaultLeadGenTools: LeadGenTool[] = [
+  {
+    id: 'tool-tdee',
+    name: 'TDEE Calculator',
+    description: 'Nutrition focused - calculates calories & macros',
+    icon: 'calculate',
+    color: '#10b981',  // Green
+    type: 'iframe',
+    liveUrl: '',       // TO BE CONFIGURED
+    selfServiceUrl: '', // TO BE CONFIGURED
+    callbackMethod: 'postMessage',
+    isActive: true,
+    isConfigured: false,  // Needs URL configuration
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tool-workout',
+    name: 'Workout Assessment',
+    description: 'Fitness focused - creates personalized program',
+    icon: 'fitness_center',
+    color: '#3b82f6',  // Blue
+    type: 'iframe',
+    liveUrl: '',
+    selfServiceUrl: '',
+    callbackMethod: 'postMessage',
+    isActive: true,
+    isConfigured: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tool-fitness-quiz',
+    name: 'Fitness Quiz',
+    description: 'General assessment - discovers fitness level',
+    icon: 'quiz',
+    color: '#8b5cf6',  // Purple
+    type: 'iframe',
+    liveUrl: '',
+    selfServiceUrl: '',
+    callbackMethod: 'postMessage',
+    isActive: false,   // Coming soon
+    isConfigured: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'tool-goal-planner',
+    name: 'Goal Planner',
+    description: 'Motivation focused - creates transformation plan',
+    icon: 'flag',
+    color: '#f59e0b',  // Amber
+    type: 'iframe',
+    liveUrl: '',
+    selfServiceUrl: '',
+    callbackMethod: 'postMessage',
+    isActive: false,   // Coming soon
+    isConfigured: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
+```
+
+---
+
+## UI Components
+
+### 1. Add Client Modal (Redesigned)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Add New Client                                           [X]   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │  🚀 ONBOARDING TOOLS                                      │ │
+│  │  Start with an assessment - results invite them to Pat    │ │
+│  │                                                           │ │
+│  │  ┌─────────────────────┐  ┌─────────────────────┐        │ │
+│  │  │  🧮                  │  │  🏋️                  │        │ │
+│  │  │  TDEE Calculator    │  │  Workout Assessment │        │ │
+│  │  │  Nutrition focused  │  │  Fitness focused    │        │ │
+│  │  │                     │  │                     │        │ │
+│  │  │  [Start Live]       │  │  [Start Live]       │        │ │
+│  │  │  [Get Link]         │  │  [Get Link]         │        │ │
+│  │  └─────────────────────┘  └─────────────────────┘        │ │
+│  │                                                           │ │
+│  │  ┌─────────────────────┐  ┌─────────────────────┐        │ │
+│  │  │  📋    COMING SOON  │  │  🎯    COMING SOON  │        │ │
+│  │  │  Fitness Quiz       │  │  Goal Planner       │        │ │
+│  │  └─────────────────────┘  └─────────────────────┘        │ │
+│  └───────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│  ─────────────────────── OR ───────────────────────────────    │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │  📨 DIRECT INVITE                                         │ │
+│  │                                                           │ │
+│  │  ┌─────────────────────┐  ┌─────────────────────┐        │ │
+│  │  │  ✉️ Send Invite      │  │  👤 Connect Existing │        │ │
+│  │  │  Email invitation   │  │  Find Pat user      │        │ │
+│  │  └─────────────────────┘  └─────────────────────┘        │ │
+│  └───────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│  ─────────────────────── OR ───────────────────────────────    │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │  🔗 LEAD GENERATION                                       │ │
+│  │                                                           │ │
+│  │  ┌─────────────────────┐  ┌─────────────────────┐        │ │
+│  │  │  🔗 Referral Link    │  │  📋 Manual Entry    │        │ │
+│  │  │  Share & earn       │  │  Track offline      │        │ │
+│  └───────────────────────────────────────────────────────────┘ │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 2. Tool Card Component
+
+```typescript
+interface ToolCardProps {
+  tool: LeadGenTool;
+  mentorConfig?: MentorToolConfig;
+  onStartLive: (tool: LeadGenTool) => void;
+  onGetLink: (tool: LeadGenTool) => void;
+}
+
+// Renders:
+// - Icon + Name + Description
+// - "Start Live" button (disabled if not configured)
+// - "Get Link" button (disabled if not configured)
+// - "Coming Soon" badge if !isActive
+// - "Not Configured" warning if isActive && !isConfigured
+```
+
+```
+┌─────────────────────────────────────┐
+│  🧮                                  │
+│  TDEE Calculator                    │
+│  Nutrition focused                  │
+│                                     │
+│  [Start Live]  [Get Link]           │
+└─────────────────────────────────────┘
+
+// If not configured:
+┌─────────────────────────────────────┐
+│  🧮                                  │
+│  TDEE Calculator                    │
+│  Nutrition focused                  │
+│                                     │
+│  ⚠️ Not configured                   │
+│  [Configure in Settings]            │
+└─────────────────────────────────────┘
+
+// If coming soon:
+┌─────────────────────────────────────┐
+│  📋                    COMING SOON  │
+│  Fitness Quiz                       │
+│  General assessment                 │
+└─────────────────────────────────────┘
+```
+
+### 3. Tool Loader Component
+
+Handles loading external tools in different modes:
+
+```typescript
+interface ToolLoaderProps {
+  tool: LeadGenTool;
+  mode: 'live' | 'self-service';
+  mentorId: string;
+  onComplete: (submission: ToolSubmission) => void;
+  onCancel: () => void;
+}
+```
+
+#### Iframe Mode
+
+```tsx
+function ToolLoaderIframe({ tool, mode, mentorId, onComplete, onCancel }) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  // Build URL with params
+  const toolUrl = useMemo(() => {
+    const baseUrl = mode === 'live' ? tool.liveUrl : tool.selfServiceUrl;
+    const url = new URL(baseUrl);
+    url.searchParams.set('mentorId', mentorId);
+    url.searchParams.set('mode', mode);
+    url.searchParams.set('callback', 'postMessage');
+    return url.toString();
+  }, [tool, mode, mentorId]);
+  
+  // Listen for postMessage from tool
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Validate origin matches tool URL
+      if (!tool.liveUrl?.includes(event.origin)) return;
+      
+      if (event.data.type === 'TOOL_COMPLETE') {
+        onComplete({
+          toolId: tool.id,
+          mentorId,
+          clientData: event.data.clientData,
+          results: event.data.results,
+          status: 'submitted',
+          submittedAt: new Date(),
+        });
+      }
+      
+      if (event.data.type === 'TOOL_CANCEL') {
+        onCancel();
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [tool, mentorId, onComplete, onCancel]);
+  
+  return (
+    <div className="tool-loader-container">
+      <iframe
+        ref={iframeRef}
+        src={toolUrl}
+        className="w-full h-[600px] border-0 rounded-lg"
+        allow="clipboard-write"
+      />
+    </div>
+  );
+}
+```
+
+#### Redirect Mode
+
+```tsx
+function ToolLoaderRedirect({ tool, mode, mentorId }) {
+  const callbackUrl = `${window.location.origin}/api/tool-callback/${tool.id}`;
+  
+  const handleLaunch = () => {
+    const baseUrl = mode === 'live' ? tool.liveUrl : tool.selfServiceUrl;
+    const url = new URL(baseUrl);
+    url.searchParams.set('mentorId', mentorId);
+    url.searchParams.set('mode', mode);
+    url.searchParams.set('callbackUrl', callbackUrl);
+    
+    window.open(url.toString(), '_blank');
+  };
+  
+  return (
+    <div className="text-center p-8">
+      <p className="mb-4">This tool will open in a new window.</p>
+      <Button onClick={handleLaunch}>
+        Open {tool.name}
+      </Button>
+      <p className="text-sm text-muted-foreground mt-4">
+        Results will be sent back automatically when complete.
+      </p>
+    </div>
+  );
+}
+```
+
+### 4. Tool Loader Modal (Wrapper)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🧮 TDEE Calculator                         Mode: Live     [X]  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                                                          │   │
+│  │                                                          │   │
+│  │                   [ IFRAME CONTENT ]                     │   │
+│  │                                                          │   │
+│  │              (Your external tool loads here)             │   │
+│  │                                                          │   │
+│  │                                                          │   │
+│  │                                                          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 5. Get Link Modal
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🔗 TDEE Calculator Link                                  [X]   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Share this link for people to use your TDEE calculator.        │
+│  Results will be sent to you when they complete it.             │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ https://your-tdee-tool.com/?mentor=coach-alex           │   │
+│  │                                         [Copy] [QR]     │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  📊 Stats (when tracking is configured)                         │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐                  │
+│  │    --      │ │     --     │ │     --     │                  │
+│  │   Views    │ │ Completed  │ │  Sign Ups  │                  │
+│  └────────────┘ └────────────┘ └────────────┘                  │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                                       [Done]    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Settings: Tool Configuration
+
+### Settings > Lead Generation Tab
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⚙️ Settings > Lead Generation Tools                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Configure your onboarding tools. These appear in the           │
+│  "Add New Client" modal.                                        │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  🧮 TDEE Calculator                        [Configured ✓]│   │
+│  │                                                          │   │
+│  │  Live Mode URL                                           │   │
+│  │  ┌────────────────────────────────────────────────────┐ │   │
+│  │  │ https://your-tdee-app.com/calculator               │ │   │
+│  │  └────────────────────────────────────────────────────┘ │   │
+│  │                                                          │   │
+│  │  Self-Service URL (shareable link)                       │   │
+│  │  ┌────────────────────────────────────────────────────┐ │   │
+│  │  │ https://your-tdee-app.com/free-calculator          │ │   │
+│  │  └────────────────────────────────────────────────────┘ │   │
+│  │                                                          │   │
+│  │  Callback Method: [postMessage ▼]                        │   │
+│  │                                                          │   │
+│  │  ☑ Enabled                               [Test] [Save]   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  🏋️ Workout Assessment                  [Not Configured] │   │
+│  │                                                          │   │
+│  │  Live Mode URL                                           │   │
+│  │  ┌────────────────────────────────────────────────────┐ │   │
+│  │  │ https://                                           │ │   │
+│  │  └────────────────────────────────────────────────────┘ │   │
+│  │                                                          │   │
+│  │  Self-Service URL (shareable link)                       │   │
+│  │  ┌────────────────────────────────────────────────────┐ │   │
+│  │  │ https://                                           │ │   │
+│  │  └────────────────────────────────────────────────────┘ │   │
+│  │                                                          │   │
+│  │  ☐ Enabled                               [Test] [Save]   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ─────────────────────────────────────────────────────────────  │
+│                                                                 │
+│  [+ Add Custom Tool]                                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Add Custom Tool Modal
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Add Custom Onboarding Tool                               [X]   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Tool Name *                                                    │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Body Composition Analyzer                                │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Description                                                    │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Analyzes body composition and recommends targets        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Icon                                                           │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ [body_system] [monitor_weight] [analytics] [science]... │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Live Mode URL *                                                │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ https://my-body-comp-tool.com/analyze                   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Self-Service URL                                               │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ https://my-body-comp-tool.com/free                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  Integration Type                                               │
+│  ○ iFrame (embedded in modal)                                   │
+│  ○ Redirect (opens in new tab)                                  │
+│                                                                 │
+│  Callback Method                                                │
+│  ○ postMessage (recommended for iframe)                         │
+│  ○ Webhook URL                                                  │
+│  ○ Redirect with params                                         │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                    [Cancel]  [Add Tool]         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## External Tool Contract
+
+### What HiPat Sends TO the Tool
+
+Via URL params when loading:
+
+```
+https://your-tool.com/calculator
+  ?mentorId=mentor-123
+  &mentorName=Coach%20Alex
+  &mode=live|self-service
+  &callback=postMessage|redirect
+  &callbackUrl=https://hipat.app/api/tool-callback/tool-123
+  &theme=light|dark
+```
+
+### What the Tool Sends BACK to HiPat
+
+#### Option A: postMessage (for iframe)
+
+```typescript
+// When user completes the tool
+window.parent.postMessage({
+  type: 'TOOL_COMPLETE',
+  clientData: {
+    name: 'John Smith',
+    email: 'john@email.com',
+    phone: '555-123-4567'  // optional
+  },
+  results: {
+    // Tool-specific results - flexible JSON
+    // TDEE example:
+    bmr: 1842,
+    tdee: 2856,
+    dailyTarget: 3056,
+    macros: { protein: 185, carbs: 340, fat: 85 },
+    goal: 'build_muscle',
+    
+    // Or Workout example:
+    experienceLevel: 'intermediate',
+    daysPerWeek: 4,
+    recommendedProgram: 'upper_lower_4day',
+    currentLifts: { squat: 185, bench: 135, deadlift: 225 }
+  }
+}, '*');
+
+// When user cancels
+window.parent.postMessage({
+  type: 'TOOL_CANCEL'
+}, '*');
+
+// To resize iframe (optional)
+window.parent.postMessage({
+  type: 'TOOL_RESIZE',
+  height: 800
+}, '*');
+```
+
+#### Option B: Webhook (for redirect)
+
+```typescript
+// POST to callbackUrl
+POST https://hipat.app/api/tool-callback/tool-123
+
+{
+  "mentorId": "mentor-123",
+  "sessionId": "session-abc",  // Tracking ID from URL params
+  "clientData": {
+    "name": "John Smith",
+    "email": "john@email.com"
+  },
+  "results": {
+    // Same flexible structure
+  }
+}
+```
+
+#### Option C: Redirect with params
+
+```
+Redirect to:
+https://hipat.app/tool-complete
+  ?toolId=tool-123
+  &mentorId=mentor-123
+  &email=john@email.com
+  &name=John%20Smith
+  &results=BASE64_ENCODED_JSON
+```
+
+---
+
+## HiPat Receives Results → Creates Client
+
+When HiPat receives tool completion data:
+
+```typescript
+async function handleToolCompletion(submission: ToolSubmission) {
+  // 1. Store the submission
+  const saved = await toolSubmissionsService.create(submission);
+  
+  // 2. Create client in roster (status: pending)
+  const client = await clientsService.create({
+    name: submission.clientData.name || 'New Lead',
+    email: submission.clientData.email,
+    phone: submission.clientData.phone,
+    status: 'pending',
+    engagementTypeId: null,  // To be set
+    
+    // Store tool results in client metrics
+    metrics: mapToolResultsToMetrics(submission.results),
+    
+    // Track source
+    referralSource: 'lead_gen_tool',
+    leadGenToolId: submission.toolId,
+  });
+  
+  // 3. Update submission with client ID
+  await toolSubmissionsService.update(saved.id, {
+    clientId: client.id,
+    status: 'invited'
+  });
+  
+  // 4. Show success modal with next steps
+  return {
+    client,
+    submission: saved,
+    nextSteps: ['send_invite', 'set_engagement_type', 'view_profile']
+  };
+}
+```
+
+---
+
+## Completion Flow UI
+
+After tool completes:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ✅ Assessment Complete                                   [X]   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  John Smith's results have been saved.                          │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  📊 Results Summary                                      │   │
+│  │                                                          │   │
+│  │  TDEE: 2,856 kcal  │  Target: 3,056 kcal                │   │
+│  │  Protein: 185g  │  Carbs: 340g  │  Fat: 85g             │   │
+│  │  Goal: Build Muscle                                      │   │
+│  │                                                          │   │
+│  │  (Full results stored in client profile)                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  What would you like to do next?                                │
+│                                                                 │
+│  Engagement Type                                                │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ 🏋️ In-Person Training                              ▼    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  📧 Send Invite to Pat                                   │   │
+│  │  Email john@email.com to create their account           │   │
+│  │  ☑ Include results in welcome email                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  [Skip - Just Add to Roster]              [Send Invite & Add]   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Service Layer
+
+### New Service: `lead-gen.service.ts`
+
+```typescript
+export interface LeadGenService {
+  // Tool configuration
+  getTools(): Promise<LeadGenTool[]>;
+  getToolConfig(toolId: string, mentorId: string): Promise<MentorToolConfig | null>;
+  updateToolConfig(toolId: string, mentorId: string, config: Partial<MentorToolConfig>): Promise<MentorToolConfig>;
+  createCustomTool(tool: Omit<LeadGenTool, 'id' | 'createdAt' | 'updatedAt'>): Promise<LeadGenTool>;
+  deleteCustomTool(toolId: string): Promise<void>;
+  
+  // Submissions
+  createSubmission(submission: Omit<ToolSubmission, 'id'>): Promise<ToolSubmission>;
+  getSubmissions(mentorId: string, filters?: { toolId?: string; status?: string }): Promise<ToolSubmission[]>;
+  updateSubmission(id: string, updates: Partial<ToolSubmission>): Promise<ToolSubmission>;
+  
+  // Stats
+  getToolStats(mentorId: string, toolId: string): Promise<{ views: number; completions: number; signups: number }>;
+}
+```
+
+---
+
+## Implementation Tasks for Replit
+
+### Phase 1: Data & Service Layer
+1. ☐ Create `LeadGenTool` type and interface
+2. ☐ Create `MentorToolConfig` type
+3. ☐ Create `ToolSubmission` type
+4. ☐ Create `lead-gen.mock.ts` with default tools
+5. ☐ Create `lead-gen.service.ts`
+
+### Phase 2: Add Client Modal Redesign
+6. ☐ Create new Add Client modal layout (3 sections)
+7. ☐ Create `ToolCard` component
+8. ☐ Wire up "Start Live" button → opens tool loader
+9. ☐ Wire up "Get Link" button → shows link modal
+10. ☐ Keep existing Direct Invite flows working
+11. ☐ Keep Manual Entry working
+
+### Phase 3: Tool Loader System
+12. ☐ Create `ToolLoaderModal` wrapper
+13. ☐ Create `ToolLoaderIframe` component
+14. ☐ Create `ToolLoaderRedirect` component  
+15. ☐ Implement postMessage listener
+16. ☐ Create completion flow modal
+
+### Phase 4: Settings Configuration
+17. ☐ Add "Lead Generation" tab to Settings
+18. ☐ Create tool configuration cards
+19. ☐ Create "Add Custom Tool" modal
+20. ☐ Implement URL validation and test button
+
+### Phase 5: Polish
+21. ☐ "Not Configured" states for unconfigured tools
+22. ☐ "Coming Soon" badges for inactive tools
+23. ☐ Link copying with toast confirmation
+24. ☐ QR code generation (can be mocked/placeholder)
+
+---
+
+## Key Points for Replit
+
+1. **Do NOT build any calculator/assessment logic** - these are external integrations
+
+2. **The iframe is the key integration method** - postMessage is the callback
+
+3. **Tools are configurable in Settings** - mentors enter their own URLs
+
+4. **Results are flexible JSON** - stored as-is, displayed generically
+
+5. **Custom tools can be added** - same pattern as defaults
+
+6. **Mocked for now**: Actual external tool loading, QR codes, email sending
+
+7. **Real**: Modal structure, configuration UI, data flow, postMessage handling
+
+---
+
+*End of Lead Generation Framework (Pluggable) Specification*
