@@ -193,29 +193,46 @@ function PricingCalculator() {
   const [clientCount, setClientCount] = useState([25]);
   
   const calculateCost = (count: number) => {
-    if (count <= 20) {
-      return { plan: 'Growth', base: 199, extra: 0, total: 199, perClient: count > 0 ? (199 / count).toFixed(2) : '0' };
-    } else if (count <= 100) {
-      const extraSeats = count - 20;
+    const growthCost = count <= 20 ? 199 : 199 + (count - 20) * 7;
+    const proCost = count <= 100 ? 599 : 599 + (count - 100) * 5;
+    
+    if (growthCost <= proCost) {
+      const extraSeats = Math.max(0, count - 20);
       const extraCost = extraSeats * 7;
-      return { plan: 'Growth', base: 199, extra: extraCost, total: 199 + extraCost, perClient: ((199 + extraCost) / count).toFixed(2) };
+      return { 
+        plan: 'Growth', 
+        base: 199, 
+        extra: extraCost, 
+        total: growthCost, 
+        perClient: (growthCost / count).toFixed(2),
+        seatsIncluded: 20,
+        overageRate: 7
+      };
     } else {
-      const extraSeats = count - 100;
+      const extraSeats = Math.max(0, count - 100);
       const extraCost = extraSeats * 5;
-      return { plan: 'Pro', base: 599, extra: extraCost, total: 599 + extraCost, perClient: ((599 + extraCost) / count).toFixed(2) };
+      return { 
+        plan: 'Pro', 
+        base: 599, 
+        extra: extraCost, 
+        total: proCost, 
+        perClient: (proCost / count).toFixed(2),
+        seatsIncluded: 100,
+        overageRate: 5
+      };
     }
   };
 
   const result = calculateCost(clientCount[0]);
 
   return (
-    <Card className="border-0 bg-background">
+    <Card className="border-0 bg-background" data-testid="card-pricing-calculator">
       <CardContent className="p-6">
         <div className="space-y-6">
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between gap-4 mb-4">
               <span className="text-sm font-medium">How many clients do you have?</span>
-              <span className="text-2xl font-bold text-primary">{clientCount[0]}</span>
+              <span className="text-2xl font-bold text-primary" data-testid="text-client-count">{clientCount[0]}</span>
             </div>
             <Slider
               value={clientCount}
@@ -234,12 +251,12 @@ function PricingCalculator() {
 
           <div className="border-t border-border pt-4">
             <div className="flex items-center gap-2 mb-4">
-              <Badge variant="secondary">Recommended: {result.plan}</Badge>
+              <Badge variant="secondary" data-testid="badge-recommended-plan">Recommended: {result.plan}</Badge>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Base price</span>
-                <span>${result.base}</span>
+                <span data-testid="text-base-price">${result.base}</span>
               </div>
               {result.plan === 'Growth' && clientCount[0] <= 20 && (
                 <div className="flex justify-between">
@@ -267,11 +284,11 @@ function PricingCalculator() {
               )}
               <div className="flex justify-between border-t border-border pt-2 font-semibold">
                 <span>Your monthly cost</span>
-                <span className="text-primary">${result.total}</span>
+                <span className="text-primary" data-testid="text-total-cost">${result.total}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Cost per client</span>
-                <span className="text-muted-foreground">${result.perClient}/client</span>
+                <span className="text-muted-foreground" data-testid="text-per-client-cost">${result.perClient}/client</span>
               </div>
             </div>
           </div>
@@ -339,13 +356,13 @@ export default function Landing() {
           <div className="container mx-auto">
             <h2 className="text-2xl font-bold text-center mb-12">What Makes HiPat Different</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features.map((feature) => (
-                <Card key={feature.title} className="border-0 bg-background">
+              {features.map((feature, idx) => (
+                <Card key={feature.title} className="border-0 bg-background" data-testid={`card-feature-${idx}`}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
                       <span className="material-symbols-outlined text-2xl">{feature.icon}</span>
                     </div>
-                    <h3 className="font-semibold mb-2">{feature.title}</h3>
+                    <h3 className="font-semibold mb-2" data-testid={`text-feature-title-${idx}`}>{feature.title}</h3>
                     <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
@@ -359,11 +376,11 @@ export default function Landing() {
             <h2 className="text-2xl font-bold text-center mb-12">How It Works</h2>
             <div className="grid md:grid-cols-3 gap-8">
               {steps.map((item) => (
-                <div key={item.step} className="text-center">
+                <div key={item.step} className="text-center" data-testid={`step-${item.step}`}>
                   <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-xl mx-auto mb-4">
                     {item.step}
                   </div>
-                  <h3 className="font-semibold mb-2">{item.title}</h3>
+                  <h3 className="font-semibold mb-2" data-testid={`text-step-title-${item.step}`}>{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                 </div>
               ))}
@@ -455,7 +472,7 @@ export default function Landing() {
               </p>
             </div>
             <div className="grid md:grid-cols-2 gap-8">
-              <Card>
+              <Card data-testid="card-access-starter">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-2xl text-muted-foreground">person</span>
@@ -485,7 +502,7 @@ export default function Landing() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card data-testid="card-access-growth-pro">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-2xl text-primary">groups</span>
@@ -579,19 +596,19 @@ export default function Landing() {
               <div>
                 <h2 className="text-2xl font-bold mb-4">Pricing Calculator</h2>
                 <p className="text-muted-foreground mb-6">
-                  See exactly what you'll pay based on your client count. We recommend the plan that saves you the most.
+                  Compare Growth vs Pro plans when you want to fund client tokens. For client-funded seats, choose Starter ($99).
                 </p>
                 <PricingCalculator />
               </div>
               <div>
                 <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="single" collapsible className="w-full" data-testid="accordion-faq">
                   {faqs.map((faq, idx) => (
-                    <AccordionItem key={idx} value={`faq-${idx}`}>
-                      <AccordionTrigger className="text-left text-sm">
+                    <AccordionItem key={idx} value={`faq-${idx}`} data-testid={`accordion-item-faq-${idx}`}>
+                      <AccordionTrigger className="text-left text-sm" data-testid={`button-faq-trigger-${idx}`}>
                         {faq.question}
                       </AccordionTrigger>
-                      <AccordionContent className="text-sm text-muted-foreground">
+                      <AccordionContent className="text-sm text-muted-foreground" data-testid={`text-faq-answer-${idx}`}>
                         {faq.answer}
                       </AccordionContent>
                     </AccordionItem>
@@ -604,10 +621,10 @@ export default function Landing() {
 
         <section className="py-16 px-4 bg-muted/30">
           <div className="container mx-auto max-w-4xl">
-            <Card className="border-0 bg-background">
+            <Card className="border-0 bg-background" data-testid="card-summary-table">
               <CardContent className="p-8">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm" data-testid="table-pricing-summary">
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left py-3 pr-4 font-semibold">Mentor Plan</th>
