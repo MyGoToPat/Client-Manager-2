@@ -1,0 +1,217 @@
+# HiPat Landing Page Update - Replit Instructions
+
+## Task
+Update the HiPat landing page at:
+https://e92f16a8-04df-4f0f-a1d1-353dc096f0a2-00-4cgsq1d01meo.kirk.replit.dev/
+
+Add enterprise pricing with a token-based client seat system.
+
+---
+
+## ADD SECTION: Mentor Pricing (4 Plan Cards)
+
+### Starter - $99/month
+- 0 seats included
+- $9/seat (CLIENT pays for their own seat)
+- Features: Full HiPat dashboard, Pat AI co-pilot, Smart Directives, Analytics, Lead Gen Tools
+- Note: Clients can start on free plan but must upgrade to $9/$29/$49 to join mentor's program
+
+### Growth - $199/month (Mark as "POPULAR")
+- 20 seats included
+- $7/seat over 20 (MENTOR pays)
+- Features: Everything in Starter + Priority support
+- Note: Mentor pays $7, client gets $9 worth of tokens
+
+### Pro - $599/month
+- 100 seats included
+- $5/seat over 100 (MENTOR pays)
+- Features: Everything in Growth + White-glove onboarding, API access
+- Note: Mentor pays $5, client gets $9 worth of tokens
+
+### Enterprise - Custom
+- Unlimited seats
+- Custom pricing
+- Features: Custom SLA, Dedicated support, Custom features
+- CTA: "Contact Sales"
+
+---
+
+## ADD SECTION: How Client Access Works
+
+Explain the difference between Starter and Growth/Pro:
+
+**STARTER PLAN:**
+1. Client joins on FREE tier
+2. Client sees: "To join [Mentor]'s program, upgrade to a paid plan"
+3. Client chooses and pays: $9 (reloadable) / $29/mo / $49/mo
+4. Client joins mentor's program
+
+**GROWTH & PRO PLANS:**
+1. Client joins on FREE tier
+2. Client automatically gets $9 worth of tokens (funded by mentor)
+3. Client uses tokens for "Ask Pat" AI queries
+4. When tokens run out, client tops up: $9 reload / $29 unlimited / $49 Circle
+
+---
+
+## ADD SECTION: Client Subscription Options (3 Cards)
+
+### Basic - $9 (reloadable)
+- Workout logging
+- Nutrition tracking
+- Progress photos
+- Token-based "Ask Pat" (runs out, must reload)
+- Mentor referral fee: NO
+
+### Plus - $29/month
+- Everything in Basic
+- UNLIMITED "Ask Pat" queries
+- Advanced AI insights
+- Mentor referral fee: YES
+
+### Circle - $49/month (Mark as "BEST VALUE")
+- Everything in Plus
+- Join My Circle beta program
+- EARN referral income
+- Early feature access
+- Mentor referral fee: YES
+
+---
+
+## ADD SECTION: FAQ (Accordion Style)
+
+**Q: Do my clients have to pay?**
+A: Depends on your plan. On Starter, clients pay for their own Pat subscription ($9+). On Growth and Pro, you fund their initial tokens ($7 or $5 per seat), and they top up when empty.
+
+**Q: What happens when a client's tokens run out?**
+A: They can reload $9, upgrade to unlimited ($29), or join Circle ($49). Logging and workouts still work - just AI queries pause.
+
+**Q: How do referral fees work?**
+A: You earn ongoing fees when clients you referred subscribe to Plus ($29) or Circle ($49). Basic ($9) doesn't generate referrals. You keep earning even if they leave your program.
+
+**Q: What is "Join My Circle"?**
+A: Pat's beta program. Circle members ($49/mo) get early features and can earn income by referring others. It's a Pat feature - stays with the user, not tied to any mentor.
+
+**Q: What's included in a "seat"?**
+A: On Growth/Pro, each seat gives your client $9 worth of AI tokens. You pay $7 (Growth) or $5 (Pro) per seat - you're saving $2-$4 per client while funding their access.
+
+---
+
+## OPTIONAL: Pricing Calculator
+
+Add interactive slider:
+- Input: "How many clients do you have?" (slider 0-200)
+- Output: Recommended plan + monthly cost breakdown
+
+```
+Example: 45 clients
+
+Recommended: GROWTH
+Base price:           $199
+20 seats included:    $0
+25 additional seats:  $175 (25 × $7)
+─────────────────────────
+Your monthly cost:    $374
+```
+
+---
+
+## EXPAND SECTION: What Makes HiPat Different (Add 4 More Cards)
+
+Add to existing 4 cards:
+
+5. **Token-Based Flexibility**
+   Icon: toll or token
+   "Clients get AI access on their terms. Start free, top up as needed, or go unlimited."
+
+6. **Join My Circle**
+   Icon: groups or stars
+   "Your clients can join Pat's beta program and earn referral income."
+
+7. **Referral Revenue**
+   Icon: payments or attach_money
+   "Earn ongoing fees when your clients upgrade to Plus or Circle plans."
+
+8. **Scalable Pricing**
+   Icon: trending_down or savings
+   "Pay less per client as you grow. Pro plan saves $4/seat vs Starter."
+
+---
+
+## Developer Notes
+
+### Token System Logic
+
+```typescript
+// Define token value (DEVELOPER MUST SET)
+const TOKENS_PER_DOLLAR = ???;  // How many tokens = $1
+
+// Seat token allocation
+const SEAT_TOKEN_VALUE = 9;  // All plans give $9 worth of tokens
+
+// When client attaches to mentor
+function attachClientToMentor(clientId, mentorId, mentorPlan) {
+  if (mentorPlan === 'starter') {
+    // Client must upgrade themselves
+    if (clientPlan === 'free') {
+      showUpgradePrompt(clientId, {
+        message: "To join this mentor's program, choose your plan:",
+        options: ['$9 Basic', '$29 Plus', '$49 Circle']
+      });
+      return;
+    }
+  } else {
+    // Growth/Pro/Enterprise - allocate tokens
+    const tokens = SEAT_TOKEN_VALUE * TOKENS_PER_DOLLAR;
+    allocateTokens(clientId, tokens);
+  }
+  createMentorClientRelationship(clientId, mentorId);
+}
+
+// When tokens run out
+function onTokensEmpty(clientId) {
+  showTopUpPrompt(clientId, {
+    message: "Your included tokens have run out.",
+    options: [
+      { price: 9, label: '$9 - Reload tokens', type: 'reload' },
+      { price: 29, label: '$29/mo - Unlimited', type: 'plus' },
+      { price: 49, label: '$49/mo - Circle', type: 'circle' }
+    ]
+  });
+}
+```
+
+### Data Models Needed
+
+```typescript
+interface MentorSubscription {
+  mentorId: string;
+  plan: 'starter' | 'growth' | 'pro' | 'enterprise';
+  includedSeats: number;       // 0, 20, 100, custom
+  overagePerSeat: number;      // 9, 7, 5, custom
+  currentSeatCount: number;
+}
+
+interface ClientTokenAccount {
+  userId: string;
+  mentorId?: string;
+  subscriptionTier: 'free' | 'basic' | 'plus' | 'circle';
+  tokenBalance: number;
+  isUnlimited: boolean;        // true for Plus/Circle
+}
+```
+
+---
+
+## Summary Table
+
+| Mentor Plan | Mentor Pays/Seat | Client Gets | Client Top-Up |
+|-------------|------------------|-------------|---------------|
+| Starter $99 | $0 (client pays) | — | $9/$29/$49 from start |
+| Growth $199 | $7 | $9 tokens | When empty |
+| Pro $599 | $5 | $9 tokens | When empty |
+| Enterprise | Custom | $9 tokens | When empty |
+
+---
+
+End of Replit Instructions
