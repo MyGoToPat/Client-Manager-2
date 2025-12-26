@@ -22,6 +22,25 @@ export interface MentorProfile {
 // Client Engagement Types
 export type ClientEngagementType = 'in_person' | 'online_1on1' | 'program_only';
 
+// Custom Engagement Types (extensible)
+export interface EngagementType {
+  id: string;
+  mentorId: string;
+  name: string;
+  icon: string;
+  color?: string;
+  dashboardBehavior: 'today' | 'this_week' | 'async_only';
+  requiresVenue: boolean;
+  requiresPlatform: boolean;
+  requiresScheduling: boolean;
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+// For backward compatibility
+export type ClientEngagementTypeId = string;
+
 // ============================================
 // CLIENT SESSION & PAT FLAG TYPES
 // ============================================
@@ -80,6 +99,8 @@ export interface Client {
   // ============================================
   
   engagementType?: ClientEngagementType;
+  engagementTypeId?: string;
+  engagementTypeRef?: EngagementType;
   primaryVenue?: string;
   preferredPlatform?: 'zoom' | 'google_meet' | 'phone';
   sessionFrequency?: 'daily' | '2x_week' | '3x_week' | 'weekly' | 'biweekly' | 'monthly' | 'as_needed' | 'program_only';

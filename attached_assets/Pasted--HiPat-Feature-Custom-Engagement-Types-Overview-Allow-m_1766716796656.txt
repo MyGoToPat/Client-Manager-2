@@ -1,0 +1,526 @@
+# HiPat Feature: Custom Engagement Types
+
+## Overview
+
+Allow mentors to create their own engagement types beyond the default three. This supports diverse coaching models like Macro Coaching, Meal Prep, Mindset Only, Rehab, etc.
+
+---
+
+## Default Types (Keep These)
+
+| Type | Icon | Dashboard Behavior |
+|------|------|-------------------|
+| In-Person | 🏋️ `fitness_center` | TODAY's sessions |
+| Online 1:1 | 💻 `videocam` | THIS WEEK's sessions |
+| Program Only | 📚 `school` | Exceptions only |
+
+---
+
+## Custom Type Structure
+
+When a mentor creates a custom type, they define:
+
+```typescript
+interface EngagementType {
+  id: string;
+  mentorId: string;
+  name: string;                    // "Macro Coaching"
+  icon: string;                    // Material symbol name
+  color: string;                   // Hex or tailwind color
+  dashboardBehavior: 'today' | 'this_week' | 'async_only';
+  requiresVenue: boolean;          // Show venue field in edit
+  requiresPlatform: boolean;       // Show platform field in edit
+  requiresScheduling: boolean;     // Can schedule sessions?
+  isDefault: boolean;              // System default (not deletable)
+  isActive: boolean;
+  createdAt: Date;
+}
+```
+
+### Dashboard Behavior Options
+
+| Behavior | Meaning | Dashboard Section |
+|----------|---------|-------------------|
+| `today` | Sessions scheduled for specific days | "Today's Sessions" |
+| `this_week` | Weekly recurring sessions | "This Week" |
+| `async_only` | No live sessions, async communication | Only in "Needs Attention" when flagged |
+
+---
+
+## UI Implementation
+
+### 1. Settings Page - Engagement Types Section
+
+**File:** `client/src/pages/settings.tsx`
+
+Add new section:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Engagement Types                                           │
+│  Define how you work with different clients                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🏋️ In-Person Training              [Default] [Edit] │   │
+│  │    Shows in: Today's Sessions                        │   │
+│  │    Requires: Venue, Scheduling                       │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 💻 Online 1:1 Coaching             [Default] [Edit] │   │
+│  │    Shows in: This Week                               │   │
+│  │    Requires: Platform, Scheduling                    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 📚 Program Only                    [Default] [Edit] │   │
+│  │    Shows in: Exceptions Only                         │   │
+│  │    Requires: None (Pat handles)                      │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🥗 Macro Coaching                         [Edit] [✕] │   │
+│  │    Shows in: This Week                               │   │
+│  │    Requires: Platform                                │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐   │
+│  │  + Add Engagement Type                               │   │
+│  └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 2. Create/Edit Engagement Type Modal
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Create Engagement Type                               [X]   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Name                                                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Macro Coaching                                       │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Icon                                                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🥗 🏃 💪 🧘 🧠 📊 💬 🎯 ⚡ 🔥 ❤️ 📱                    │   │
+│  │ restaurant nutrition sprint psychology analytics... │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Dashboard Behavior                                         │
+│  How should these clients appear on your dashboard?         │
+│                                                             │
+│  ○ Today's Sessions                                         │
+│    For clients you see on scheduled days                    │
+│                                                             │
+│  ● This Week's Check-ins                                    │
+│    For weekly recurring touchpoints                         │
+│                                                             │
+│  ○ Async Only (Exceptions)                                  │
+│    Pat handles daily - you see only when flagged            │
+│                                                             │
+│  ─────────────────────────────────────────────────────────  │
+│                                                             │
+│  Requirements                                               │
+│                                                             │
+│  ☐ Requires venue/location                                  │
+│  ☑ Requires video platform                                  │
+│  ☑ Can schedule sessions                                    │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                              [Cancel]  [Create Type]        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Edit Client - Engagement Type Dropdown
+
+The dropdown now shows all types (defaults + custom):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Engagement Type                                            │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 🥗 Macro Coaching                              ▼    │   │
+│  ├─────────────────────────────────────────────────────┤   │
+│  │ 🏋️ In-Person Training                               │   │
+│  │ 💻 Online 1:1 Coaching                              │   │
+│  │ 📚 Program Only                                     │   │
+│  │ ─────────────────────────────                       │   │
+│  │ 🥗 Macro Coaching                          ← custom │   │
+│  │ 🧠 Mindset Coaching                        ← custom │   │
+│  │ ─────────────────────────────                       │   │
+│  │ + Create New Type...                                │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Data Model Changes
+
+### 1. New Type Definition
+
+**File:** `client/src/types/index.ts`
+
+```typescript
+// Replace the simple type alias with interface
+export interface EngagementType {
+  id: string;
+  mentorId: string;
+  name: string;
+  icon: string;                    // Material symbol name
+  color?: string;
+  dashboardBehavior: 'today' | 'this_week' | 'async_only';
+  requiresVenue: boolean;
+  requiresPlatform: boolean;
+  requiresScheduling: boolean;
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+// Keep backward compatibility
+export type ClientEngagementTypeId = string;
+```
+
+### 2. Update Client Interface
+
+```typescript
+interface Client {
+  // ... existing fields
+  
+  // Change from enum to reference
+  engagementTypeId?: string;       // References EngagementType.id
+  engagementType?: EngagementType; // Populated on fetch
+  
+  // Keep these for custom type requirements
+  primaryVenue?: string;
+  preferredPlatform?: 'zoom' | 'google_meet' | 'phone';
+}
+```
+
+### 3. Default Engagement Types (Seed Data)
+
+**File:** `client/src/mocks/engagement-types.mock.ts`
+
+```typescript
+export const defaultEngagementTypes: EngagementType[] = [
+  {
+    id: 'et-in-person',
+    mentorId: 'system',
+    name: 'In-Person Training',
+    icon: 'fitness_center',
+    dashboardBehavior: 'today',
+    requiresVenue: true,
+    requiresPlatform: false,
+    requiresScheduling: true,
+    isDefault: true,
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+  },
+  {
+    id: 'et-online',
+    mentorId: 'system',
+    name: 'Online 1:1 Coaching',
+    icon: 'videocam',
+    dashboardBehavior: 'this_week',
+    requiresVenue: false,
+    requiresPlatform: true,
+    requiresScheduling: true,
+    isDefault: true,
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+  },
+  {
+    id: 'et-program',
+    mentorId: 'system',
+    name: 'Program Only',
+    icon: 'school',
+    dashboardBehavior: 'async_only',
+    requiresVenue: false,
+    requiresPlatform: false,
+    requiresScheduling: false,
+    isDefault: true,
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+  },
+];
+
+// Example custom types a mentor might create
+export const exampleCustomTypes: EngagementType[] = [
+  {
+    id: 'et-macro',
+    mentorId: 'mentor-1',
+    name: 'Macro Coaching',
+    icon: 'restaurant',
+    dashboardBehavior: 'this_week',
+    requiresVenue: false,
+    requiresPlatform: true,
+    requiresScheduling: true,
+    isDefault: false,
+    isActive: true,
+    createdAt: new Date('2024-06-15'),
+  },
+  {
+    id: 'et-mindset',
+    mentorId: 'mentor-1',
+    name: 'Mindset Coaching',
+    icon: 'psychology',
+    dashboardBehavior: 'this_week',
+    requiresVenue: false,
+    requiresPlatform: true,
+    requiresScheduling: true,
+    isDefault: false,
+    isActive: true,
+    createdAt: new Date('2024-07-01'),
+  },
+  {
+    id: 'et-mealprep',
+    mentorId: 'mentor-1',
+    name: 'Meal Prep Service',
+    icon: 'lunch_dining',
+    dashboardBehavior: 'async_only',
+    requiresVenue: false,
+    requiresPlatform: false,
+    requiresScheduling: false,
+    isDefault: false,
+    isActive: true,
+    createdAt: new Date('2024-08-01'),
+  },
+];
+```
+
+---
+
+## Service Layer
+
+### New Service: `engagement-types.service.ts`
+
+```typescript
+export interface EngagementTypesService {
+  getEngagementTypes(mentorId: string): Promise<EngagementType[]>;
+  createEngagementType(type: Omit<EngagementType, 'id' | 'createdAt'>): Promise<EngagementType>;
+  updateEngagementType(id: string, updates: Partial<EngagementType>): Promise<EngagementType>;
+  deleteEngagementType(id: string): Promise<void>;
+}
+
+export const engagementTypesService: EngagementTypesService = {
+  async getEngagementTypes(mentorId: string): Promise<EngagementType[]> {
+    await new Promise(r => setTimeout(r, 200));
+    // Return defaults + mentor's custom types
+    return [
+      ...defaultEngagementTypes,
+      ...customTypesData.filter(t => t.mentorId === mentorId),
+    ];
+  },
+
+  async createEngagementType(type): Promise<EngagementType> {
+    await new Promise(r => setTimeout(r, 300));
+    const newType: EngagementType = {
+      ...type,
+      id: 'et-' + Date.now(),
+      createdAt: new Date(),
+    };
+    customTypesData.push(newType);
+    return newType;
+  },
+
+  async updateEngagementType(id, updates): Promise<EngagementType> {
+    await new Promise(r => setTimeout(r, 300));
+    const index = customTypesData.findIndex(t => t.id === id);
+    if (index === -1) throw new Error('Type not found');
+    customTypesData[index] = { ...customTypesData[index], ...updates };
+    return customTypesData[index];
+  },
+
+  async deleteEngagementType(id): Promise<void> {
+    await new Promise(r => setTimeout(r, 200));
+    const index = customTypesData.findIndex(t => t.id === id);
+    if (index === -1) throw new Error('Type not found');
+    if (customTypesData[index].isDefault) throw new Error('Cannot delete default type');
+    customTypesData.splice(index, 1);
+  },
+};
+```
+
+---
+
+## Dashboard Integration
+
+### Update Dashboard Briefing Generator
+
+The dashboard generator needs to use `dashboardBehavior` instead of hardcoded type checks:
+
+```typescript
+// dashboard-briefing-v2.mock.ts
+
+export function generateDashboardBriefingV2(): DashboardBriefingV2 {
+  const engagementTypes = await engagementTypesService.getEngagementTypes('mentor-1');
+  
+  // Get types by behavior
+  const todayBehaviorTypes = engagementTypes
+    .filter(t => t.dashboardBehavior === 'today')
+    .map(t => t.id);
+  
+  const thisWeekBehaviorTypes = engagementTypes
+    .filter(t => t.dashboardBehavior === 'this_week')
+    .map(t => t.id);
+  
+  // Filter clients by engagement type behavior
+  const todayClients = mockClients.filter(c => 
+    todayBehaviorTypes.includes(c.engagementTypeId) && 
+    c.nextSession && 
+    isToday(c.nextSession.date)
+  );
+  
+  const thisWeekClients = mockClients.filter(c =>
+    thisWeekBehaviorTypes.includes(c.engagementTypeId) &&
+    c.nextSession &&
+    isThisWeek(c.nextSession.date)
+  );
+  
+  // ... rest of generator
+}
+```
+
+### Update Smart Greeting Segments
+
+```typescript
+interface SmartGreeting {
+  greeting: string;
+  contextLine: string;
+  segments: EngagementSegment[];  // Dynamic based on types
+}
+
+interface EngagementSegment {
+  typeId: string;
+  typeName: string;
+  icon: string;
+  count: number;
+  relevantCount?: number;  // Today count, this week count, etc.
+  label: string;           // "3 today", "5 this week", etc.
+}
+```
+
+---
+
+## Icon Picker Component
+
+### Available Icons for Selection
+
+```typescript
+const availableIcons = [
+  // Fitness
+  { name: 'fitness_center', label: 'Weights' },
+  { name: 'sprint', label: 'Running' },
+  { name: 'self_improvement', label: 'Yoga' },
+  { name: 'sports_martial_arts', label: 'Martial Arts' },
+  
+  // Nutrition
+  { name: 'restaurant', label: 'Nutrition' },
+  { name: 'lunch_dining', label: 'Meal Prep' },
+  { name: 'local_cafe', label: 'Lifestyle' },
+  
+  // Coaching
+  { name: 'videocam', label: 'Video Call' },
+  { name: 'psychology', label: 'Mindset' },
+  { name: 'school', label: 'Program' },
+  { name: 'support_agent', label: 'Support' },
+  
+  // Metrics
+  { name: 'analytics', label: 'Analytics' },
+  { name: 'monitoring', label: 'Monitoring' },
+  { name: 'timeline', label: 'Progress' },
+  
+  // General
+  { name: 'favorite', label: 'Health' },
+  { name: 'bolt', label: 'Energy' },
+  { name: 'emoji_events', label: 'Achievement' },
+  { name: 'groups', label: 'Group' },
+];
+```
+
+---
+
+## Implementation Tasks
+
+### Phase 1: Data Layer
+1. ☐ Create `EngagementType` interface in types
+2. ☐ Create `engagement-types.mock.ts` with defaults
+3. ☐ Create `engagement-types.service.ts`
+4. ☐ Update `Client` interface to use `engagementTypeId`
+5. ☐ Update existing mock clients to use new IDs
+
+### Phase 2: Settings UI
+6. ☐ Add Engagement Types section to Settings page
+7. ☐ Create `EngagementTypeCard` component
+8. ☐ Create `CreateEngagementTypeModal` component
+9. ☐ Create `IconPicker` component
+10. ☐ Wire up CRUD operations
+
+### Phase 3: Edit Client Integration
+11. ☐ Update Edit Client modal dropdown to load types dynamically
+12. ☐ Show "Create New Type" option in dropdown
+13. ☐ Conditionally show venue/platform fields based on type requirements
+
+### Phase 4: Dashboard Integration
+14. ☐ Update dashboard generator to use `dashboardBehavior`
+15. ☐ Update SmartGreeting to show dynamic segments
+16. ☐ Update session sections to group by behavior, not hardcoded type
+
+---
+
+## Example Use Cases
+
+### Macro Coach
+```
+Name: "Macro Coaching"
+Icon: restaurant
+Behavior: this_week
+Requires: Platform ✓, Scheduling ✓
+```
+→ Clients show in "This Week" section for weekly check-ins
+
+### Meal Prep Service
+```
+Name: "Meal Prep Service"  
+Icon: lunch_dining
+Behavior: async_only
+Requires: None
+```
+→ Clients only show when Pat flags an issue
+
+### Corporate Wellness
+```
+Name: "Corporate Wellness"
+Icon: business
+Behavior: today
+Requires: Venue ✓, Scheduling ✓
+```
+→ Clients show in "Today's Sessions" with venue info
+
+### Rehab/Recovery
+```
+Name: "Rehab Coaching"
+Icon: healing
+Behavior: this_week
+Requires: Platform ✓, Scheduling ✓
+```
+→ Weekly check-ins for recovery clients
+
+---
+
+## Validation Rules
+
+1. **Name**: Required, 2-50 characters, unique per mentor
+2. **Icon**: Required, must be from allowed list
+3. **Behavior**: Required, one of three options
+4. **Default types**: Cannot be deleted, can only edit name/icon
+5. **In-use types**: Cannot delete if clients are using it (show warning, offer reassignment)
+
+---
+
+*End of Custom Engagement Types Specification*
