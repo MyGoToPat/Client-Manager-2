@@ -189,7 +189,7 @@ export function CreateGroupModal({ open, onOpenChange, group, onSuccess }: Creat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle data-testid="text-modal-title">
             {isEditing ? 'Edit Group' : 'Create New Group'}
