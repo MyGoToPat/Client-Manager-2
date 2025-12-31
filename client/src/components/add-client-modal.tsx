@@ -269,12 +269,20 @@ export function AddClientModal({
 
     setIsSubmittingQuickAdd(true);
     try {
+      // Prepare data with phone as undefined if empty
+      const submitData: QuickAddData = {
+        firstName: quickAddData.firstName.trim(),
+        lastName: quickAddData.lastName.trim(),
+        email: quickAddData.email.trim(),
+        phone: quickAddData.phone?.trim() || undefined,
+      };
+      
       if (onQuickAdd) {
-        onQuickAdd(quickAddData);
+        onQuickAdd(submitData);
       } else {
         toast({
           title: 'Account Created',
-          description: `Invite sent to ${quickAddData.email}`,
+          description: `Invite sent to ${submitData.email}`,
         });
       }
       setQuickAddData({ firstName: '', lastName: '', email: '', phone: '' });
