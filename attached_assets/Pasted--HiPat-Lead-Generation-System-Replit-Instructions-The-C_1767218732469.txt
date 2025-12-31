@@ -1,0 +1,812 @@
+# HiPat Lead Generation System - Replit Instructions
+
+## The Core Concept
+
+**The Onboarding Tools (TDEE Calculator, Workout Assessment) ARE the account creation mechanism.**
+
+They're not just assessments - they're lead generation tools that:
+1. Deliver value upfront (the results)
+2. Create a HiPat account automatically
+3. Link the new user to whoever referred them
+4. Track for revenue share
+
+---
+
+## Two Modes for Every Tool
+
+### MODE 1: LIVE (Mentor Conducts on Behalf of Client)
+
+**Use Case:** Mentor is on Zoom call or in-person with prospect. Mentor fills out the TDEE calculator while talking through it with the client.
+
+```
+FLOW:
+┌──────────────────────────────────────────────────────────────────┐
+│  1. Mentor clicks TDEE Calculator                                │
+│  2. Mentor fills out questions (age, weight, goals, etc.)        │
+│  3. Results displayed: TDEE + Macros                             │
+│  4. "Save & Send Results" screen appears:                        │
+│     ┌────────────────────────────────────────────────────────┐   │
+│     │  First Name: [________]                                │   │
+│     │  Last Name:  [________]                                │   │
+│     │  Email:      [________]                                │   │
+│     │  Phone:      [________] (optional)                     │   │
+│     │                                                        │   │
+│     │  [Create Account & Send Results]                       │   │
+│     └────────────────────────────────────────────────────────┘   │
+│  5. System creates account + sends email with:                   │
+│     - Their TDEE/macro results                                   │
+│     - Temporary password                                         │
+│     - Link to mobile web app                                     │
+│     - App store download links                                   │
+│  6. User is linked to this mentor (relationship TBD by user)     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### MODE 2: SELF-SERVICE (Client Does Own Assessment)
+
+**Use Case:** Mentor shares a link via text, email, social media. Client fills out on their own time.
+
+```
+FLOW:
+┌──────────────────────────────────────────────────────────────────┐
+│  1. Mentor clicks "Get Link" on TDEE Calculator                  │
+│  2. Gets shareable link: hipat.app/assess/tdee?ref=mentor-123    │
+│  3. Mentor shares link however they want                         │
+│  4. Prospect opens link, sees mentor-branded landing page        │
+│  5. Prospect fills out TDEE calculator                           │
+│  6. Results displayed, then:                                     │
+│     ┌────────────────────────────────────────────────────────┐   │
+│     │  Save your results:                                    │   │
+│     │                                                        │   │
+│     │  First Name: [________]                                │   │
+│     │  Last Name:  [________]                                │   │
+│     │  Email:      [________]                                │   │
+│     │  Phone:      [________] (optional)                     │   │
+│     │                                                        │   │
+│     │  [Create My Free Account]                              │   │
+│     └────────────────────────────────────────────────────────┘   │
+│  7. System creates account + sends welcome email                 │
+│  8. User is linked to the mentor from the ?ref= parameter        │
+│  9. Mentor gets notified of new signup                           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Applies to ALL Onboarding Tools
+
+Both modes apply to:
+- **TDEE Calculator** - Outputs macros/calories
+- **Workout Assessment** - Outputs initial workout program
+- **Fitness Quiz** (Coming Soon) - Outputs fitness level
+- **Goal Planner** (Coming Soon) - Outputs transformation plan
+
+Each tool has:
+- A "Start Live" button (mentor conducts)
+- A "Get Link" button (self-service)
+
+---
+
+## The Relationship Question: Client vs Referral
+
+When a user is created through an assessment, they're linked to the referrer BUT the relationship type is determined later BY THE USER.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  AFTER USER LOGS IN FOR FIRST TIME                               │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Welcome to HiPat! You were invited by Coach Alex.               │
+│                                                                  │
+│  Would you like to join Coach Alex's program?                    │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  YES - Join Program                                        │  │
+│  │  • Coach Alex can see my progress                          │  │
+│  │  • Coach Alex can send me guidance                         │  │
+│  │  • Coach Alex can assign me workouts                       │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  NO - Use HiPat Independently                              │  │
+│  │  • I'll use Pat on my own                                  │  │
+│  │  • Coach Alex still earns credit for referring me          │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  (You can change this later in Settings > Permissions)           │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Why this matters:**
+- Mentor might run TDEE for someone who just wants the results
+- That person might not want to be in mentor's program
+- But mentor STILL gets tracked for rev share if user upgrades to paid
+- User has control over their own data/permissions
+
+---
+
+## Consolidate the Modal: Remove Redundancy
+
+Current modal has overlapping options:
+- "Direct Invite > Send Invite" = blank invite email
+- "Lead Generation > Referral Link" = blank referral link  
+- "Lead Generation > Manual Entry" = create account manually
+
+**These are all basically the same thing: cold outreach with no value attached.**
+
+### New Structure:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ➕ Add New Client                                               │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  🎯 ONBOARDING TOOLS (Recommended)                               │
+│  ───────────────────────────────────────────────────────────────│
+│  Run an assessment. Results create their account automatically.  │
+│                                                                  │
+│  ┌────────────────────┐   ┌────────────────────┐                │
+│  │ 🧮 TDEE Calculator │   │ 🏋️ Workout Assess. │                │
+│  │                    │   │                    │                │
+│  │ [Start Live]       │   │ [Start Live]       │                │
+│  │ [Get Link]         │   │ [Get Link]         │                │
+│  └────────────────────┘   └────────────────────┘                │
+│                                                                  │
+│  ┌────────────────────┐   ┌────────────────────┐                │
+│  │ 📋 Fitness Quiz    │   │ 🎯 Goal Planner    │                │
+│  │ Coming Soon        │   │ Coming Soon        │                │
+│  └────────────────────┘   └────────────────────┘                │
+│                                                                  │
+│  ─────────────────────── OR ────────────────────────────────────│
+│                                                                  │
+│  📨 QUICK ADD (No Assessment)                                    │
+│  ───────────────────────────────────────────────────────────────│
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  First Name: [________]  Last Name: [________]           │   │
+│  │  Email: [________________]  Phone: [________] (opt)      │   │
+│  │                                                          │   │
+│  │  [Create Account & Send Invite]                          │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  ─────────────────────── OR ────────────────────────────────────│
+│                                                                  │
+│  🔗 PASSIVE LINKS                                                │
+│  ───────────────────────────────────────────────────────────────│
+│                                                                  │
+│  ┌────────────────────┐   ┌────────────────────┐                │
+│  │ 📤 My Referral     │   │ 🔍 Connect Existing│                │
+│  │    Link            │   │    User            │                │
+│  │                    │   │                    │                │
+│  │ Generic signup     │   │ Find by email      │                │
+│  │ link to share      │   │                    │                │
+│  └────────────────────┘   └────────────────────┘                │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Removed:**
+- "Direct Invite > Send Invite" (merged into Quick Add)
+- "Lead Generation > Manual Entry" (merged into Quick Add)
+
+**Why:** They all do the same thing - create account and send email. One form is enough.
+
+---
+
+## Revenue Share Tracking
+
+**EVERYONE who brings in a user gets tracked for rev share**, whether they're a mentor or a regular user.
+
+| Who Refers | Tracked For Rev Share? | Can Be Direct Mentor? |
+|------------|------------------------|----------------------|
+| Mentor (any plan) | ✅ Yes | ✅ Yes |
+| Circle User ($49) | ✅ Yes | ❌ No |
+| Plus User ($29) | ❌ No | ❌ No |
+| Basic User ($9) | ❌ No | ❌ No |
+
+**When rev share activates:**
+- New user signs up via referral link/assessment
+- New user upgrades to Plus ($29) or Circle ($49)
+- Referrer earns ongoing percentage
+
+```typescript
+// Track referral on account creation
+interface ReferralRecord {
+  newUserId: string;
+  referrerId: string;
+  referrerType: 'mentor' | 'circle_user';
+  source: 'live_assessment' | 'self_service' | 'quick_add' | 'referral_link';
+  toolUsed?: 'tdee' | 'workout' | 'fitness_quiz' | 'goal_planner';
+  createdAt: Date;
+  revShareStatus: 'pending' | 'active' | 'ineligible';
+  // Becomes 'active' when user upgrades to $29+ plan
+}
+```
+
+---
+
+## System Actions on Account Creation
+
+When ANYONE creates an account through ANY method:
+
+```typescript
+async function createAccountFromLeadGen(data) {
+  
+  // 1. Check if email exists
+  const existing = await findByEmail(data.email);
+  if (existing) {
+    // Don't create duplicate - link to referrer instead
+    return handleExistingUser(existing, data.referrerId);
+  }
+  
+  // 2. Create account
+  const tempPassword = generateTempPassword();  // e.g., "Xk9$mP2n"
+  const user = await createUser({
+    email: data.email,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    phone: data.phone,
+    password: hash(tempPassword),
+    requiresPasswordChange: true,
+    subscriptionTier: 'free',
+  });
+  
+  // 3. Attach assessment results (if any)
+  if (data.assessmentResults) {
+    await saveAssessmentToProfile(user.id, data.assessmentResults);
+    // Pre-populate: TDEE, macros, goals, etc.
+  }
+  
+  // 4. Create referral link
+  await createReferralRecord({
+    newUserId: user.id,
+    referrerId: data.referrerId,
+    referrerType: data.referrerType,  // 'mentor' or 'circle_user'
+    source: data.source,
+    toolUsed: data.toolUsed,
+    revShareStatus: 'pending',
+  });
+  
+  // 5. Send welcome email
+  await sendEmail(user.email, {
+    template: data.assessmentResults ? 'welcome_with_results' : 'welcome_basic',
+    data: {
+      firstName: user.firstName,
+      tempPassword: tempPassword,
+      assessmentResults: data.assessmentResults,
+      referrerName: await getReferrerName(data.referrerId),
+      webAppUrl: 'https://app.hipat.com/login',
+      iosAppUrl: 'https://apps.apple.com/app/hipat/...',
+      androidAppUrl: 'https://play.google.com/store/apps/details?id=...',
+    }
+  });
+  
+  // 6. Notify referrer
+  await notifyReferrer(data.referrerId, {
+    type: 'new_signup',
+    userName: `${user.firstName} ${user.lastName}`,
+    source: data.source,
+  });
+  
+  return user;
+}
+```
+
+---
+
+## Email Template: Assessment Results + Account
+
+```
+Subject: Your Results + HiPat Account Ready
+
+Hi [firstName],
+
+[If mentor conducted live:]
+Great news! Coach [referrerName] just completed your assessment.
+
+[If self-service:]
+Thanks for completing your assessment!
+
+────────────────────────────────────────────
+YOUR RESULTS
+────────────────────────────────────────────
+
+[If TDEE:]
+Daily Calories (TDEE): 2,450 kcal
+Recommended Macros:
+• Protein: 180g
+• Carbs: 245g
+• Fat: 82g
+
+[If Workout Assessment:]
+Recommended Program: [Program Name]
+Focus: [Strength/Hypertrophy/Endurance]
+Days per Week: 4
+First Workout: [Preview]
+
+────────────────────────────────────────────
+YOUR ACCOUNT
+────────────────────────────────────────────
+
+We've saved your results to your HiPat account.
+
+Email: [email]
+Temporary Password: [tempPassword]
+
+👉 Login: https://app.hipat.com/login
+
+────────────────────────────────────────────
+GET THE APP
+────────────────────────────────────────────
+
+📱 iPhone: [App Store Link]
+📱 Android: [Play Store Link]
+
+────────────────────────────────────────────
+
+Questions? Reply to this email.
+
+- Pat & The HiPat Team
+```
+
+---
+
+## Mobile Web App First Login Flow
+
+User clicks login link from email → lands on mobile-responsive web app:
+
+```
+┌────────────────────────────────────────┐
+│                                        │
+│        Welcome, [firstName]!           │
+│                                        │
+│   Your [TDEE/Workout] results are      │
+│   saved to your profile.               │
+│                                        │
+│   ┌────────────────────────────────┐   │
+│   │  Continue in Browser           │   │
+│   └────────────────────────────────┘   │
+│                                        │
+│   ────────── OR ──────────             │
+│                                        │
+│   📱 For the best experience:          │
+│                                        │
+│   ┌────────────────────────────────┐   │
+│   │  Download for iPhone           │   │
+│   └────────────────────────────────┘   │
+│   ┌────────────────────────────────┐   │
+│   │  Download for Android          │   │
+│   └────────────────────────────────┘   │
+│                                        │
+│   ────────────────────────────────     │
+│                                        │
+│   Coach [referrerName] invited you.    │
+│   [Join their program] or [Skip]       │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+---
+
+## Data Models
+
+```typescript
+// User created from any lead gen source
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  passwordHash: string;
+  requiresPasswordChange: boolean;
+  subscriptionTier: 'free' | 'basic' | 'plus' | 'circle';
+  createdVia: 'live_assessment' | 'self_service' | 'quick_add' | 'referral_link' | 'organic';
+  createdAt: Date;
+}
+
+// Assessment results attached to profile
+interface UserProfile {
+  userId: string;
+  
+  // From TDEE Calculator
+  tdee?: number;
+  targetCalories?: number;
+  macros?: { protein: number; carbs: number; fat: number; };
+  goal?: 'lose' | 'maintain' | 'gain';
+  activityLevel?: string;
+  
+  // From Workout Assessment
+  fitnessLevel?: 'beginner' | 'intermediate' | 'advanced';
+  workoutDaysPerWeek?: number;
+  assignedProgramId?: string;
+  
+  // From other tools
+  // ...
+}
+
+// Referral tracking
+interface ReferralRecord {
+  id: string;
+  newUserId: string;
+  referrerId: string;
+  referrerType: 'mentor' | 'circle_user';
+  source: 'live_assessment' | 'self_service' | 'quick_add' | 'referral_link';
+  toolUsed?: 'tdee' | 'workout' | 'fitness_quiz' | 'goal_planner';
+  createdAt: Date;
+  revShareStatus: 'pending' | 'active' | 'ineligible';
+}
+
+// Mentor-Client relationship (only if user opts in)
+interface MentorClientRelationship {
+  id: string;
+  mentorId: string;
+  clientId: string;
+  status: 'pending' | 'active' | 'declined' | 'ended';
+  createdAt: Date;
+  // User can decline = they stay as referral only
+}
+```
+
+---
+
+## UI Changes Summary
+
+### Add New Client Modal
+
+| Current | Change To |
+|---------|-----------|
+| TDEE Calculator (just card) | TDEE Calculator with [Start Live] + [Get Link] buttons |
+| Workout Assessment (just card) | Workout Assessment with [Start Live] + [Get Link] buttons |
+| "Direct Invite > Send Invite" | **REMOVE** - merge into Quick Add |
+| "Direct Invite > Connect Existing" | Keep - move to Passive Links |
+| "Lead Generation > Referral Link" | Keep - move to Passive Links |
+| "Lead Generation > Manual Entry" | **REMOVE** - merge into Quick Add |
+| — | **ADD** Quick Add section with inline form |
+
+### New Buttons on Tool Cards
+
+```
+┌────────────────────────┐
+│ 🧮 TDEE Calculator     │
+│                        │
+│ Calculates macros      │
+│                        │
+│ ┌──────────┐ ┌───────┐ │
+│ │Start Live│ │Get    │ │
+│ │          │ │Link   │ │
+│ └──────────┘ └───────┘ │
+└────────────────────────┘
+```
+
+### After Assessment Complete (Live Mode)
+
+Add new screen after results:
+
+```
+┌────────────────────────────────────────────┐
+│  Results: TDEE 2,450 | Macros: 180/245/82  │
+│                                            │
+│  [Show Full Results to Client]             │
+│                                            │
+│  ────────────────────────────────────────  │
+│                                            │
+│  Save & Send to Client:                    │
+│                                            │
+│  First Name: [________]                    │
+│  Last Name:  [________]                    │
+│  Email:      [________________]            │
+│  Phone:      [________] (optional)         │
+│                                            │
+│  [Create Account & Send Results]           │
+│                                            │
+│  ────────────────────────────────────────  │
+│  Or [Save Results Without Sending]         │
+│  (For prospects not ready to sign up)      │
+└────────────────────────────────────────────┘
+```
+
+---
+
+## Developer Checklist
+
+### Account Creation
+- [ ] Temp password generation (8 chars, mixed case, number, symbol)
+- [ ] `requiresPasswordChange: true` flag
+- [ ] Check for existing email before creating
+- [ ] Pre-populate profile from assessment data
+
+### Assessment Tools
+- [ ] Add "Start Live" button to TDEE Calculator
+- [ ] Add "Get Link" button to TDEE Calculator
+- [ ] Add "Start Live" button to Workout Assessment
+- [ ] Add "Get Link" button to Workout Assessment
+- [ ] Self-service landing page with ?ref= parameter
+- [ ] Save & Send screen after live assessment
+
+### Referral Tracking
+- [ ] Create `ReferralRecord` on every account creation
+- [ ] Track source (live, self-service, quick add, link)
+- [ ] Track tool used (if applicable)
+- [ ] `revShareStatus` field (pending → active when user upgrades)
+
+### Emails
+- [ ] Welcome email with temp password
+- [ ] Include assessment results if applicable
+- [ ] Include app download links
+- [ ] Include referrer name
+
+### Notifications
+- [ ] Notify referrer when someone signs up
+- [ ] Show in mentor's dashboard
+
+### Relationship Permission
+- [ ] First-login prompt: Join mentor's program or stay independent
+- [ ] Settings > Permissions: Change relationship later
+- [ ] `MentorClientRelationship` table
+
+### Modal Restructure
+- [ ] Remove "Send Invite" card
+- [ ] Remove "Manual Entry" card
+- [ ] Add "Quick Add" inline form
+- [ ] Reorganize into 3 sections: Tools, Quick Add, Passive Links
+
+---
+
+## End of Spec
+
+---
+
+# Ideas to Make This More Dynamic
+
+## 1. Assessment = Conversation Starter, Not Just Data Collection
+
+The key insight: **The assessment IS the sales conversation.**
+
+When a mentor runs TDEE live, they're not just collecting data - they're:
+- Building rapport ("What's your biggest frustration with diets?")
+- Demonstrating expertise ("Based on your activity level, here's why...")
+- Creating commitment ("Now that we know your numbers, here's what I recommend...")
+
+**Enhancement:** Add optional "conversation prompts" between questions that mentor can use:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Question 5 of 8: Activity Level                               │
+│                                                                │
+│  💬 Ask: "Walk me through a typical week - how active are you  │
+│          outside of intentional exercise?"                     │
+│                                                                │
+│  ○ Sedentary (desk job, little exercise)                       │
+│  ○ Lightly Active (1-3 days/week)                              │
+│  ○ Moderately Active (3-5 days/week)                           │
+│  ○ Very Active (6-7 days/week)                                 │
+│                                                                │
+│  [Previous]                              [Next]                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. "Save Without Sending" Option
+
+Not every assessment ends in account creation. Sometimes:
+- Prospect needs to think about it
+- Prospect doesn't have email handy
+- Mentor wants to follow up later
+
+**Add:** "Save Results Without Sending" button
+
+```typescript
+interface SavedLead {
+  id: string;
+  mentorId: string;
+  assessmentType: 'tdee' | 'workout';
+  results: Record<string, any>;
+  prospectInfo?: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    notes?: string;
+  };
+  status: 'saved' | 'converted' | 'expired';
+  createdAt: Date;
+  expiresAt: Date;  // Auto-delete after 30 days
+}
+```
+
+Mentor can come back later and convert to full account.
+
+---
+
+## 3. QR Code for In-Person
+
+When mentor is physically with someone (gym, consultation room):
+
+```
+┌────────────────────────────────────────┐
+│  📱 Let Them Fill Out on Their Phone   │
+│                                        │
+│       ██████████████████████           │
+│       ██                ██            │
+│       ██  ████████████  ██            │
+│       ██  ██        ██  ██            │
+│       ██  ██  ████  ██  ██            │
+│       ██████████████████████           │
+│                                        │
+│  Or visit: hipat.app/go/[mentor]       │
+│                                        │
+│  [Copy Link]  [Show QR Fullscreen]     │
+└────────────────────────────────────────┘
+```
+
+Prospect scans, fills out on their own phone, account created and linked to mentor.
+
+---
+
+## 4. Smart Follow-Up Sequences
+
+If assessment completed but user never logged in:
+
+```
+Day 1 (immediate): Results email with temp password
+Day 2: "Your macros are waiting - here's what to eat today"
+Day 5: "Haven't logged in yet? Here's a quick win to start"
+Day 14: Final reminder, then mark as cold lead
+```
+
+Mentor can see in dashboard: "3 leads haven't activated"
+
+---
+
+## 5. Tool Performance Analytics
+
+Show mentors which tools convert best:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  📊 Your Lead Gen Performance (Last 30 Days)                   │
+│                                                                │
+│  TDEE Calculator                                               │
+│  ├── Started: 45                                               │
+│  ├── Completed: 38 (84%)                                       │
+│  ├── Account Created: 31 (82%)                                 │
+│  └── Became Paid: 8 (26%)                                      │
+│                                                                │
+│  Workout Assessment                                            │
+│  ├── Started: 22                                               │
+│  ├── Completed: 18 (82%)                                       │
+│  ├── Account Created: 16 (89%)                                 │
+│  └── Became Paid: 6 (38%)  ← Higher paid conversion!           │
+│                                                                │
+│  💡 Tip: Workout Assessment converts to paid at higher rate    │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6. Combo Assessment Flow
+
+Let mentor run TDEE + Workout together as "Full Onboarding":
+
+```
+[Start Full Onboarding] - ~10 minutes
+├── TDEE Calculator (calculates nutrition)
+├── Workout Assessment (creates program)  
+└── One account creation at end
+
+Output:
+• Complete nutrition plan
+• Assigned workout program
+• Both attached to new account
+```
+
+---
+
+## 7. Results Preview Before Sending
+
+Let mentor customize what gets sent:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Preview Email to John                                         │
+│                                                                │
+│  Include in results email:                                     │
+│  [✓] TDEE / Calories                                           │
+│  [✓] Macros breakdown                                          │
+│  [✓] Goal recommendation                                       │
+│  [ ] Detailed meal timing (Premium feature - upsell)           │
+│  [ ] Supplement recommendations (Premium feature - upsell)     │
+│                                                                │
+│  Add personal note:                                            │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │ Great talking with you today! Based on your goals, I     │  │
+│  │ think we should start with...                            │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                │
+│  [Send Preview to Myself]  [Send to John]                      │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8. Integration with Mentor's Calendar
+
+After assessment, offer to book follow-up:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  ✅ Account Created for John Smith                             │
+│                                                                │
+│  Next Steps:                                                   │
+│                                                                │
+│  [ ] Schedule follow-up call                                   │
+│      → Opens Calendly/Cal.com integration                      │
+│                                                                │
+│  [ ] Add to program now                                        │
+│      → Add to specific program/group                           │
+│                                                                │
+│  [ ] Let them explore independently                            │
+│      → They'll see "Join program?" prompt on login             │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 9. Assessment Templates
+
+Mentors can create custom assessment versions:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  My TDEE Templates                                             │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  "Weight Loss Focused"                                   │  │
+│  │  Emphasizes deficit, includes diet preference questions  │  │
+│  │  [Use This]  [Edit]                                      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  "Muscle Building"                                       │  │
+│  │  Emphasizes surplus, includes training split questions   │  │
+│  │  [Use This]  [Edit]                                      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                │
+│  [+ Create New Template]                                       │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 10. Lead Source Attribution
+
+Track WHERE leads came from:
+
+```typescript
+interface LeadAttribution {
+  source: 'live' | 'link';
+  channel?: 'instagram' | 'tiktok' | 'youtube' | 'website' | 'email' | 'sms' | 'in_person' | 'other';
+  campaignId?: string;  // If mentor is running specific campaigns
+  utmParams?: Record<string, string>;
+}
+```
+
+Self-service links can include tracking:
+```
+hipat.app/assess/tdee?ref=mentor-123&channel=instagram&campaign=summer2024
+```
+
+Dashboard shows:
+```
+Where your leads come from:
+• Instagram: 34 leads (12 paid)
+• In-Person: 18 leads (9 paid) ← Highest conversion!
+• YouTube: 8 leads (2 paid)
+```
+
+---
+
+These enhancements would make the lead gen system a true **sales tool** rather than just an account creation flow.

@@ -7,6 +7,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { leadGenToolsService } from '@/services/lead-gen-tools.service';
@@ -20,10 +22,16 @@ interface AddClientModalProps {
   onOpenChange: (open: boolean) => void;
   onStartLive?: (tool: LeadGenTool) => void;
   onGetLink?: (tool: LeadGenTool) => void;
-  onSendInvite?: () => void;
   onConnectExisting?: () => void;
   onReferralLink?: () => void;
-  onManualEntry?: () => void;
+  onQuickAdd?: (data: QuickAddData) => void;
+}
+
+interface QuickAddData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
 }
 
 interface ToolCardProps {
@@ -149,10 +157,9 @@ export function AddClientModal({
   onOpenChange,
   onStartLive,
   onGetLink,
-  onSendInvite,
   onConnectExisting,
   onReferralLink,
-  onManualEntry,
+  onQuickAdd,
 }: AddClientModalProps) {
   const { toast } = useToast();
   const [tools, setTools] = useState<LeadGenTool[]>([]);
@@ -163,6 +170,15 @@ export function AddClientModal({
   const [getLinkModalOpen, setGetLinkModalOpen] = useState(false);
   const [completionModalOpen, setCompletionModalOpen] = useState(false);
   const [currentSubmission, setCurrentSubmission] = useState<ToolSubmission | null>(null);
+
+  // Quick Add form state
+  const [quickAddData, setQuickAddData] = useState<QuickAddData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
+  const [isSubmittingQuickAdd, setIsSubmittingQuickAdd] = useState(false);
 
   const mentorId = 'mentor-1';
   const mentorName = 'Coach Alex';
@@ -218,17 +234,6 @@ export function AddClientModal({
     onOpenChange(false);
   };
 
-  const handleSendInvite = () => {
-    if (onSendInvite) {
-      onSendInvite();
-    } else {
-      toast({
-        title: 'Send Invite',
-        description: 'Opening email invitation form.',
-      });
-    }
-  };
-
   const handleConnectExisting = () => {
     if (onConnectExisting) {
       onConnectExisting();
@@ -245,20 +250,43 @@ export function AddClientModal({
       onReferralLink();
     } else {
       toast({
-        title: 'Referral Link',
-        description: 'Generating referral link.',
+        title: 'Referral Link Copied',
+        description: 'Your referral link has been copied to clipboard.',
       });
+      navigator.clipboard.writeText(`https://hipat.app/ref/${mentorId}`);
     }
   };
 
-  const handleManualEntry = () => {
-    if (onManualEntry) {
-      onManualEntry();
-    } else {
+  const handleQuickAddSubmit = async () => {
+    if (!quickAddData.email.trim() || !quickAddData.firstName.trim()) {
       toast({
-        title: 'Manual Entry',
-        description: 'Opening manual client entry form.',
+        title: 'Missing Information',
+        description: 'First name and email are required.',
+        variant: 'destructive',
       });
+      return;
+    }
+
+    setIsSubmittingQuickAdd(true);
+    try {
+      if (onQuickAdd) {
+        onQuickAdd(quickAddData);
+      } else {
+        toast({
+          title: 'Account Created',
+          description: `Invite sent to ${quickAddData.email}`,
+        });
+      }
+      setQuickAddData({ firstName: '', lastName: '', email: '', phone: '' });
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create account. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmittingQuickAdd(false);
     }
   };
 
@@ -276,14 +304,15 @@ export function AddClientModal({
         </DialogHeader>
 
         <div className="space-y-6 py-2">
-          {/* Section 1: Onboarding Tools */}
+          {/* Section 1: Onboarding Tools (Recommended) */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-base text-primary">rocket_launch</span>
+              <span className="material-symbols-outlined text-base text-primary">target</span>
               <h3 className="font-semibold text-sm uppercase tracking-wide">Onboarding Tools</h3>
+              <Badge variant="secondary" className="text-xs">Recommended</Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              Start with an assessment - results invite them to Pat
+              Run an assessment. Results create their account automatically.
             </p>
 
             {isLoading ? (
@@ -324,28 +353,70 @@ export function AddClientModal({
             </span>
           </div>
 
-          {/* Section 2: Direct Invite */}
+          {/* Section 2: Quick Add (No Assessment) */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-base text-primary">mail</span>
-              <h3 className="font-semibold text-sm uppercase tracking-wide">Direct Invite</h3>
+              <span className="material-symbols-outlined text-base text-primary">person_add</span>
+              <h3 className="font-semibold text-sm uppercase tracking-wide">Quick Add</h3>
+              <span className="text-xs text-muted-foreground">(No Assessment)</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <ActionCard
-                icon="send"
-                title="Send Invite"
-                description="Email invitation to join"
-                onClick={handleSendInvite}
-                testId="button-send-invite"
-              />
-              <ActionCard
-                icon="person_search"
-                title="Connect Existing"
-                description="Find Pat user by email"
-                onClick={handleConnectExisting}
-                testId="button-connect-existing"
-              />
+            <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName" className="text-xs">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    placeholder="John"
+                    value={quickAddData.firstName}
+                    onChange={(e) => setQuickAddData(prev => ({ ...prev, firstName: e.target.value }))}
+                    data-testid="input-quick-add-first-name"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName" className="text-xs">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    placeholder="Smith"
+                    value={quickAddData.lastName}
+                    onChange={(e) => setQuickAddData(prev => ({ ...prev, lastName: e.target.value }))}
+                    data-testid="input-quick-add-last-name"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={quickAddData.email}
+                    onChange={(e) => setQuickAddData(prev => ({ ...prev, email: e.target.value }))}
+                    data-testid="input-quick-add-email"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-xs">Phone (optional)</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={quickAddData.phone}
+                    onChange={(e) => setQuickAddData(prev => ({ ...prev, phone: e.target.value }))}
+                    data-testid="input-quick-add-phone"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleQuickAddSubmit}
+                disabled={isSubmittingQuickAdd || !quickAddData.firstName.trim() || !quickAddData.email.trim()}
+                className="w-full"
+                data-testid="button-quick-add-submit"
+              >
+                <span className="material-symbols-outlined text-sm mr-2">send</span>
+                {isSubmittingQuickAdd ? 'Creating Account...' : 'Create Account & Send Invite'}
+              </Button>
             </div>
           </div>
 
@@ -356,27 +427,27 @@ export function AddClientModal({
             </span>
           </div>
 
-          {/* Section 3: Lead Generation */}
+          {/* Section 3: Passive Links */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-base text-primary">link</span>
-              <h3 className="font-semibold text-sm uppercase tracking-wide">Lead Generation</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-wide">Passive Links</h3>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <ActionCard
                 icon="share"
-                title="Referral Link"
-                description="Share & earn credits"
+                title="My Referral Link"
+                description="Generic signup link to share"
                 onClick={handleReferralLink}
                 testId="button-referral-link"
               />
               <ActionCard
-                icon="edit_note"
-                title="Manual Entry"
-                description="Track offline leads"
-                onClick={handleManualEntry}
-                testId="button-manual-entry"
+                icon="person_search"
+                title="Connect Existing User"
+                description="Find by email"
+                onClick={handleConnectExisting}
+                testId="button-connect-existing"
               />
             </div>
           </div>
