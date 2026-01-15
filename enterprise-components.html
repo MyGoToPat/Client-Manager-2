@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Component Library — Pat for Trainers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pat: { purple: '#8B5CF6', orange: '#F97316' },
+                        background: '#0a0a0f',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { background: #0a0a0f; font-family: 'Inter', sans-serif; }
+        .gradient-text { background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #F97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .cta-glow { box-shadow: 0 0 30px rgba(249, 115, 22, 0.4); }
+        .value-line { text-decoration: line-through; text-decoration-color: #ef4444; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .float { animation: float 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+        .component-section { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 3rem 0; }
+    </style>
+</head>
+<body class="text-white">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold mb-2"><span class="gradient-text">Enterprise Component Library</span></h1>
+        <p class="text-gray-400 mb-8">All reusable components for Pat for Trainers marketing pages</p>
+
+        <!-- TABLE OF CONTENTS -->
+        <nav class="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-bold mb-4">Components</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <a href="#pat-avatar" class="text-gray-400 hover:text-white">Pat Avatar (Employee)</a>
+                <a href="#urgency-badge" class="text-gray-400 hover:text-white">Urgency Badge</a>
+                <a href="#value-anchor" class="text-gray-400 hover:text-white">Value Anchor</a>
+                <a href="#morning-briefing" class="text-gray-400 hover:text-white">Morning Briefing Card</a>
+                <a href="#pain-cards" class="text-gray-400 hover:text-white">Pain Point Cards</a>
+                <a href="#feature-cards" class="text-gray-400 hover:text-white">Feature Cards</a>
+                <a href="#comparison" class="text-gray-400 hover:text-white">Comparison Box</a>
+                <a href="#testimonial" class="text-gray-400 hover:text-white">Testimonial (ROI)</a>
+                <a href="#pricing-card" class="text-gray-400 hover:text-white">Pricing Card</a>
+                <a href="#guarantee" class="text-gray-400 hover:text-white">Guarantee Box</a>
+                <a href="#stat-cards" class="text-gray-400 hover:text-white">Stat Cards</a>
+                <a href="#cta-buttons" class="text-gray-400 hover:text-white">CTA Buttons</a>
+            </div>
+        </nav>
+
+        <!-- PAT AVATAR (EMPLOYEE VERSION) -->
+        <section id="pat-avatar" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Pat Avatar (Employee Badge)</h2>
+            <p class="text-gray-400 mb-6">Pat with "Your AI Employee" badge for enterprise positioning</p>
+            <div class="flex items-end gap-8 flex-wrap">
+                <div class="text-center">
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pat-purple via-purple-500 to-pat-orange flex items-center justify-center">
+                            <div class="flex gap-2"><div class="w-1.5 h-2 bg-white rounded-full"></div><div class="w-1.5 h-2 bg-white rounded-full"></div></div>
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pat-purple text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                            AI Employee
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-500 mt-4 block">Small</span>
+                </div>
+                <div class="text-center">
+                    <div class="relative">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-pat-purple via-purple-500 to-pat-orange flex items-center justify-center float">
+                            <div class="flex gap-3"><div class="w-2.5 h-3.5 bg-white rounded-full"></div><div class="w-2.5 h-3.5 bg-white rounded-full"></div></div>
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pat-purple text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                            Your AI Employee
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-500 mt-4 block">Large (animated)</span>
+                </div>
+                <div class="text-center">
+                    <div class="relative">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-pat-purple via-purple-500 to-pat-orange flex items-center justify-center">
+                            <div class="flex gap-3"><div class="w-2.5 h-3.5 bg-white rounded-full"></div><div class="w-2.5 h-3.5 bg-white rounded-full"></div></div>
+                        </div>
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                            Ready to work
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-500 mt-4 block">Green badge variant</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- URGENCY BADGE -->
+        <section id="urgency-badge" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Urgency Badges</h2>
+            <p class="text-gray-400 mb-6">Scarcity and urgency indicators (Hormozi technique)</p>
+            <div class="flex flex-wrap gap-4">
+                <div class="inline-flex items-center gap-2 bg-pat-orange/20 border border-pat-orange/30 px-4 py-2 rounded-full">
+                    <span class="w-2 h-2 bg-pat-orange rounded-full animate-pulse"></span>
+                    <span class="text-sm font-medium text-pat-orange">
+                        Founding Trainer Pricing — Only 47 Spots Left
+                    </span>
+                </div>
+                <div class="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/30 px-4 py-2 rounded-full">
+                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    <span class="text-sm font-medium text-red-400">
+                        Price increases in 3 days
+                    </span>
+                </div>
+                <span class="px-3 py-1 bg-gradient-to-r from-pat-purple to-pat-orange rounded-full text-xs font-bold text-white uppercase tracking-wide">Most Popular</span>
+            </div>
+        </section>
+
+        <!-- VALUE ANCHOR -->
+        <section id="value-anchor" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Value Anchor Box</h2>
+            <p class="text-gray-400 mb-6">Anchoring the perceived value before showing price (Hormozi technique)</p>
+            <div class="max-w-xl">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <p class="text-sm text-gray-400 mb-2">What you'd pay for the same coverage:</p>
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        <div><span class="value-line text-gray-500">VA: $2,000/mo</span></div>
+                        <div><span class="value-line text-gray-500">2nd trainer: $4,000/mo</span></div>
+                        <div><span class="text-green-400 font-bold">Pat: From $99/mo</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MORNING BRIEFING CARD -->
+        <section id="morning-briefing" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Morning Briefing Card</h2>
+            <p class="text-gray-400 mb-6">Shows Pat's morning briefing feature - the key differentiator</p>
+            <div class="max-w-md">
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2 text-sm">
+                            <svg class="w-4 h-4 text-pat-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path></svg>
+                            <span class="text-gray-300 font-medium">Your Morning Briefing</span>
+                        </div>
+                        <span class="text-xs text-gray-500">7:00 AM</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 bg-red-400 rounded-full"></span>
+                                <span class="text-red-400 text-xs font-bold uppercase">Urgent</span>
+                            </div>
+                            <p class="text-sm text-gray-300"><span class="text-white font-medium">Emily R.</span> hasn't logged in 7 days.</p>
+                            <p class="text-xs text-gray-500 mt-1">→ Suggested: Send check-in message</p>
+                        </div>
+                        <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                                <span class="text-green-400 text-xs font-bold uppercase">Win</span>
+                            </div>
+                            <p class="text-sm text-gray-300"><span class="text-white font-medium">Marcus T.</span> hit a new PR — 225lb bench!</p>
+                        </div>
+                        <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                                <span class="text-yellow-400 text-xs font-bold uppercase">Heads Up</span>
+                            </div>
+                            <p class="text-sm text-gray-300"><span class="text-white font-medium">3 clients</span> have sessions today.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAIN CARDS -->
+        <section id="pain-cards" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Pain Point Cards</h2>
+            <p class="text-gray-400 mb-6">Enterprise pain points with solutions (Pain → Agitate → Solve)</p>
+            <div class="grid sm:grid-cols-2 gap-4 max-w-2xl">
+                <div class="bg-pat-orange/10 border border-pat-orange/50 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-pat-orange text-white text-xs font-bold px-2 py-1 rounded-full">#1</span>
+                    <p class="text-gray-300 mb-2">"I <span class="text-white font-semibold">can't be available 24/7</span> for every client."</p>
+                    <p class="text-pat-orange text-sm font-medium">→ I never sleep. I'm always there.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">#2</span>
+                    <p class="text-gray-300 mb-2">"I <span class="text-white font-semibold">miss warning signs</span> until clients churn."</p>
+                    <p class="text-pat-purple text-sm font-medium">→ I catch them on day 1, not day 30</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURE CARDS -->
+        <section id="feature-cards" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Feature Cards (with time badges)</h2>
+            <p class="text-gray-400 mb-6">Feature cards showing when Pat does what</p>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl">
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-pat-purple text-white text-xs font-bold px-3 py-1 rounded-full">7:00 AM</div>
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-pat-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Morning Briefings</h3>
+                    <p class="text-gray-400 text-sm">I analyze every client overnight and tell you who needs attention.</p>
+                    <p class="text-pat-purple text-xs font-medium mt-3">Saves 45 min/day</p>
+                </div>
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-pat-orange text-white text-xs font-bold px-3 py-1 rounded-full">24/7</div>
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-pat-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Smart Directives</h3>
+                    <p class="text-gray-400 text-sm">I automatically respond to client events based on your rules.</p>
+                    <p class="text-pat-orange text-xs font-medium mt-3">14 trigger types</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMPARISON BOX -->
+        <section id="comparison" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Comparison Box</h2>
+            <p class="text-gray-400 mb-6">Side-by-side comparison (Old Way vs Pat)</p>
+            <div class="grid md:grid-cols-2 gap-6 max-w-3xl">
+                <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-red-400 text-xl">📊</span>
+                        <div>
+                            <h3 class="text-red-400 font-bold uppercase tracking-wide text-sm">Traditional Tools</h3>
+                            <p class="text-gray-400 text-xs">Everfit • TrueCoach • Trainerize</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 text-lg">✕</span>
+                            <div>
+                                <span class="text-gray-300">Dashboard shows data</span>
+                                <p class="text-gray-500 text-sm">You analyze. You decide. You act.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-gradient-to-br from-pat-purple/10 to-pat-orange/10 border border-pat-purple/30 rounded-2xl p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pat-purple to-pat-orange flex items-center justify-center">
+                            <div class="flex gap-1"><div class="w-1 h-1.5 bg-white rounded-full"></div><div class="w-1 h-1.5 bg-white rounded-full"></div></div>
+                        </div>
+                        <div>
+                            <h3 class="text-pat-purple font-bold uppercase tracking-wide text-sm">With Pat</h3>
+                            <p class="text-gray-400 text-xs">Your AI Employee</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-400 text-lg">✓</span>
+                            <div>
+                                <span class="text-white font-medium">I brief you every morning</span>
+                                <p class="text-gray-400 text-sm">"Emily's struggling — here's why."</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTIMONIAL (ROI FOCUSED) -->
+        <section id="testimonial" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Testimonial Card (ROI Focused)</h2>
+            <p class="text-gray-400 mb-6">Testimonials with specific results (Hormozi technique: specific numbers)</p>
+            <div class="max-w-sm">
+                <div class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+                    <div class="flex gap-0.5 mb-4"><span class="text-yellow-400">★★★★★</span></div>
+                    <p class="text-gray-300 text-base leading-relaxed mb-6">
+                        "I went from <span class="font-semibold text-white">18 to 47 clients</span> in 4 months without burning out. Pat handles the daily check-ins so <span class="font-semibold text-white">I focus on the breakthroughs</span>."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">DR</div>
+                        <div><p class="text-white font-medium text-sm">Daniel R.</p><p class="text-gray-400 text-xs">Online Coach, 47 clients</p></div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <p class="text-xs text-gray-500">Result: <span class="text-green-400 font-medium">+161% client growth</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRICING CARD -->
+        <section id="pricing-card" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Pricing Card</h2>
+            <p class="text-gray-400 mb-6">Enterprise pricing cards with per-client cost</p>
+            <div class="grid sm:grid-cols-2 gap-6 max-w-2xl">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Solo Trainers</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Starter</h3>
+                    <div class="mt-2"><span class="text-4xl font-bold text-white">$99</span><span class="text-gray-400">/mo</span></div>
+                    <p class="text-xs text-gray-500 mt-1">$6.60/client at 15 clients</p>
+                    <p class="text-gray-400 text-sm my-4">Everything you need to start.</p>
+                    <button class="w-full py-3 border border-white/20 hover:bg-white/10 rounded-full font-semibold transition-colors">Start Free Trial</button>
+                </div>
+                <div class="relative bg-gradient-to-br from-pat-purple/10 to-pat-orange/10 border border-pat-orange/50 rounded-2xl p-6">
+                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-pat-purple to-pat-orange rounded-full text-xs font-bold text-white uppercase">Most Popular</span>
+                    <span class="text-xs font-semibold text-pat-orange uppercase tracking-wide">Growing Trainers</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Growth</h3>
+                    <div class="mt-2 flex items-baseline gap-2"><span class="text-gray-500 line-through text-lg">$299</span><span class="text-4xl font-bold text-white">$199</span><span class="text-gray-400">/mo</span></div>
+                    <p class="text-xs text-green-400 mt-1">$4/client at 50 clients — Best value</p>
+                    <p class="text-gray-300 text-sm my-4">Scale without burning out.</p>
+                    <button class="w-full py-3 bg-gradient-to-r from-pat-orange to-orange-500 text-white font-bold rounded-full cta-glow hover:scale-105 transition-all">Start Free Trial</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- GUARANTEE BOX -->
+        <section id="guarantee" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Guarantee Box</h2>
+            <p class="text-gray-400 mb-6">Risk reversal component (Hormozi technique)</p>
+            <div class="max-w-xl">
+                <div class="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/30 rounded-2xl p-6 text-center">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">The "Pat Pays For Itself" Guarantee</h3>
+                    <p class="text-gray-300 text-sm mb-4">If Pat doesn't save you at least 5 hours in your first week, get a full refund. No questions asked.</p>
+                    <div class="flex flex-wrap justify-center gap-3 text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>14-day free trial</span>
+                        <span class="flex items-center gap-1 text-green-400"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>30-day money-back</span>
+                        <span class="flex items-center gap-1 text-green-400"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Cancel anytime</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAT CARDS -->
+        <section id="stat-cards" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">Stat Cards</h2>
+            <p class="text-gray-400 mb-6">Social proof with specific numbers</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-white mb-1">347</div>
+                    <div class="text-xs text-gray-400">Trainers using Pat</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-white mb-1">12,400+</div>
+                    <div class="text-xs text-gray-400">Clients managed</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-white mb-1">67%</div>
+                    <div class="text-xs text-gray-400">Avg churn reduction</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold text-white mb-1">12 hrs</div>
+                    <div class="text-xs text-gray-400">Saved per week</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA BUTTONS -->
+        <section id="cta-buttons" class="component-section">
+            <h2 class="text-2xl font-bold mb-4">CTA Buttons</h2>
+            <p class="text-gray-400 mb-6">Call-to-action buttons for enterprise</p>
+            <div class="flex flex-wrap gap-4">
+                <button class="bg-gradient-to-r from-pat-orange to-orange-500 hover:from-orange-500 hover:to-pat-orange text-white text-lg font-bold px-10 py-4 rounded-full cta-glow transition-all hover:scale-105">
+                    Hire Pat — 14 Days Free
+                </button>
+                <button class="border border-white/20 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded-full transition-colors">
+                    Start Free Trial
+                </button>
+                <button class="bg-pat-purple hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-full transition-colors">
+                    Join Pro
+                </button>
+            </div>
+            <div class="mt-6">
+                <p class="text-gray-500 text-sm mb-2">Trust indicators:</p>
+                <div class="flex flex-wrap gap-4 text-sm text-gray-400">
+                    <span class="flex items-center gap-1"><svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>14-day free trial</span>
+                    <span class="flex items-center gap-1"><svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>No credit card</span>
+                    <span class="flex items-center gap-1"><svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>30-day money-back</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <div class="py-8 text-center text-gray-500 text-sm">
+            <p>© 2025 Pat. <span class="font-semibold text-white">Born</span> not built. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

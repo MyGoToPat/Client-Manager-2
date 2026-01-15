@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hire Pat — Your 24/7 AI Employee for Client Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pat: { purple: '#8B5CF6', orange: '#F97316' },
+                        background: '#0a0a0f',
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { background: linear-gradient(180deg, #111827 0%, #0a0a0f 50%, #0a0a0f 100%); }
+        .gradient-text { background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #F97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .cta-glow { box-shadow: 0 0 30px rgba(249, 115, 22, 0.4); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .float { animation: float 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+        .value-line { text-decoration: line-through; text-decoration-color: #ef4444; }
+    </style>
+</head>
+<body class="font-sans text-white min-h-screen">
+
+    <!-- SCROLL PROGRESS BAR -->
+    <div id="scroll-progress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-pat-purple to-pat-orange z-50" style="width: 0%;"></div>
+
+    <!-- STICKY CTA BAR -->
+    <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-white/10 py-3 px-4 z-40 transform translate-y-full transition-transform duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="hidden sm:block">
+                <p class="text-sm text-gray-300">Ready to stop losing clients to competitors?</p>
+                <p class="text-xs text-gray-500">Only <span class="text-pat-orange font-bold">23 spots</span> left at founding price</p>
+            </div>
+            <button class="bg-gradient-to-r from-pat-orange to-orange-500 text-white font-bold px-6 py-2 rounded-full text-sm cta-glow hover:scale-105 transition-transform">
+                Hire Pat — 14 Days Free
+            </button>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="py-4 px-4 border-b border-white/10">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="#" class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pat-purple to-pat-orange flex items-center justify-center">
+                    <div class="flex gap-1.5">
+                        <div class="w-1.5 h-2 bg-white rounded-full"></div>
+                        <div class="w-1.5 h-2 bg-white rounded-full"></div>
+                    </div>
+                </div>
+                <span class="text-xl font-bold">Pat</span>
+                <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-gray-400">for Trainers</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="#how-it-works" class="text-gray-400 hover:text-white transition-colors text-sm hidden md:block">How It Works</a>
+                <a href="#pricing" class="text-gray-400 hover:text-white transition-colors text-sm hidden md:block">Pricing</a>
+                <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm">For Individuals →</a>
+                <button class="bg-gradient-to-r from-pat-orange to-orange-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:scale-105 transition-transform">
+                    Hire Pat Free
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== HERO SECTION ==================== -->
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-pat-purple/20 rounded-full blur-[128px]"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pat-orange/15 rounded-full blur-[128px]"></div>
+        </div>
+
+        <div class="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-12 md:pt-20 pb-16">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+                <!-- LEFT COLUMN -->
+                <div class="text-center lg:text-left">
+                    <!-- Urgency Badge -->
+                    <div class="inline-flex items-center gap-2 bg-pat-orange/20 border border-pat-orange/30 px-4 py-2 rounded-full mb-6">
+                        <span class="w-2 h-2 bg-pat-orange rounded-full animate-pulse"></span>
+                        <span class="text-sm font-medium text-pat-orange">
+                            Founding Trainer Pricing — Only 47 Spots Left
+                        </span>
+                    </div>
+
+                    <div class="space-y-4 mb-6">
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                            You can't be there for every client, 24/7.
+                            <span class="gradient-text">I can.</span>
+                        </h1>
+
+                        <p class="text-lg md:text-xl text-gray-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                            Hi, I'm Pat. I'm your AI employee who watches your clients around the clock, briefs you every morning on who needs attention, and handles the 2am questions so you can sleep.
+                        </p>
+
+                        <p class="text-white font-semibold text-lg">
+                            Hire me. I work for <span class="text-pat-orange">$5.99/client per month</span>.
+                        </p>
+                    </div>
+
+                    <!-- Value Anchoring -->
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 max-w-xl mx-auto lg:mx-0">
+                        <p class="text-sm text-gray-400 mb-2">What you'd pay for the same coverage:</p>
+                        <div class="flex flex-wrap gap-4 text-sm">
+                            <div><span class="value-line text-gray-500">VA: $2,000/mo</span></div>
+                            <div><span class="value-line text-gray-500">2nd trainer: $4,000/mo</span></div>
+                            <div><span class="text-green-400 font-bold">Pat: From $99/mo</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Social Proof -->
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-6">
+                        <div class="flex -space-x-2">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-[#111827] flex items-center justify-center text-xs font-bold text-white">DR</div>
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-[#111827] flex items-center justify-center text-xs font-bold text-white">MK</div>
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-[#111827] flex items-center justify-center text-xs font-bold text-white">JT</div>
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-[#111827] flex items-center justify-center text-xs font-bold text-white">+</div>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-white font-semibold">347 trainers</div>
+                            <div class="text-sm text-gray-400">managing 12,400+ clients with Pat</div>
+                        </div>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="space-y-4 mb-8">
+                        <div class="flex flex-col sm:flex-row items-center lg:items-start gap-4">
+                            <button class="bg-gradient-to-r from-pat-orange to-orange-500 hover:from-orange-500 hover:to-pat-orange text-white text-lg font-bold px-10 py-4 rounded-full cta-glow transition-all hover:scale-105">
+                                Hire Pat — 14 Days Free
+                            </button>
+                            <a href="#pricing" class="text-gray-400 hover:text-white transition-colors underline underline-offset-4 text-sm font-medium">
+                                See Pricing
+                            </a>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-sm text-gray-400">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Full access for 14 days
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                No credit card required
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Cancel anytime
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Risk Reversal -->
+                    <div class="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span class="text-sm text-green-400 font-medium">
+                            30-day money-back guarantee. No questions asked.
+                        </span>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="lg:pl-8">
+                    <!-- Pat Avatar -->
+                    <div class="relative flex justify-center mb-6">
+                        <div class="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-pat-purple via-purple-500 to-pat-orange flex items-center justify-center float">
+                            <div class="flex gap-4 md:gap-5">
+                                <div class="w-3 h-4 md:w-4 md:h-5 bg-white rounded-full"></div>
+                                <div class="w-3 h-4 md:w-4 md:h-5 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                        <!-- Employee Badge -->
+                        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pat-purple text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                            Your AI Employee
+                        </div>
+                    </div>
+
+                    <!-- Morning Briefing Preview -->
+                    <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-5 shadow-[0_0_60px_rgba(139,92,246,0.15)]">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2 text-sm">
+                                <svg class="w-4 h-4 text-pat-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path></svg>
+                                <span class="text-gray-300 font-medium">Your Morning Briefing</span>
+                            </div>
+                            <span class="text-xs text-gray-500">7:00 AM</span>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 bg-red-400 rounded-full"></span>
+                                    <span class="text-red-400 text-xs font-bold uppercase">Urgent</span>
+                                </div>
+                                <p class="text-sm text-gray-300"><span class="text-white font-medium">Emily R.</span> hasn't logged in 7 days. She mentioned stress at work last week.</p>
+                                <p class="text-xs text-gray-500 mt-1">→ Suggested: Send check-in message</p>
+                            </div>
+
+                            <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                                    <span class="text-green-400 text-xs font-bold uppercase">Win</span>
+                                </div>
+                                <p class="text-sm text-gray-300"><span class="text-white font-medium">Marcus T.</span> hit a new PR yesterday — 225lb bench!</p>
+                                <p class="text-xs text-gray-500 mt-1">→ He'd love hearing from you today</p>
+                            </div>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                                    <span class="text-yellow-400 text-xs font-bold uppercase">Heads Up</span>
+                                </div>
+                                <p class="text-sm text-gray-300"><span class="text-white font-medium">3 clients</span> have sessions today. Sarah asked about carb cycling at 11pm — I answered.</p>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-500 text-center mt-4">
+                            This is what Pat sends you every morning.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== COST OF INACTION ==================== -->
+    <section class="py-16 border-t border-white/5 bg-red-500/5">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-white">
+                Let me be direct about what's happening right now.
+            </h2>
+            <p class="text-gray-400 mb-8">Every month you wait, you're losing money and clients.</p>
+
+            <div class="grid sm:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white/5 border border-red-500/30 rounded-xl p-6">
+                    <div class="text-4xl font-bold text-red-400 mb-2">67%</div>
+                    <p class="text-gray-300">of clients who go inactive for 7+ days <span class="text-white font-semibold">never come back</span></p>
+                    <p class="text-xs text-gray-500 mt-2">Source: IHRSA Industry Report</p>
+                </div>
+                <div class="bg-white/5 border border-red-500/30 rounded-xl p-6">
+                    <div class="text-4xl font-bold text-red-400 mb-2">$4,200</div>
+                    <p class="text-gray-300">average lifetime value <span class="text-white font-semibold">lost per churned client</span></p>
+                    <p class="text-xs text-gray-500 mt-2">Based on $150/mo × 28mo avg tenure</p>
+                </div>
+                <div class="bg-white/5 border border-red-500/30 rounded-xl p-6">
+                    <div class="text-4xl font-bold text-red-400 mb-2">12 hrs</div>
+                    <p class="text-gray-300">per week spent on <span class="text-white font-semibold">admin, not coaching</span></p>
+                    <p class="text-xs text-gray-500 mt-2">Average for 30+ client trainers</p>
+                </div>
+            </div>
+
+            <div class="bg-white/5 border border-white/10 rounded-xl p-6 max-w-2xl mx-auto">
+                <p class="text-lg text-gray-300 mb-4">
+                    <span class="text-white font-bold">Quick math:</span> If you have 30 clients and lose just 2 per month to preventable churn...
+                </p>
+                <p class="text-3xl font-bold text-red-400">
+                    That's $100,800/year walking out the door.
+                </p>
+                <p class="text-sm text-gray-500 mt-2">
+                    (2 clients × $4,200 LTV × 12 months)
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PAIN AGITATION SECTION ==================== -->
+    <section class="py-16 border-t border-white/5">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-white">I know exactly why you're here.</h2>
+            <p class="text-gray-400 mb-8">Sound familiar? You're not alone — every trainer I work with felt this.</p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Pain Point #1 -->
+                <div class="bg-pat-orange/10 border border-pat-orange/50 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-pat-orange text-white text-xs font-bold px-2 py-1 rounded-full">#1</span>
+                    <p class="text-gray-300 mb-2">"I <span class="text-white font-semibold">can't be available 24/7</span> for every client."</p>
+                    <p class="text-pat-orange text-sm font-medium">→ I never sleep. I'm always there.</p>
+                </div>
+
+                <!-- Pain Point #2 -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">#2</span>
+                    <p class="text-gray-300 mb-2">"I spend <span class="text-white font-semibold">hours prepping</span> before each session."</p>
+                    <p class="text-pat-purple text-sm font-medium">→ I brief you in 2 minutes flat</p>
+                </div>
+
+                <!-- Pain Point #3 -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">#3</span>
+                    <p class="text-gray-300 mb-2">"I <span class="text-white font-semibold">miss warning signs</span> until clients churn."</p>
+                    <p class="text-pat-purple text-sm font-medium">→ I catch them on day 1, not day 30</p>
+                </div>
+
+                <!-- Pain Point #4 -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">#4</span>
+                    <p class="text-gray-300 mb-2">"I use <span class="text-white font-semibold">5 different tools</span> and nothing talks to each other."</p>
+                    <p class="text-pat-purple text-sm font-medium">→ One dashboard. Everything connected.</p>
+                </div>
+
+                <!-- Pain Point #5 -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">#5</span>
+                    <p class="text-gray-300 mb-2">"<span class="text-white font-semibold">Scaling means less personal touch</span> — I hate that."</p>
+                    <p class="text-pat-purple text-sm font-medium">→ I make 50 clients feel like 10</p>
+                </div>
+
+                <!-- Pain Point #6 -->
+                <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-left relative">
+                    <span class="absolute -top-3 -left-2 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-full">#6</span>
+                    <p class="text-gray-300 mb-2">"Clients need <span class="text-white font-semibold">nutrition help</span> but I can't do it all."</p>
+                    <p class="text-pat-purple text-sm font-medium">→ I handle nutrition coaching 24/7</p>
+                </div>
+            </div>
+
+            <p class="mt-10 text-2xl text-white font-bold">
+                That's exactly why you should <span class="gradient-text">hire me</span>.
+            </p>
+            <p class="mt-2 text-gray-400">
+                I was born to be the employee who does the work you can't scale.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== WHAT PAT DOES (HOW IT WORKS) ==================== -->
+    <section id="how-it-works" class="py-16 border-t border-white/5">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    <span class="gradient-text">Here's what I do for you every single day</span>
+                </h2>
+                <p class="text-xl text-gray-300">Four things. All automated. Zero extra work from you.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <!-- Morning Briefings -->
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-pat-purple text-white text-xs font-bold px-3 py-1 rounded-full">7:00 AM</div>
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-pat-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Morning Briefings</h3>
+                    <p class="text-gray-400 text-sm">I analyze every client overnight and tell you exactly who needs attention and why.</p>
+                    <p class="text-pat-purple text-xs font-medium mt-3">Saves 45 min/day</p>
+                </div>
+
+                <!-- Smart Directives -->
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-pat-orange text-white text-xs font-bold px-3 py-1 rounded-full">24/7</div>
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-pat-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Smart Directives</h3>
+                    <p class="text-gray-400 text-sm">I automatically respond to client events — missed workouts, PRs, questions — based on your rules.</p>
+                    <p class="text-pat-orange text-xs font-medium mt-3">14 trigger types</p>
+                </div>
+
+                <!-- Session Prep -->
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">Before Sessions</div>
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Session Prep</h3>
+                    <p class="text-gray-400 text-sm">Before every session, I tell you what happened since last time and what to focus on today.</p>
+                    <p class="text-green-400 text-xs font-medium mt-3">Walk in prepared</p>
+                </div>
+
+                <!-- 24/7 Client Support -->
+                <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-6 text-center relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">Even at 2AM</div>
+                    <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">24/7 Support</h3>
+                    <p class="text-gray-400 text-sm">Clients can ask me anything about nutrition, workouts, or their plan. I answer in your voice.</p>
+                    <p class="text-blue-400 text-xs font-medium mt-3">847+ studies backing me</p>
+                </div>
+            </div>
+
+            <!-- Value Summary -->
+            <div class="bg-gradient-to-br from-pat-purple/10 to-pat-orange/10 border border-pat-purple/30 rounded-2xl p-8 text-center">
+                <p class="text-gray-400 text-sm uppercase tracking-wide mb-4">Total Time Saved Per Week</p>
+                <div class="text-5xl font-bold text-white mb-2">12+ hours</div>
+                <p class="text-gray-300">That's 12 hours back to train more clients, create content, or just live your life.</p>
+                <div class="mt-6 pt-6 border-t border-white/10">
+                    <p class="text-sm text-gray-400">At $100/hour for your time, that's <span class="text-pat-orange font-bold">$4,800/month in value</span> — for $99-599/month.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== COMPARISON: OLD WAY VS PAT ==================== -->
+    <section class="py-16 border-t border-white/5">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+                    The tools you're using were built for you to do the work.
+                    <span class="gradient-text">I do it for you.</span>
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+                <!-- Traditional Tools -->
+                <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <span class="text-red-400 text-xl">📊</span>
+                        </div>
+                        <div>
+                            <h3 class="text-red-400 font-bold uppercase tracking-wide text-sm">Traditional Tools</h3>
+                            <p class="text-gray-400 text-sm">Everfit • TrueCoach • Trainerize</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 text-lg mt-0.5">✕</span>
+                            <div>
+                                <span class="text-gray-300">Dashboard shows data</span>
+                                <p class="text-gray-500 text-sm">You analyze. You decide. You act.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 text-lg mt-0.5">✕</span>
+                            <div>
+                                <span class="text-gray-300">Client messages go to inbox</span>
+                                <p class="text-gray-500 text-sm">You reply when you can.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 text-lg mt-0.5">✕</span>
+                            <div>
+                                <span class="text-gray-300">Basic automation</span>
+                                <p class="text-gray-500 text-sm">"Send X when Y happens"</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 text-lg mt-0.5">✕</span>
+                            <div>
+                                <span class="text-gray-300">Workouts OR nutrition</span>
+                                <p class="text-gray-500 text-sm">Separate tools, separate logins</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 text-lg mt-0.5">✕</span>
+                            <div>
+                                <span class="text-gray-300">Static macros</span>
+                                <p class="text-gray-500 text-sm">Same targets every day</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- HiPat -->
+                <div class="bg-gradient-to-br from-pat-purple/10 to-pat-orange/10 border border-pat-purple/30 rounded-2xl p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pat-purple to-pat-orange flex items-center justify-center">
+                            <div class="flex gap-1">
+                                <div class="w-1 h-1.5 bg-white rounded-full"></div>
+                                <div class="w-1 h-1.5 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-pat-purple font-bold uppercase tracking-wide text-sm">With Pat</h3>
+                            <p class="text-gray-400 text-sm">Your AI Employee</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-400 text-lg mt-0.5">✓</span>
+                            <div>
+                                <span class="text-white font-medium">I brief you every morning</span>
+                                <p class="text-gray-400 text-sm">"Emily's struggling — here's why and what to do."</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-400 text-lg mt-0.5">✓</span>
+                            <div>
+                                <span class="text-white font-medium">I handle 24/7 support</span>
+                                <p class="text-gray-400 text-sm">Questions at 2am? I'm there. You sleep.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-400 text-lg mt-0.5">✓</span>
+                            <div>
+                                <span class="text-white font-medium">Smart Directives with intelligence</span>
+                                <p class="text-gray-400 text-sm">I analyze, understand context, respond appropriately.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-400 text-lg mt-0.5">✓</span>
+                            <div>
+                                <span class="text-white font-medium">Workouts + nutrition unified</span>
+                                <p class="text-gray-400 text-sm">One system. Full picture. Always connected.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-400 text-lg mt-0.5">✓</span>
+                            <div>
+                                <span class="text-white font-medium">Macros adjust to training</span>
+                                <p class="text-gray-400 text-sm">Leg day? More carbs. Rest day? Dial back. Automatic.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <p class="text-xl text-white font-semibold mb-6">
+                    They build tools. <span class="gradient-text">I build relationships.</span>
+                </p>
+                <button class="bg-gradient-to-r from-pat-orange to-orange-500 hover:from-orange-500 hover:to-pat-orange text-white text-lg font-bold px-10 py-4 rounded-full cta-glow transition-all hover:scale-105">
+                    Hire Pat — 14 Days Free
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FEATURE COMPARISON TABLE ==================== -->
+    <section class="py-16 px-4 bg-white/5">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">
+                Feature-by-Feature <span class="gradient-text">Comparison</span>
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-white/10">
+                            <th class="text-left py-4 pr-4 font-semibold text-gray-400">Feature</th>
+                            <th class="text-center py-4 px-3">
+                                <div class="text-gray-400 text-xs mb-1">Most Popular</div>
+                                <div class="text-white font-semibold">Everfit</div>
+                            </th>
+                            <th class="text-center py-4 px-3">
+                                <div class="text-gray-400 text-xs mb-1">Runner-up</div>
+                                <div class="text-white font-semibold">TrueCoach</div>
+                            </th>
+                            <th class="text-center py-4 px-3">
+                                <div class="text-gray-400 text-xs mb-1">Enterprise</div>
+                                <div class="text-white font-semibold">Trainerize</div>
+                            </th>
+                            <th class="text-center py-4 px-3 bg-pat-purple/10 rounded-t-lg">
+                                <div class="text-pat-orange text-xs mb-1 font-bold">AI-First</div>
+                                <div class="gradient-text font-bold">HiPat</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-300">
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">AI Coach for Clients</div><div class="text-gray-500 text-xs">24/7 conversational AI</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-yellow-400">~</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓ Pat 24/7</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">AI Briefings for Trainers</div><div class="text-gray-500 text-xs">Morning prep + insights</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Unified Workouts + Nutrition</div><div class="text-gray-500 text-xs">One system, connected</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-yellow-400">~</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-yellow-400">~</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓ Full</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Macros Adjust to Training</div><div class="text-gray-500 text-xs">Leg day = more carbs</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓ Auto</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Smart Directives</div><div class="text-gray-500 text-xs">AI-powered automation</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-yellow-400">Basic</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-yellow-400">Basic</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-yellow-400">Basic</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓ 14 triggers</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Session Prep Briefings</div><div class="text-gray-500 text-xs">AI preps you before sessions</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Voice & Photo Meal Logging</div><div class="text-gray-500 text-xs">For your clients</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓</span></td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Research-Backed Intelligence</div><div class="text-gray-500 text-xs">PhD-level, cites studies</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-red-400">✕</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-green-400 font-bold">✓ 847+ studies</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 pr-4"><div class="text-white font-medium">Starting Price</div><div class="text-gray-500 text-xs">Per month</div></td>
+                            <td class="text-center py-4 px-3"><span class="text-gray-400">$16/mo</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-gray-400">$20/mo</span></td>
+                            <td class="text-center py-4 px-3"><span class="text-gray-400">$19/mo</span></td>
+                            <td class="text-center py-4 px-3 bg-pat-purple/5"><span class="text-pat-orange font-bold">$0 (14-day trial)</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SOCIAL PROOF / TESTIMONIALS ==================== -->
+    <section class="py-16 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">What trainers say about hiring Pat</h2>
+                <p class="text-gray-400">Real results from real trainers. Not cherry-picked.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Testimonial 1 -->
+                <div class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+                    <div class="flex gap-0.5 mb-4">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-gray-300 text-base leading-relaxed mb-6">
+                        "I went from <span class="font-semibold text-white">18 to 47 clients</span> in 4 months without burning out. Pat handles the daily check-ins so <span class="font-semibold text-white">I focus on the breakthroughs</span>."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">DR</div>
+                        <div>
+                            <p class="text-white font-medium text-sm">Daniel R.</p>
+                            <p class="text-gray-400 text-xs">Online Coach, 47 clients</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <p class="text-xs text-gray-500">Result: <span class="text-green-400 font-medium">+161% client growth</span></p>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+                    <div class="flex gap-0.5 mb-4">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-gray-300 text-base leading-relaxed mb-6">
+                        "My <span class="font-semibold text-white">retention went from 4 months to 11 months</span> average. Pat catches the warning signs I used to miss. That's <span class="font-semibold text-white">$29,400 in saved revenue</span> last quarter."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">MK</div>
+                        <div>
+                            <p class="text-white font-medium text-sm">Michelle K.</p>
+                            <p class="text-gray-400 text-xs">Gym Owner, 3 trainers</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <p class="text-xs text-gray-500">Result: <span class="text-green-400 font-medium">+175% retention</span></p>
+                    </div>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+                    <div class="flex gap-0.5 mb-4">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-gray-300 text-base leading-relaxed mb-6">
+                        "I finally have time to <span class="font-semibold text-white">create content and build my brand</span> instead of answering the same nutrition questions. Pat handles that now — <span class="font-semibold text-white">better than I could</span>."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-semibold text-sm">JT</div>
+                        <div>
+                            <p class="text-white font-medium text-sm">James T.</p>
+                            <p class="text-gray-400 text-xs">Personal Trainer, 32 clients</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <p class="text-xs text-gray-500">Result: <span class="text-green-400 font-medium">+14 hrs/week saved</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Summary -->
+            <div class="mt-12 bg-gradient-to-r from-pat-purple/10 to-pat-orange/10 border border-pat-purple/30 rounded-2xl p-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-white mb-1">347</div>
+                        <div class="text-sm text-gray-400">Trainers using Pat</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-white mb-1">12,400+</div>
+                        <div class="text-sm text-gray-400">Clients managed</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-white mb-1">67%</div>
+                        <div class="text-sm text-gray-400">Avg churn reduction</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-white mb-1">12 hrs</div>
+                        <div class="text-sm text-gray-400">Saved per week</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PRICING SECTION ==================== -->
+    <section id="pricing" class="py-16 px-4 border-t border-white/5">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <span class="inline-block px-4 py-1.5 bg-gradient-to-r from-pat-purple/20 to-pat-orange/20 border border-pat-purple/30 rounded-full text-sm font-medium text-white mb-6">
+                    Founding Trainer Pricing — Locked Forever
+                </span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+                    Hire Pat. Cancel anytime.
+                </h2>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                    Start with a 14-day free trial. If Pat doesn't save you at least 5 hours in the first week, don't pay.
+                </p>
+            </div>
+
+            <!-- Value Anchor -->
+            <div class="bg-white/5 border border-white/10 rounded-xl p-6 max-w-3xl mx-auto mb-10">
+                <p class="text-center text-gray-400 mb-4">What you're actually getting:</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-sm">
+                    <div>
+                        <div class="text-white font-semibold">Morning Briefings</div>
+                        <div class="text-gray-500 value-line">$500/mo value</div>
+                    </div>
+                    <div>
+                        <div class="text-white font-semibold">24/7 Client Support</div>
+                        <div class="text-gray-500 value-line">$2,000/mo value</div>
+                    </div>
+                    <div>
+                        <div class="text-white font-semibold">Session Prep</div>
+                        <div class="text-gray-500 value-line">$400/mo value</div>
+                    </div>
+                    <div>
+                        <div class="text-white font-semibold">Smart Directives</div>
+                        <div class="text-gray-500 value-line">$300/mo value</div>
+                    </div>
+                </div>
+                <p class="text-center mt-4">
+                    <span class="text-gray-500">Total value:</span>
+                    <span class="value-line text-gray-400 ml-2">$3,200/mo</span>
+                    <span class="text-green-400 font-bold ml-2">You pay: From $99/mo</span>
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+
+                <!-- STARTER -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col">
+                    <div class="mb-4">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">For Solo Trainers</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Starter</h3>
+                        <div class="mt-2">
+                            <span class="text-4xl font-bold text-white">$99</span>
+                            <span class="text-gray-400">/mo</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">~$6.60/client for 15 clients</p>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6">Everything you need to start delegating to Pat.</p>
+                    <div class="space-y-3 mb-8 flex-grow">
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Up to <span class="text-white font-medium">15 clients</span></span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Morning briefings</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">24/7 client AI support</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">5 Smart Directives</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Workout + nutrition tracking</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Voice & photo meal logging</span>
+                        </div>
+                    </div>
+                    <button class="w-full border border-white/20 hover:bg-white/10 text-white font-semibold py-3 rounded-full transition-colors">
+                        Start 14-Day Free Trial
+                    </button>
+                </div>
+
+                <!-- GROWTH - MOST POPULAR -->
+                <div class="relative bg-gradient-to-br from-pat-purple/10 to-pat-orange/10 border border-pat-orange/50 rounded-2xl p-6 flex flex-col">
+                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-pat-purple to-pat-orange rounded-full text-xs font-bold text-white uppercase tracking-wide whitespace-nowrap">
+                        Most Popular
+                    </span>
+                    <div class="mb-4">
+                        <span class="text-xs font-semibold text-pat-orange uppercase tracking-wide">For Growing Trainers</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Growth</h3>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-gray-500 line-through text-lg">$299</span>
+                            <span class="text-4xl font-bold text-white">$199</span>
+                            <span class="text-gray-400">/mo</span>
+                        </div>
+                        <p class="text-sm text-green-400 mt-1">~$4/client for 50 clients</p>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-6">Scale without losing the personal touch.</p>
+                    <div class="space-y-3 mb-8 flex-grow">
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-white font-medium">Everything in Starter, plus...</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Up to <span class="text-white font-medium">50 clients</span></span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Unlimited Smart Directives</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Session prep briefings</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Group programs & cohorts</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Program templates</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Analytics dashboard</span>
+                        </div>
+                    </div>
+                    <button class="w-full bg-gradient-to-r from-pat-orange to-orange-500 hover:from-orange-500 hover:to-pat-orange text-white font-bold py-3 rounded-full cta-glow transition-all hover:scale-105">
+                        Start 14-Day Free Trial
+                    </button>
+                    <p class="text-xs text-center text-gray-400 mt-2">Lock in founding price forever</p>
+                </div>
+
+                <!-- PRO -->
+                <div class="bg-pat-purple/10 border border-pat-purple/50 rounded-2xl p-6 flex flex-col">
+                    <div class="mb-4">
+                        <span class="text-xs font-semibold text-pat-purple uppercase tracking-wide">For Teams & Studios</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Pro</h3>
+                        <div class="mt-2">
+                            <span class="text-4xl font-bold text-white">$599</span>
+                            <span class="text-gray-400">/mo</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Unlimited clients</p>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-6">Run your entire operation with Pat.</p>
+                    <div class="space-y-3 mb-8 flex-grow">
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-white font-medium">Everything in Growth, plus...</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300"><span class="text-white font-medium">Unlimited clients</span></span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Up to 5 team members</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Team management dashboard</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">White-label option</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Priority support</span>
+                        </div>
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="text-green-400">✓</span>
+                            <span class="text-gray-300">Custom onboarding</span>
+                        </div>
+                    </div>
+                    <button class="w-full bg-pat-purple hover:bg-purple-600 text-white font-bold py-3 rounded-full transition-colors">
+                        Start 14-Day Free Trial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Guarantee -->
+            <div class="mt-12 text-center">
+                <div class="inline-flex items-center gap-3 bg-green-500/10 border border-green-500/30 px-6 py-4 rounded-xl">
+                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <div class="text-left">
+                        <p class="text-white font-bold">30-Day Money-Back Guarantee</p>
+                        <p class="text-sm text-gray-400">If Pat doesn't save you time, get a full refund. No questions asked.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FAQ SECTION ==================== -->
+    <section id="faq" class="py-16 px-4 border-t border-white/5">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    <span class="gradient-text">Frequently Asked Questions</span>
+                </h2>
+                <p class="text-gray-400 text-lg">Everything you need to know about hiring Pat.</p>
+            </div>
+
+            <div class="space-y-4">
+                <details class="bg-white/5 border border-white/10 rounded-xl group" open>
+                    <summary class="px-6 py-4 cursor-pointer text-white font-medium list-none flex justify-between items-center">
+                        How is Pat different from Everfit, TrueCoach, or Trainerize?
+                        <span class="transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-400">
+                        Those are tools that show you data. Pat is an employee that does work. They give you dashboards — Pat gives you morning briefings telling you exactly who needs attention and why. They send automated messages — Pat has intelligent conversations with your clients 24/7. They track workouts OR nutrition — Pat does both, connected, with macros that adjust to training automatically.
+                    </div>
+                </details>
+
+                <details class="bg-white/5 border border-white/10 rounded-xl group">
+                    <summary class="px-6 py-4 cursor-pointer text-white font-medium list-none flex justify-between items-center">
+                        Will Pat replace me as the coach?
+                        <span class="transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-400">
+                        No. Pat is your employee, not your replacement. Pat handles the daily monitoring, the 2am questions, the repetitive check-ins. You handle the breakthroughs, the programming decisions, the human connection that only you can provide. Pat makes you a better coach by freeing you to do what only you can do.
+                    </div>
+                </details>
+
+                <details class="bg-white/5 border border-white/10 rounded-xl group">
+                    <summary class="px-6 py-4 cursor-pointer text-white font-medium list-none flex justify-between items-center">
+                        How does Pat talk to my clients?
+                        <span class="transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-400">
+                        Pat learns your coaching style and speaks in a voice that feels consistent with your brand. Clients can ask Pat questions about nutrition, their workout plan, or anything fitness-related. Pat answers using 847+ peer-reviewed studies — no bro science. For anything outside Pat's scope, Pat flags it for you to handle personally.
+                    </div>
+                </details>
+
+                <details class="bg-white/5 border border-white/10 rounded-xl group">
+                    <summary class="px-6 py-4 cursor-pointer text-white font-medium list-none flex justify-between items-center">
+                        What are Smart Directives?
+                        <span class="transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-400">
+                        Smart Directives are intelligent automations that go beyond "send X when Y happens." You set up triggers (missed workout, hit a PR, went inactive) and Pat analyzes the situation, understands context, and responds appropriately. For example: "When a client misses 3 workouts, analyze their recent activity, understand why, and send an encouraging message with specific suggestions."
+                    </div>
+                </details>
+
+                <details class="bg-white/5 border border-white/10 rounded-xl group">
+                    <summary class="px-6 py-4 cursor-pointer text-white font-medium list-none flex justify-between items-center">
+                        Can I cancel anytime?
+                        <span class="transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-400">
+                        Yes. No contracts, no commitments. Cancel anytime from your dashboard. Plus, we offer a 30-day money-back guarantee — if Pat doesn't save you time, get a full refund, no questions asked. We're confident Pat will earn their keep.
+                    </div>
+                </details>
+
+                <details class="bg-white/5 border border-white/10 rounded-xl group">
+                    <summary class="px-6 py-4 cursor-pointer text-white font-medium list-none flex justify-between items-center">
+                        What happens to my clients if I cancel?
+                        <span class="transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-400">
+                        Your data is always yours. If you cancel, you can export all client data, workout history, and progress records. We never hold your data hostage. Your clients would simply lose access to Pat's 24/7 support and the HiPat app — you'd continue coaching them however you did before.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FINAL CTA SECTION ==================== -->
+    <section class="py-20 px-4 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-pat-purple/10 to-pat-purple/5 pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 md:w-[600px] md:h-[600px] bg-gradient-to-br from-pat-purple/20 to-pat-orange/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative text-center py-12 max-w-3xl mx-auto">
+            <div class="flex justify-center mb-8">
+                <div class="relative">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-pat-purple via-purple-500 to-pat-orange flex items-center justify-center">
+                        <div class="flex gap-4">
+                            <div class="w-3 h-4 bg-white rounded-full"></div>
+                            <div class="w-3 h-4 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                        Ready to work
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-3xl md:text-5xl font-bold mb-6">
+                <span class="text-white">Stop losing clients.</span><br>
+                <span class="gradient-text">Start scaling smart.</span>
+            </h2>
+
+            <p class="text-gray-400 text-lg md:text-xl mb-6 max-w-2xl mx-auto">
+                Every day you wait, clients are slipping through the cracks. Pat catches them before they leave.
+            </p>
+
+            <!-- Urgency -->
+            <div class="inline-flex items-center gap-2 bg-pat-orange/20 border border-pat-orange/30 px-4 py-2 rounded-full mb-8">
+                <span class="w-2 h-2 bg-pat-orange rounded-full animate-pulse"></span>
+                <span class="text-sm font-medium text-pat-orange">
+                    Only 47 founding spots left at this price
+                </span>
+            </div>
+
+            <div class="space-y-4">
+                <button class="bg-gradient-to-r from-pat-orange to-orange-500 hover:from-orange-500 hover:to-pat-orange text-white text-xl font-bold px-12 py-5 rounded-full cta-glow transition-all hover:scale-105">
+                    Hire Pat — 14 Days Free
+                </button>
+
+                <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-400">
+                    <span class="flex items-center gap-1">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        14-day free trial
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        No credit card required
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        30-day money-back guarantee
+                    </span>
+                </div>
+            </div>
+
+            <!-- Final Risk Reversal -->
+            <div class="mt-10 pt-10 border-t border-white/10 max-w-xl mx-auto">
+                <p class="text-gray-500 text-sm">
+                    "I've tried everything. I'm skeptical."
+                </p>
+                <p class="text-gray-300 mt-2">
+                    That's fair. Try Pat for 14 days free. If you don't save at least 5 hours in week one, don't pay. If you pay and change your mind within 30 days, get a full refund. You literally can't lose.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="border-t border-white/10 bg-background/80 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+                <div class="col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pat-purple to-pat-orange flex items-center justify-center">
+                            <div class="flex gap-1.5">
+                                <div class="w-1.5 h-2 bg-white rounded-full"></div>
+                                <div class="w-1.5 h-2 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                        <span class="text-xl font-bold gradient-text">Pat</span>
+                        <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-gray-400">for Trainers</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6 max-w-xs">
+                        I'm Pat — your AI employee. I watch your clients 24/7, brief you every morning, and handle the work you can't scale.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Product</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#how-it-works" class="text-sm text-gray-400 hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#pricing" class="text-sm text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">For Individuals</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Support</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#faq" class="text-sm text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+                        <li><a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Legal</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-white/10">
+                <p class="text-sm text-gray-400">© 2025 Pat. <span class="font-semibold text-white">Born</span> not built. All rights reserved.</p>
+                <div class="flex items-center gap-4 text-sm text-gray-400">
+                    <span>Questions?</span>
+                    <a href="mailto:hello@hipat.app" class="text-pat-purple hover:text-white transition-colors">hello@hipat.app</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll progress bar
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const progress = maxScroll > 0 ? (scrolled / maxScroll) * 100 : 0;
+            document.getElementById('scroll-progress').style.width = progress + '%';
+
+            // Show sticky CTA after scrolling 40%
+            const stickyCta = document.getElementById('sticky-cta');
+            if (progress > 40) {
+                stickyCta.style.transform = 'translateY(0)';
+            } else {
+                stickyCta.style.transform = 'translateY(100%)';
+            }
+        });
+    </script>
+</body>
+</html>
